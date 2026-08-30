@@ -156,11 +156,17 @@ function showToast(message, type = 'success') {
   }, 2800);
 }
 
-// Global click handler to close model picker dropdown if clicked outside
+// Global click handler to close model pickers if clicked outside
 document.addEventListener('click', (e) => {
   if (typeof isModelPickerOpen !== 'undefined' && isModelPickerOpen) {
     if (!e.target.closest('#chat-model-picker-btn') && !e.target.closest('.absolute')) {
       isModelPickerOpen = false;
+      renderApp();
+    }
+  }
+  if (typeof isDashboardModelPickerOpen !== 'undefined' && isDashboardModelPickerOpen) {
+    if (!e.target.closest('#dashboard-model-picker-btn') && !e.target.closest('.absolute')) {
+      isDashboardModelPickerOpen = false;
       renderApp();
     }
   }
@@ -169,7 +175,7 @@ document.addEventListener('click', (e) => {
 window.addEventListener('keydown', (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
     e.preventDefault();
-    const searchInput = document.getElementById('sidebar-search-input') || document.getElementById('chat-textarea-input');
+    const searchInput = document.getElementById('sidebar-search-input') || document.getElementById('dashboard-composer-input') || document.getElementById('chat-textarea-input');
     if (searchInput) searchInput.focus();
   }
 });

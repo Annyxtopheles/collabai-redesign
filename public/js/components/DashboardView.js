@@ -1,9 +1,13 @@
-﻿// DashboardView.js - Ivory off-white typography, btn-primary buttons, clean shortcuts
+﻿// DashboardView.js - Ivory off-white typography, working interactive model selector on homescreen
+let isDashboardModelPickerOpen = false;
+
 function renderDashboardView(state) {
   const user = state.user || DEFAULT_USER;
   const agents = state.agents || [];
   const conversations = state.conversations || [];
   const projects = state.projects || [];
+  const activeModelId = state.selectedModel || 'openai/gpt-oss-120b';
+  const activeModel = AVAILABLE_MODELS.find(m => m.id === activeModelId) || AVAILABLE_MODELS[0];
 
   return `
     <div class="flex-1 flex flex-col h-full overflow-y-auto bg-app-canvas select-none">
@@ -13,12 +17,31 @@ function renderDashboardView(state) {
         
         <!-- Welcome Greeting -->
         <div class="flex flex-col gap-1">
-          <h1 class="text-[24px] font-semibold text-white tracking-tight">Welcome back, ${user.name}!</h1>
+          <h1 class="text-[24px] font-semibold text-white tracking-tight">Welcome back, ${escapeHtml(user.name)}!</h1>
           <p class="text-[14px] text-app-textSecondary font-normal">You have 12 active automations running across ${projects.length} projects.</p>
         </div>
 
-        <!-- Global Chat Shortcut Composer -->
-        <div class="w-full bg-app-surface border border-app-borderSubtle rounded-xl p-3.5 flex flex-col gap-3 shadow-lg">
+        <!-- Global Chat Shortcut Composer (with interactive model selector) -->
+        <div class="w-full bg-app-surface border border-app-borderSubtle rounded-xl p-3.5 flex flex-col gap-3 shadow-lg relative">
+          
+          <!-- Dropdown Model Picker for Dashboard -->
+          ${isDashboardModelPickerOpen ? `
+            <div class="absolute bottom-[65px] left-3.5 w-72 bg-app-surface border border-app-borderSubtle rounded-xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
+              <div class="px-2.5 py-1.5 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Select Model Provider</div>
+              ${AVAILABLE_MODELS.map(m => `
+                <div 
+                  onclick="selectDashboardModel('${m.id}')"
+                  class="flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${m.id === activeModelId ? 'bg-white/[0.08] text-white' : 'text-app-textSecondary hover:bg-app-hover hover:text-white'}">
+                  <div class="flex flex-col">
+                    <span class="font-normal text-white">${m.name}</span>
+                    <span class="text-[11px] text-app-textMuted">${m.provider}</span>
+                  </div>
+                  <span class="text-[10.5px] px-1.5 py-0.5 rounded bg-app-input border border-app-borderSubtle text-app-textMuted">${m.badge}</span>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+
           <div class="flex items-center gap-2.5">
             <button class="p-1.5 text-app-textMuted hover:text-white rounded-lg hover:bg-app-hover transition-colors">
               <i data-lucide="paperclip" class="w-4 h-4"></i>
@@ -43,13 +66,18 @@ function renderDashboardView(state) {
             </div>
           </div>
 
-          <!-- Sub-toolbar with Model Selector & Filter Pills -->
+          <!-- Sub-toolbar with Working Model Selector Dropdown & Filter Pills -->
           <div class="flex items-center justify-between pt-2 border-t border-app-borderSubtle text-[12px]">
             <div class="flex items-center gap-2">
-              <div class="flex items-center gap-1.5 bg-app-input px-2.5 py-1 rounded-md border border-app-borderSubtle text-app-textSecondary cursor-pointer">
-                <span>GPT-OSS 120B · Groq</span>
-                <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
-              </div>
+              <button 
+                type="button"
+                id="dashboard-model-picker-btn"
+                onclick="toggleDashboardModelPicker(event)"
+                class="flex items-center gap-1.5 bg-app-input hover:bg-app-hover px-2.5 py-1 rounded-md border border-app-borderSubtle text-app-textSecondary hover:text-white cursor-pointer transition-colors">
+                <span class="font-normal text-white">${activeModel.name}</span>
+                <span class="text-[10px] text-app-textMuted">· ${activeModel.provider}</span>
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-app-textMuted"></i>
+              </button>
               <div class="flex items-center gap-0.5 bg-app-input p-0.5 rounded-md border border-app-borderSubtle">
                 <button class="btn-primary px-2.5 py-0.5 rounded text-[11px] font-medium">Chat</button>
                 <button class="text-app-textMuted hover:text-white px-2 py-0.5 text-[11px] font-normal">Deep Search</button>
@@ -156,6 +184,18 @@ function renderDashboardView(state) {
       </div>
     </div>
   `;
+}
+
+function toggleDashboardModelPicker(e) {
+  if (e) e.stopPropagation();
+  isDashboardModelPickerOpen = !isDashboardModelPickerOpen;
+  renderApp();
+}
+
+function selectDashboardModel(modelId) {
+  isDashboardModelPickerOpen = false;
+  appStore.setSelectedModel(modelId);
+  showToast(`Switched model to ${modelId}`);
 }
 
 function setDashboardPrompt(tag) {
