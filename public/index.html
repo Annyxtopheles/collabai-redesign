@@ -1,0 +1,81 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CollabAI — AI Agent Collaboration Platform</title>
+  
+  <!-- Inter & Cousine Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cousine:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS Play CDN with Pure Neutral Dark + #171717 Brand Surface -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Cousine', 'monospace']
+          },
+          colors: {
+            app: {
+              canvas: '#111111',
+              sidebar: '#141414',
+              surface: '#171717',
+              elevated: '#1c1c1c',
+              input: '#1f1f1f',
+              hover: '#262626',
+              borderSubtle: '#262626',
+              borderMed: '#303030',
+              borderActive: '#3c3c3c',
+              accent: '#315EFF',
+              accentHover: '#254cd9',
+              textPrimary: '#FFFFFF',
+              textSecondary: '#A3A3A3',
+              textMuted: '#71717A',
+              success: '#34D399',
+              purple: '#A78BFA',
+              red: '#EF4444'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Marked for Markdown Parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <link rel="stylesheet" href="/css/app.css" />
+</head>
+<body class="bg-app-canvas text-app-textPrimary font-sans antialiased overflow-hidden select-none">
+  <div id="app-root" class="h-screen w-screen flex overflow-hidden">
+    <!-- Rendered Dynamically by app.js -->
+  </div>
+
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+  <div id="modal-container" class="relative z-50"></div>
+
+  <!-- Core Scripts -->
+  <script src="/js/types.js"></script>
+  <script src="/js/utils/time.js"></script>
+  <script src="/js/store.js"></script>
+  <script src="/js/components/Sidebar.js"></script>
+  <script src="/js/components/ConversationDrawer.js"></script>
+  <script src="/js/components/HeaderBreadcrumb.js"></script>
+  <script src="/js/components/LoginView.js"></script>
+  <script src="/js/components/DashboardView.js"></script>
+  <script src="/js/components/ConversationsView.js"></script>
+  <script src="/js/components/AgentsView.js"></script>
+  <script src="/js/components/ProjectsView.js"></script>
+  <script src="/js/components/KnowledgeBaseView.js"></script>
+  <script src="/js/components/BugReportsView.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
