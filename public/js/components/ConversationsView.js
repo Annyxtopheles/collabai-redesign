@@ -1,4 +1,4 @@
-﻿// ConversationsView.js - Zero-Flicker In-Place Model & Plus Menus, Modern Arrow Button, Selectable Open Canvas
+﻿// ConversationsView.js - Zero-Flicker In-Place Dropdowns, Full Theme Support (Dark & Light)
 let isStreamingActive = false;
 
 function renderConversationsView(state) {
@@ -14,10 +14,10 @@ function renderConversationsView(state) {
       <!-- Minimalist Chat Header -->
       <header class="h-[48px] border-b border-app-borderSubtle px-6 flex items-center justify-between shrink-0 bg-app-canvas select-none z-10">
         <div class="flex items-center gap-2 min-w-0">
-          <h1 class="text-[14px] font-normal text-white truncate">${escapeHtml(convTitle)}</h1>
+          <h1 class="text-[14px] font-medium text-app-textPrimary truncate">${escapeHtml(convTitle)}</h1>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="appStore.createConversation('New Chat', '')" title="New Chat" class="p-1.5 text-app-textSecondary hover:text-white rounded-lg hover:bg-app-hover transition-colors">
+          <button onclick="appStore.createConversation('New Chat', '')" title="New Chat" class="p-1.5 text-app-textSecondary hover:text-app-textPrimary rounded-lg hover:bg-app-hover transition-colors">
             <i data-lucide="plus" class="w-4 h-4"></i>
           </button>
         </div>
@@ -30,18 +30,18 @@ function renderConversationsView(state) {
         ${messages.length === 0 ? `
           <div class="flex-1 flex flex-col items-center justify-center text-center max-w-lg mx-auto gap-3.5 my-auto select-none">
             <div class="flex flex-col gap-1">
-              <h2 class="text-[20px] font-normal text-white tracking-tight">How can I help you today?</h2>
+              <h2 class="text-[20px] font-medium text-app-textPrimary tracking-tight">How can I help you today?</h2>
               <p class="text-[13.5px] text-app-textSecondary font-normal">Ask a question, review code, or design multi-agent workflows.</p>
             </div>
             <div class="flex items-center gap-2 pt-2 flex-wrap justify-center">
               <button 
                 onclick="sendChatSuggestion('Draft a high-speed async event architecture')"
-                class="text-[12.5px] bg-app-surface hover:bg-app-hover text-white font-normal px-4 py-2 rounded-xl border border-app-borderSubtle transition-all">
+                class="text-[12.5px] bg-app-surface hover:bg-app-hover text-app-textPrimary font-normal px-4 py-2 rounded-xl border border-app-borderSubtle transition-all">
                 "Draft async architecture"
               </button>
               <button 
                 onclick="sendChatSuggestion('Review my resume for Staff AI Engineer')"
-                class="text-[12.5px] bg-app-surface hover:bg-app-hover text-white font-normal px-4 py-2 rounded-xl border border-app-borderSubtle transition-all">
+                class="text-[12.5px] bg-app-surface hover:bg-app-hover text-app-textPrimary font-normal px-4 py-2 rounded-xl border border-app-borderSubtle transition-all">
                 "Review Tech Resume"
               </button>
             </div>
@@ -60,14 +60,14 @@ function renderConversationsView(state) {
       <div class="p-4 sm:px-12 md:px-20 lg:px-32 max-w-4xl mx-auto w-full flex flex-col gap-1.5 relative z-20 select-none">
         
         <!-- Zero-Flicker In-Place Model Selector Dropdown -->
-        <div id="chat-model-dropdown-menu" class="hidden absolute bottom-[135px] left-4 sm:left-12 md:left-20 lg:left-32 w-72 bg-app-surface border border-app-borderSubtle rounded-xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
+        <div id="chat-model-dropdown-menu" class="hidden absolute bottom-[135px] left-4 sm:left-12 md:left-20 lg:left-32 w-72 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
           <div class="px-2.5 py-1.5 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Select Model Provider</div>
           ${AVAILABLE_MODELS.map(m => `
             <div 
               onclick="selectChatModel('${m.id}')"
-              class="flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${m.id === activeModelId ? 'bg-white/[0.08] text-white' : 'text-app-textSecondary hover:bg-app-hover hover:text-white'}">
+              class="flex items-center justify-between p-2 rounded-xl cursor-pointer transition-colors ${m.id === activeModelId ? 'bg-app-hover text-app-textPrimary font-medium' : 'text-app-textSecondary hover:bg-app-hover hover:text-app-textPrimary'}">
               <div class="flex flex-col">
-                <span class="font-normal text-white">${m.name}</span>
+                <span class="text-app-textPrimary">${m.name}</span>
                 <span class="text-[11px] text-app-textMuted">${m.provider}</span>
               </div>
               <span class="text-[10.5px] px-1.5 py-0.5 rounded bg-app-input border border-app-borderSubtle text-app-textMuted">${m.badge}</span>
@@ -76,21 +76,21 @@ function renderConversationsView(state) {
         </div>
 
         <!-- Zero-Flicker In-Place Plus (+) Attachment & Tools Menu -->
-        <div id="chat-plus-dropdown-menu" class="hidden absolute bottom-[135px] left-4 sm:left-12 md:left-20 lg:left-32 w-64 bg-app-surface border border-app-borderSubtle rounded-xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
+        <div id="chat-plus-dropdown-menu" class="hidden absolute bottom-[135px] left-4 sm:left-12 md:left-20 lg:left-32 w-64 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
           <div class="px-2.5 py-1 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Tools & Attachments</div>
           
-          <button onclick="triggerChatFileUpload(); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
-            <i data-lucide="upload" class="w-3.5 h-3.5 text-white"></i>
+          <button onclick="triggerChatFileUpload(); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
+            <i data-lucide="upload" class="w-3.5 h-3.5 text-app-textPrimary"></i>
             <span>Upload files (PDF, Code, CSV)</span>
           </button>
 
-          <button onclick="appStore.setRoute('/knowledge-base'); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
-            <i data-lucide="database" class="w-3.5 h-3.5 text-white"></i>
+          <button onclick="appStore.setRoute('/knowledge-base'); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
+            <i data-lucide="database" class="w-3.5 h-3.5 text-app-textPrimary"></i>
             <span>Attach from Knowledge Base</span>
           </button>
 
-          <button onclick="appStore.setRoute('/agents'); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
-            <i data-lucide="bot" class="w-3.5 h-3.5 text-white"></i>
+          <button onclick="appStore.setRoute('/agents'); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
+            <i data-lucide="bot" class="w-3.5 h-3.5 text-app-textPrimary"></i>
             <span>Mention @Agent</span>
           </button>
         </div>
@@ -104,7 +104,7 @@ function renderConversationsView(state) {
             <button 
               id="chat-plus-btn"
               onclick="toggleChatPlusMenu(event)"
-              class="w-7 h-7 rounded-full bg-app-input hover:bg-app-hover border border-app-borderSubtle text-app-textSecondary hover:text-white flex items-center justify-center transition-colors shrink-0" 
+              class="w-7 h-7 rounded-full bg-app-input hover:bg-app-hover border border-app-borderSubtle text-app-textSecondary hover:text-app-textPrimary flex items-center justify-center transition-colors shrink-0" 
               title="Add attachment or tool">
               <i data-lucide="plus" class="w-3.5 h-3.5"></i>
             </button>
@@ -122,7 +122,7 @@ function renderConversationsView(state) {
               placeholder="Message CollabAI..."
               oninput="autoGrowTextarea(this)"
               onkeydown="handleChatKeydown(event)"
-              class="flex-1 bg-transparent text-white text-[14px] font-normal placeholder-app-textMuted focus:outline-none resize-none max-h-32 select-text"
+              class="flex-1 bg-transparent text-app-textPrimary text-[14px] font-normal placeholder-app-textMuted focus:outline-none resize-none max-h-32 select-text"
             ></textarea>
 
             <!-- Modern Arrow-Up Send Icon Button -->
@@ -131,7 +131,7 @@ function renderConversationsView(state) {
               onclick="handleChatSend()"
               class="w-7 h-7 rounded-full btn-primary flex items-center justify-center transition-all shadow-sm hover:scale-105 shrink-0"
               title="Send message">
-              <i data-lucide="arrow-up" class="w-3.5 h-3.5 text-app-surface"></i>
+              <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
             </button>
           </div>
 
@@ -142,8 +142,8 @@ function renderConversationsView(state) {
                 type="button"
                 id="chat-model-picker-btn"
                 onclick="toggleModelPicker(event)"
-                class="flex items-center gap-1.5 bg-app-input hover:bg-app-hover px-2.5 py-1 rounded-md border border-app-borderSubtle text-app-textSecondary hover:text-white cursor-pointer transition-colors">
-                <span id="chat-active-model-name" class="font-normal text-white">${activeModel.name}</span>
+                class="flex items-center gap-1.5 bg-app-input hover:bg-app-hover px-2.5 py-1 rounded-md border border-app-borderSubtle text-app-textSecondary hover:text-app-textPrimary cursor-pointer transition-colors">
+                <span id="chat-active-model-name" class="font-normal text-app-textPrimary">${activeModel.name}</span>
                 <span id="chat-active-model-provider" class="text-[10px] text-app-textMuted">· ${activeModel.provider}</span>
                 <i data-lucide="chevron-down" class="w-3 h-3 text-app-textMuted"></i>
               </button>
@@ -244,7 +244,7 @@ function renderChatMessageBubble(msg) {
   if (msg.role === 'user') {
     return `
       <div class="flex justify-end w-full">
-        <div class="max-w-[80%] bg-app-surface border border-app-borderSubtle text-white rounded-2xl px-5 py-3 text-[14px] font-normal leading-relaxed shadow-sm user-msg-bubble">
+        <div class="max-w-[80%] bg-app-surface border border-app-borderSubtle text-app-textPrimary rounded-2xl px-5 py-3 text-[14px] font-normal leading-relaxed shadow-sm user-msg-bubble">
           ${escapeHtml(msg.content)}
         </div>
       </div>
@@ -271,16 +271,16 @@ function renderChatMessageBubble(msg) {
           <button 
             type="button"
             onclick="toggleSourcesInPlace('${msg.id}')"
-            class="flex items-center gap-1.5 text-[12px] font-normal text-app-textSecondary hover:text-white bg-app-surface hover:bg-app-hover border border-app-borderSubtle px-2.5 py-1 rounded-lg w-fit transition-colors">
-            <i data-lucide="file-text" class="w-3.5 h-3.5 text-white"></i>
+            class="flex items-center gap-1.5 text-[12px] font-normal text-app-textSecondary hover:text-app-textPrimary bg-app-surface hover:bg-app-hover border border-app-borderSubtle px-2.5 py-1 rounded-lg w-fit transition-colors">
+            <i data-lucide="file-text" class="w-3.5 h-3.5 text-app-textPrimary"></i>
             <span>Sources (${msg.sources.length})</span>
             <i id="sources-chevron-${msg.id}" data-lucide="chevron-down" class="w-3 h-3 text-app-textMuted"></i>
           </button>
 
           <div id="sources-box-${msg.id}" class="hidden flex items-center gap-2 flex-wrap pl-1 animate-fade-in pt-1">
             ${msg.sources.map(src => `
-              <div class="flex items-center gap-1.5 bg-app-input border border-app-borderSubtle px-3 py-1.5 rounded-lg text-white font-normal text-[12.5px] hover:border-app-borderActive transition-colors cursor-pointer">
-                <i data-lucide="file" class="w-3.5 h-3.5 text-white"></i>
+              <div class="flex items-center gap-1.5 bg-app-input border border-app-borderSubtle px-3 py-1.5 rounded-lg text-app-textPrimary font-normal text-[12.5px] hover:border-app-borderActive transition-colors cursor-pointer">
+                <i data-lucide="file" class="w-3.5 h-3.5 text-app-textPrimary"></i>
                 <span>${src}</span>
               </div>
             `).join('')}
@@ -296,7 +296,7 @@ function renderChatMessageBubble(msg) {
             ${msg.suggestions.map(sug => `
               <button 
                 onclick="sendChatSuggestion('${escapeHtml(sug)}')"
-                class="text-[12.5px] bg-app-surface hover:bg-app-elevated border border-app-borderSubtle text-white font-normal px-4 py-1.5 rounded-xl transition-all shadow-sm hover:border-app-borderMed">
+                class="text-[12.5px] bg-app-surface hover:bg-app-elevated border border-app-borderSubtle text-app-textPrimary font-normal px-4 py-1.5 rounded-xl transition-all shadow-sm hover:border-app-borderMed">
                 ${sug}
               </button>
             `).join('')}
@@ -306,13 +306,13 @@ function renderChatMessageBubble(msg) {
 
       <!-- Bottom message utility actions (Copy, Good Response, Bad Response) -->
       <div class="flex items-center justify-end gap-3 pt-1 text-app-textMuted select-none">
-        <button onclick="navigator.clipboard.writeText('${escapeHtml(msg.content)}'); showToast('Copied to clipboard')" class="p-1 hover:text-white transition-colors" title="Copy output">
+        <button onclick="navigator.clipboard.writeText('${escapeHtml(msg.content)}'); showToast('Copied to clipboard')" class="p-1 hover:text-app-textPrimary transition-colors" title="Copy output">
           <i data-lucide="copy" class="w-3.5 h-3.5"></i>
         </button>
-        <button onclick="showToast('Thank you for the positive feedback!')" class="p-1 hover:text-white transition-colors" title="Good response">
+        <button onclick="showToast('Thank you for the positive feedback!')" class="p-1 hover:text-app-textPrimary transition-colors" title="Good response">
           <i data-lucide="thumbs-up" class="w-3.5 h-3.5"></i>
         </button>
-        <button onclick="showToast('Feedback noted. We will improve.')" class="p-1 hover:text-white transition-colors" title="Bad response">
+        <button onclick="showToast('Feedback noted. We will improve.')" class="p-1 hover:text-app-textPrimary transition-colors" title="Bad response">
           <i data-lucide="thumbs-down" class="w-3.5 h-3.5"></i>
         </button>
       </div>
@@ -371,7 +371,7 @@ function triggerConversationStreaming(convId, userPrompt) {
   liveBubble.innerHTML = `
     <div class="flex flex-col gap-2 text-[12.5px] text-app-textMuted font-normal">
       <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+        <span class="w-2 h-2 rounded-full bg-app-accent animate-ping"></span>
         <span id="live-thinking-timer">Reasoning... (0.5s)</span>
       </div>
       <div class="w-1/2 h-2 bg-app-input rounded skeleton-shimmer"></div>

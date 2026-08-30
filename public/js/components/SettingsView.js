@@ -1,180 +1,158 @@
-﻿// SettingsView.js - Dedicated Settings & API Key Provider Page
-let activeSettingsTab = 'providers';
-
+﻿// SettingsView.js - Dedicated Settings & API Keys Management Page with Theme Controls
 function renderSettingsView(state) {
-  const user = state.user || DEFAULT_USER;
-  const groqKey = localStorage.getItem('collab_groq_key') || '';
-  const geminiKey = localStorage.getItem('collab_gemini_key') || '';
-  const openrouterKey = localStorage.getItem('collab_openrouter_key') || '';
+  const currentKey = localStorage.getItem('collab_groq_key') || '';
+  const currentGemini = localStorage.getItem('collab_gemini_key') || '';
+  const currentOpenRouter = localStorage.getItem('collab_openrouter_key') || '';
+  const currentTheme = state.theme || 'dark';
 
   return `
     <div class="flex-1 flex flex-col h-full overflow-y-auto bg-app-canvas select-none">
-      ${renderHeaderBreadcrumb('Settings')}
+      ${renderHeaderBreadcrumb('Settings & Preferences')}
 
-      <div class="p-8 max-w-[900px] mx-auto w-full flex flex-col gap-6">
+      <div class="p-8 max-w-[900px] mx-auto w-full flex flex-col gap-7 animate-fade-in">
         
         <!-- Header -->
         <div class="flex flex-col gap-0.5">
-          <h1 class="text-[22px] font-semibold text-white tracking-tight">Settings & Preferences</h1>
-          <p class="text-[13.5px] text-app-textSecondary">Manage API model keys, profile identity, workspaces, and application behavior.</p>
+          <h1 class="text-[22px] font-semibold text-app-textPrimary tracking-tight">Settings & Preferences</h1>
+          <p class="text-[13.5px] text-app-textSecondary">Configure your appearance, default AI provider, and custom API keys</p>
         </div>
 
-        <!-- Navigation Tabs -->
-        <div class="flex items-center gap-6 border-b border-app-borderSubtle text-[13.5px]">
-          <button 
-            onclick="setSettingsTab('providers')"
-            class="pb-2.5 font-medium transition-colors border-b-2 ${activeSettingsTab === 'providers' ? 'border-app-accent text-white' : 'border-transparent text-app-textSecondary hover:text-white'}">
-            AI Model Providers
-          </button>
-          <button 
-            onclick="setSettingsTab('profile')"
-            class="pb-2.5 font-medium transition-colors border-b-2 ${activeSettingsTab === 'profile' ? 'border-app-accent text-white' : 'border-transparent text-app-textSecondary hover:text-white'}">
-            Profile & Account
-          </button>
-          <button 
-            onclick="setSettingsTab('workspace')"
-            class="pb-2.5 font-medium transition-colors border-b-2 ${activeSettingsTab === 'workspace' ? 'border-app-accent text-white' : 'border-transparent text-app-textSecondary hover:text-white'}">
-            Workspaces
-          </button>
-        </div>
-
-        ${activeSettingsTab === 'providers' ? `
-          <!-- AI Model Providers Section -->
-          <div class="flex flex-col gap-5">
-            <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-6 flex flex-col gap-5 shadow-lg">
-              
-              <div class="flex flex-col gap-1">
-                <div class="flex items-center gap-2">
-                  <i data-lucide="cpu" class="w-4 h-4 text-emerald-400"></i>
-                  <h2 class="text-[15.5px] font-medium text-white">Groq Cloud (Active Primary Engine)</h2>
-                  <span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-normal">Active & Ultra-Fast</span>
-                </div>
-                <p class="text-[12.5px] text-app-textSecondary font-normal">Powers Llama-3.3-70B, GPT-OSS 120B, and Qwen 3.6 27B at 500+ tokens/second.</p>
-              </div>
-
-              <div class="flex flex-col gap-1.5">
-                <div class="flex items-center justify-between">
-                  <label class="text-[12px] font-normal text-white">Groq API Key</label>
-                  <a href="https://console.groq.com/keys" target="_blank" class="text-[11.5px] text-app-accent hover:underline">Get Free Groq Key ↗</a>
-                </div>
-                <input 
-                  type="password" 
-                  id="page-groq-key"
-                  value="${groqKey}" 
-                  placeholder="gsk_..." 
-                  class="bg-app-input border border-app-borderSubtle text-white font-mono text-[13px] rounded-lg px-3.5 py-2 focus:outline-none focus:border-app-borderActive"
-                />
-              </div>
-
-              <div class="border-t border-app-borderSubtle pt-4 flex flex-col gap-1.5">
-                <div class="flex items-center justify-between">
-                  <label class="text-[12px] font-normal text-white">Google Gemini API Key (100% Free)</label>
-                  <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[11.5px] text-app-accent hover:underline">Get Free Gemini Key ↗</a>
-                </div>
-                <input 
-                  type="password" 
-                  id="page-gemini-key"
-                  value="${geminiKey}" 
-                  placeholder="AIzaSy..." 
-                  class="bg-app-input border border-app-borderSubtle text-white font-mono text-[13px] rounded-lg px-3.5 py-2 focus:outline-none focus:border-app-borderActive"
-                />
-              </div>
-
-              <div class="border-t border-app-borderSubtle pt-4 flex flex-col gap-1.5">
-                <div class="flex items-center justify-between">
-                  <label class="text-[12px] font-normal text-white">OpenRouter API Key (Unified Open-Source Aggregator)</label>
-                  <a href="https://openrouter.ai/keys" target="_blank" class="text-[11.5px] text-app-accent hover:underline">Get OpenRouter Key ↗</a>
-                </div>
-                <input 
-                  type="password" 
-                  id="page-openrouter-key"
-                  value="${openrouterKey}" 
-                  placeholder="sk-or-v1-..." 
-                  class="bg-app-input border border-app-borderSubtle text-white font-mono text-[13px] rounded-lg px-3.5 py-2 focus:outline-none focus:border-app-borderActive"
-                />
-              </div>
-
-              <div class="flex items-center justify-between pt-2 border-t border-app-borderSubtle">
-                <button onclick="resetSettingsKeys()" class="text-[12px] text-red-400 hover:underline">Reset Keys</button>
-                <button onclick="savePageSettingsKeys()" class="px-5 py-2 rounded-lg bg-app-accent hover:bg-app-accentHover text-white font-medium text-[13px] shadow-sm">
-                  Save Provider Settings
-                </button>
-              </div>
-
+        <!-- Appearance Section -->
+        <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-6 shadow-sm flex flex-col gap-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary">
+              <i data-lucide="palette" class="w-4 h-4"></i>
+            </div>
+            <div class="flex flex-col">
+              <h2 class="text-[15px] font-medium text-app-textPrimary">Theme & Appearance</h2>
+              <span class="text-[12px] text-app-textMuted">Select your preferred interface color mode</span>
             </div>
           </div>
-        ` : activeSettingsTab === 'profile' ? `
-          <!-- Profile Settings -->
-          <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-6 flex flex-col gap-4 shadow-lg text-[13px]">
-            <h2 class="text-[15.5px] font-medium text-white">User Profile Identity</h2>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             
-            <div class="flex flex-col gap-3">
-              <div class="flex flex-col gap-1">
-                <label class="text-white font-normal">Full Name</label>
-                <input type="text" id="page-profile-name" value="${user.name}" class="bg-app-input border border-app-borderSubtle text-white rounded-lg px-3.5 py-2 focus:outline-none focus:border-app-borderActive" />
+            <div 
+              onclick="appStore.setTheme('dark')"
+              class="p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${currentTheme === 'dark' ? 'border-app-borderActive bg-app-hover text-app-textPrimary' : 'border-app-borderSubtle bg-app-input text-app-textSecondary hover:border-app-borderMed'}">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-[#111111] border border-[#262626] flex items-center justify-center text-white">
+                  <i data-lucide="moon" class="w-4 h-4"></i>
+                </div>
+                <div class="flex flex-col">
+                  <span class="font-medium text-[13.5px] text-app-textPrimary">Dark Theme</span>
+                  <span class="text-[11.5px] text-app-textMuted">Pure neutral #111111 canvas</span>
+                </div>
               </div>
-              <div class="flex flex-col gap-1">
-                <label class="text-white font-normal">Email Address</label>
-                <input type="email" id="page-profile-email" value="${user.email}" class="bg-app-input border border-app-borderSubtle text-white rounded-lg px-3.5 py-2 focus:outline-none focus:border-app-borderActive" />
-              </div>
+              ${currentTheme === 'dark' ? `<i data-lucide="check" class="w-4 h-4 text-emerald-500"></i>` : ''}
             </div>
 
-            <div class="flex justify-end pt-2">
-              <button onclick="savePageProfile()" class="px-5 py-2 rounded-lg bg-app-accent hover:bg-app-accentHover text-white font-medium text-[13px]">Save Profile</button>
+            <div 
+              onclick="appStore.setTheme('light')"
+              class="p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${currentTheme === 'light' ? 'border-app-borderActive bg-app-hover text-app-textPrimary' : 'border-app-borderSubtle bg-app-input text-app-textSecondary hover:border-app-borderMed'}">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-[#FFFFFF] border border-[#E5E5E5] flex items-center justify-center text-[#18181B]">
+                  <i data-lucide="sun" class="w-4 h-4 text-amber-500"></i>
+                </div>
+                <div class="flex flex-col">
+                  <span class="font-medium text-[13.5px] text-app-textPrimary">Light Theme</span>
+                  <span class="text-[11.5px] text-app-textMuted">Warm minimalist light mode</span>
+                </div>
+              </div>
+              ${currentTheme === 'light' ? `<i data-lucide="check" class="w-4 h-4 text-emerald-500"></i>` : ''}
+            </div>
+
+          </div>
+        </div>
+
+        <!-- API Keys Configuration Card -->
+        <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-6 shadow-sm flex flex-col gap-5">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary">
+              <i data-lucide="key" class="w-4 h-4"></i>
+            </div>
+            <div class="flex flex-col">
+              <h2 class="text-[15px] font-medium text-app-textPrimary">Custom API Keys</h2>
+              <span class="text-[12px] text-app-textMuted">CollabAI uses Groq for high-speed live responses by default. You can configure custom keys below.</span>
             </div>
           </div>
-        ` : `
-          <!-- Workspace Settings -->
-          <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-6 flex flex-col gap-4 shadow-lg text-[13px]">
-            <h2 class="text-[15.5px] font-medium text-white">Workspace Configuration</h2>
-            <p class="text-app-textSecondary font-normal">Active Team Workspace: <strong class="text-white font-medium">CollabAI Default</strong></p>
-            <div class="flex items-center gap-2">
-              <span class="px-2.5 py-1 rounded bg-app-input border border-app-borderSubtle text-white font-mono text-[12px]">Team ID: collab-ws-001</span>
-              <span class="text-emerald-400 text-xs">● Connected</span>
+
+          <form onsubmit="handleSaveSettings(event)" class="flex flex-col gap-4 text-[13px]">
+            
+            <!-- Groq Key -->
+            <div class="flex flex-col gap-1.5">
+              <label class="font-medium text-app-textPrimary flex items-center justify-between">
+                <span>Groq API Key (Recommended for 60fps streaming)</span>
+                <a href="https://console.groq.com/keys" target="_blank" class="text-[11.5px] text-app-textSecondary hover:underline">Get free key ↗</a>
+              </label>
+              <input 
+                type="password" 
+                id="settings-groq-key" 
+                value="${currentKey}" 
+                placeholder="gsk_..." 
+                class="bg-app-input border border-app-borderSubtle text-app-textPrimary rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-app-borderActive font-mono text-[12.5px]"
+              />
             </div>
-          </div>
-        `}
+
+            <!-- Google Gemini Key -->
+            <div class="flex flex-col gap-1.5">
+              <label class="font-medium text-app-textPrimary flex items-center justify-between">
+                <span>Google Gemini API Key</span>
+                <a href="https://aistudio.google.com/apikey" target="_blank" class="text-[11.5px] text-app-textSecondary hover:underline">Get key ↗</a>
+              </label>
+              <input 
+                type="password" 
+                id="settings-gemini-key" 
+                value="${currentGemini}" 
+                placeholder="AIzaSy..." 
+                class="bg-app-input border border-app-borderSubtle text-app-textPrimary rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-app-borderActive font-mono text-[12.5px]"
+              />
+            </div>
+
+            <!-- OpenRouter Key -->
+            <div class="flex flex-col gap-1.5">
+              <label class="font-medium text-app-textPrimary flex items-center justify-between">
+                <span>OpenRouter API Key</span>
+                <a href="https://openrouter.ai/keys" target="_blank" class="text-[11.5px] text-app-textSecondary hover:underline">Get key ↗</a>
+              </label>
+              <input 
+                type="password" 
+                id="settings-openrouter-key" 
+                value="${currentOpenRouter}" 
+                placeholder="sk-or-v1-..." 
+                class="bg-app-input border border-app-borderSubtle text-app-textPrimary rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-app-borderActive font-mono text-[12.5px]"
+              />
+            </div>
+
+            <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-app-borderSubtle">
+              <button 
+                type="submit" 
+                class="btn-primary text-[13px] px-5 py-2 rounded-xl transition-all shadow-sm">
+                Save Preferences
+              </button>
+            </div>
+
+          </form>
+        </div>
 
       </div>
     </div>
   `;
 }
 
-function setSettingsTab(tab) {
-  activeSettingsTab = tab;
-  renderApp();
-}
+function handleSaveSettings(e) {
+  e.preventDefault();
+  const groqKey = document.getElementById('settings-groq-key').value.trim();
+  const geminiKey = document.getElementById('settings-gemini-key').value.trim();
+  const openRouterKey = document.getElementById('settings-openrouter-key').value.trim();
 
-function savePageSettingsKeys() {
-  const groq = document.getElementById('page-groq-key')?.value.trim();
-  const gemini = document.getElementById('page-gemini-key')?.value.trim();
-  const or = document.getElementById('page-openrouter-key')?.value.trim();
-
-  if (groq) localStorage.setItem('collab_groq_key', groq);
+  if (groqKey) localStorage.setItem('collab_groq_key', groqKey);
   else localStorage.removeItem('collab_groq_key');
 
-  if (gemini) localStorage.setItem('collab_gemini_key', gemini);
+  if (geminiKey) localStorage.setItem('collab_gemini_key', geminiKey);
   else localStorage.removeItem('collab_gemini_key');
 
-  if (or) localStorage.setItem('collab_openrouter_key', or);
+  if (openRouterKey) localStorage.setItem('collab_openrouter_key', openRouterKey);
   else localStorage.removeItem('collab_openrouter_key');
 
-  showToast('API provider configuration saved!');
-}
-
-function resetSettingsKeys() {
-  localStorage.removeItem('collab_groq_key');
-  localStorage.removeItem('collab_gemini_key');
-  localStorage.removeItem('collab_openrouter_key');
-  renderApp();
-  showToast('Reset keys to system default.');
-}
-
-function savePageProfile() {
-  const name = document.getElementById('page-profile-name')?.value.trim();
-  const email = document.getElementById('page-profile-email')?.value.trim();
-  if (name) appStore.state.user.name = name;
-  if (email) appStore.state.user.email = email;
-  appStore.save();
-  showToast('Profile updated.');
+  showToast('Settings and API keys saved successfully!');
 }

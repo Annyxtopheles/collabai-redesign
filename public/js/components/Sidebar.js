@@ -1,4 +1,4 @@
-﻿// Sidebar.js - Single unified sidebar, search placed above recents without losing focus, combined agents
+﻿// Sidebar.js - Single unified sidebar, search placed above recents, Theme-aware color tokens
 let currentSearchQuery = '';
 
 function renderSidebar(state) {
@@ -8,7 +8,7 @@ function renderSidebar(state) {
   const firstName = (state.user && state.user.name ? state.user.name.split(' ')[0] : 'Sadman');
   const sidebarWidth = state.sidebarWidth || 260;
 
-  // Primary Navigation Tabs (Agents and Explore combined into Agents)
+  // Primary Navigation Tabs
   const navItems = [
     { label: 'Agents', route: '/agents', icon: 'users' },
     { label: 'Projects', route: '/projects', icon: 'folder' },
@@ -28,16 +28,16 @@ function renderSidebar(state) {
         <div class="flex flex-col items-center gap-4">
           <!-- Collapsed Logo Icon -->
           <div class="cursor-pointer flex items-center justify-center w-9 h-9 rounded-lg hover:bg-app-hover transition-colors" onclick="appStore.toggleSidebar()" title="Expand Sidebar">
-            <img src="/logo-icon.png" class="h-6 w-6 object-contain" alt="Collab AI" />
+            <img src="/logo-icon.png" class="h-6 w-6 object-contain logo-img" alt="Collab AI" />
           </div>
 
           <!-- New Chat Icon Button -->
           <button onclick="appStore.createConversation('New Chat', '')" title="New Chat" class="w-9 h-9 flex items-center justify-center rounded-lg btn-primary shadow-sm transition-colors">
-            <i data-lucide="plus" class="w-4 h-4 text-app-surface"></i>
+            <i data-lucide="plus" class="w-4 h-4"></i>
           </button>
 
           <!-- Search Icon Button -->
-          <button onclick="appStore.toggleSidebar(); setTimeout(() => document.getElementById('sidebar-search-input')?.focus(), 150)" title="Search chats" class="w-9 h-9 flex items-center justify-center rounded-lg text-app-textSecondary hover:bg-app-hover hover:text-white transition-colors">
+          <button onclick="appStore.toggleSidebar(); setTimeout(() => document.getElementById('sidebar-search-input')?.focus(), 150)" title="Search chats" class="w-9 h-9 flex items-center justify-center rounded-lg text-app-textSecondary hover:bg-app-hover hover:text-app-textPrimary transition-colors">
             <i data-lucide="search" class="w-4 h-4"></i>
           </button>
 
@@ -48,7 +48,7 @@ function renderSidebar(state) {
               return `
                 <button onclick="appStore.setRoute('${item.route}')" 
                   title="${item.label}"
-                  class="w-9 h-9 flex items-center justify-center rounded-lg transition-colors ${active ? 'bg-white/[0.08] text-white' : 'text-app-textSecondary hover:bg-app-hover hover:text-white'}">
+                  class="w-9 h-9 flex items-center justify-center rounded-lg transition-colors ${active ? 'bg-app-hover text-app-textPrimary' : 'text-app-textSecondary hover:bg-app-hover hover:text-app-textPrimary'}">
                   <i data-lucide="${item.icon}" class="w-4 h-4"></i>
                 </button>
               `;
@@ -58,8 +58,8 @@ function renderSidebar(state) {
 
         <!-- Bottom Profile -->
         <div class="flex flex-col items-center">
-          <div class="w-8 h-8 rounded-full bg-white/[0.08] border border-white/[0.08] flex items-center justify-center cursor-pointer hover:bg-white/[0.14] transition-colors" onclick="toggleUserMenu(event)" title="${firstName}">
-            <span class="text-xs font-normal text-white">${firstName[0]}</span>
+          <div class="w-8 h-8 rounded-full bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center cursor-pointer hover:bg-app-hover transition-colors" onclick="toggleUserMenu(event)" title="${firstName}">
+            <span class="text-xs font-medium text-app-textPrimary">${firstName[0]}</span>
           </div>
         </div>
 
@@ -80,14 +80,14 @@ function renderSidebar(state) {
         <!-- Header: Proportional Logo & Collapse Button -->
         <div class="flex items-center justify-between px-1 cursor-pointer">
           <div onclick="appStore.setRoute('/dashboard')" class="flex items-center">
-            <img src="/logo.png" class="h-7 object-contain" alt="Collab AI" />
+            <img src="/logo.png" class="h-7 object-contain logo-img" alt="Collab AI" />
           </div>
-          <button onclick="appStore.toggleSidebar()" class="text-app-textMuted hover:text-white p-1 rounded hover:bg-app-hover transition-colors" title="Collapse sidebar">
+          <button onclick="appStore.toggleSidebar()" class="text-app-textMuted hover:text-app-textPrimary p-1 rounded hover:bg-app-hover transition-colors" title="Collapse sidebar">
             <i data-lucide="panel-left-close" class="w-4 h-4"></i>
           </button>
         </div>
 
-        <!-- + New Chat Button (Off-White Background + Dark Text) -->
+        <!-- + New Chat Button -->
         <div class="pt-1">
           <button 
             onclick="appStore.createConversation('New Chat', '')"
@@ -103,8 +103,8 @@ function renderSidebar(state) {
             const active = currentRoute.startsWith(item.route);
             return `
               <button onclick="appStore.setRoute('${item.route}')" 
-                class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-[13px] font-normal transition-colors ${active ? 'bg-white/[0.08] text-white' : 'text-app-textSecondary hover:bg-app-hover hover:text-white'}">
-                <i data-lucide="${item.icon}" class="w-3.5 h-3.5 ${active ? 'text-white' : 'text-app-textMuted'}"></i>
+                class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-[13px] font-normal transition-colors ${active ? 'bg-app-hover text-app-textPrimary font-medium' : 'text-app-textSecondary hover:bg-app-hover hover:text-app-textPrimary'}">
+                <i data-lucide="${item.icon}" class="w-3.5 h-3.5 ${active ? 'text-app-textPrimary' : 'text-app-textMuted'}"></i>
                 <span class="truncate">${item.label}</span>
               </button>
             `;
@@ -115,11 +115,11 @@ function renderSidebar(state) {
         <div class="flex-1 flex flex-col min-h-0 pt-2 border-t border-app-borderSubtle">
           
           <div class="flex items-center justify-between px-1 pb-2">
-            <span class="text-[11px] font-normal uppercase tracking-wider text-app-textMuted">Recents</span>
-            <span id="search-count-badge" class="text-[10.5px] text-white ${currentSearchQuery ? '' : 'hidden'}">${recents.length} found</span>
+            <span class="text-[11px] font-medium uppercase tracking-wider text-app-textMuted">Recents</span>
+            <span id="search-count-badge" class="text-[10.5px] text-app-textPrimary ${currentSearchQuery ? '' : 'hidden'}">${recents.length} found</span>
           </div>
 
-          <!-- Search Menu placed near Recents (Fixed focus issue) -->
+          <!-- Search Menu placed near Recents -->
           <div class="relative flex items-center mb-2 px-0.5">
             <i data-lucide="search" class="w-3.5 h-3.5 text-app-textMuted absolute left-2.5 pointer-events-none"></i>
             <input 
@@ -128,12 +128,12 @@ function renderSidebar(state) {
               value="${currentSearchQuery}"
               oninput="handleSidebarSearch(this.value)"
               placeholder="Search recents & content..." 
-              class="w-full bg-app-input border border-app-borderSubtle text-white placeholder-app-textMuted text-[12px] rounded-lg pl-7 pr-6 py-1.5 focus:outline-none focus:border-app-borderActive transition-colors font-normal"
+              class="w-full bg-app-input border border-app-borderSubtle text-app-textPrimary placeholder-app-textMuted text-[12px] rounded-lg pl-7 pr-6 py-1.5 focus:outline-none focus:border-app-borderActive transition-colors font-normal"
             />
             <button 
               id="search-clear-btn"
               onclick="clearSidebarSearch()" 
-              class="absolute right-2 text-app-textMuted hover:text-white text-xs ${currentSearchQuery ? '' : 'hidden'}">
+              class="absolute right-2 text-app-textMuted hover:text-app-textPrimary text-xs ${currentSearchQuery ? '' : 'hidden'}">
               ✕
             </button>
           </div>
@@ -150,10 +150,10 @@ function renderSidebar(state) {
       <div class="pt-2 border-t border-app-borderSubtle">
         <div id="sidebar-profile-button" class="flex items-center justify-between p-1.5 rounded-lg bg-app-surface hover:bg-app-hover border border-app-borderSubtle cursor-pointer transition-colors" onclick="toggleUserMenu(event)">
           <div class="flex items-center gap-2 min-w-0">
-            <div class="w-6 h-6 rounded-full bg-white/[0.08] border border-white/[0.08] flex items-center justify-center text-white font-normal text-xs">
+            <div class="w-6 h-6 rounded-full bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary font-medium text-xs">
               ${firstName[0]}
             </div>
-            <span class="text-[12.5px] font-normal text-white truncate">${firstName}</span>
+            <span class="text-[12.5px] font-normal text-app-textPrimary truncate">${firstName}</span>
           </div>
           <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-app-textMuted"></i>
         </div>
@@ -176,7 +176,7 @@ function renderRecentsListHtml(recentsList, currentRoute, activeConvId) {
       <div 
         onclick="appStore.setRoute('/conversations', '${conv.id}')"
         title="${escapeHtml(conv.title || 'Untitled Thread')}"
-        class="flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors group ${isActive ? 'bg-white/[0.08] text-white font-normal' : 'text-app-textSecondary hover:bg-app-hover hover:text-white'}">
+        class="flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors group ${isActive ? 'bg-app-hover text-app-textPrimary font-medium' : 'text-app-textSecondary hover:bg-app-hover hover:text-app-textPrimary'}">
         <span class="text-[12.5px] truncate font-normal">${escapeHtml(conv.title || 'Untitled Thread')}</span>
       </div>
     `;

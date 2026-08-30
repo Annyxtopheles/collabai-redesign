@@ -1,4 +1,4 @@
-﻿// Projects Workspace Screen - Functional List/Grid view toggle and ivory palette
+﻿// Projects Workspace Screen - Theme-Aware Tokens & Functional List/Grid view toggle
 function renderProjectsView(state) {
   const projects = state.projects || [];
   const viewMode = state.projectViewMode || 'list';
@@ -12,12 +12,12 @@ function renderProjectsView(state) {
         <!-- Header & Action CTA -->
         <div class="flex items-center justify-between">
           <div class="flex flex-col gap-0.5">
-            <h1 class="text-[22px] font-semibold text-white tracking-tight">Projects</h1>
+            <h1 class="text-[22px] font-semibold text-app-textPrimary tracking-tight">Projects</h1>
             <p class="text-[13.5px] text-app-textSecondary">A project is a workspace for organizing related files, instructions, and conversations</p>
           </div>
           <button 
             onclick="showCreateProjectModal()"
-            class="btn-primary text-[13px] px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-1.5">
+            class="btn-primary text-[13px] px-4 py-2 rounded-xl transition-all shadow-sm flex items-center gap-1.5">
             <i data-lucide="plus" class="w-4 h-4"></i>
             <span>New Project</span>
           </button>
@@ -32,20 +32,20 @@ function renderProjectsView(state) {
               placeholder="Search projects..." 
               id="projects-search-input"
               oninput="filterProjectsSearch(this.value)"
-              class="w-full bg-app-surface border border-app-borderSubtle text-white placeholder-app-textMuted text-[13.5px] rounded-xl pl-10 pr-4 py-2 focus:outline-none focus:border-app-borderActive transition-colors font-normal"
+              class="w-full bg-app-surface border border-app-borderSubtle text-app-textPrimary placeholder-app-textMuted text-[13.5px] rounded-xl pl-10 pr-4 py-2 focus:outline-none focus:border-app-borderActive transition-colors font-normal"
             />
           </div>
-          <div class="flex items-center gap-1 bg-app-surface p-1 rounded-lg border border-app-borderSubtle">
+          <div class="flex items-center gap-1 bg-app-surface p-1 rounded-xl border border-app-borderSubtle">
             <button 
               onclick="appStore.setProjectViewMode('grid')" 
               title="Grid view"
-              class="p-1.5 rounded transition-colors ${viewMode === 'grid' ? 'bg-app-input text-white' : 'text-app-textMuted hover:text-white'}">
+              class="p-1.5 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-app-hover text-app-textPrimary' : 'text-app-textMuted hover:text-app-textPrimary'}">
               <i data-lucide="layout-grid" class="w-4 h-4"></i>
             </button>
             <button 
               onclick="appStore.setProjectViewMode('list')" 
               title="List view"
-              class="p-1.5 rounded transition-colors ${viewMode === 'list' ? 'bg-app-input text-white' : 'text-app-textMuted hover:text-white'}">
+              class="p-1.5 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-app-hover text-app-textPrimary' : 'text-app-textMuted hover:text-app-textPrimary'}">
               <i data-lucide="list" class="w-4 h-4"></i>
             </button>
           </div>
@@ -69,18 +69,18 @@ function renderProjectsView(state) {
 
 function renderProjectRowList(proj) {
   return `
-    <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-4 flex items-center justify-between hover:border-app-borderMed transition-all cursor-pointer group" onclick="appStore.createConversation('${escapeHtml(proj.name)} Workspace Thread', '')">
+    <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-4 flex items-center justify-between hover:border-app-borderMed transition-all cursor-pointer group shadow-sm" onclick="appStore.createConversation('${escapeHtml(proj.name)} Workspace Thread', '')">
       <div class="flex items-center gap-3.5">
-        <div class="w-9 h-9 rounded-lg bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white">
-          <i data-lucide="${proj.icon || 'box'}" class="w-4 h-4 text-white"></i>
+        <div class="w-9 h-9 rounded-xl bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary">
+          <i data-lucide="${proj.icon || 'box'}" class="w-4 h-4"></i>
         </div>
         <div class="flex flex-col">
-          <h3 class="text-[14px] font-medium text-white group-hover:text-white transition-colors">${escapeHtml(proj.name)}</h3>
+          <h3 class="text-[14px] font-medium text-app-textPrimary group-hover:text-app-textPrimary transition-colors">${escapeHtml(proj.name)}</h3>
           <span class="text-[12px] text-app-textMuted">${proj.itemCount || 0} items • ${proj.threadCount || 30} threads • ${proj.instructionCount || 1} instructions • Modified ${proj.modifiedDate}</span>
         </div>
       </div>
 
-      <button class="text-app-textMuted hover:text-white p-1.5 rounded hover:bg-app-hover">
+      <button class="text-app-textMuted hover:text-app-textPrimary p-1.5 rounded-lg hover:bg-app-hover">
         <i data-lucide="more-horizontal" class="w-4 h-4"></i>
       </button>
     </div>
@@ -89,18 +89,18 @@ function renderProjectRowList(proj) {
 
 function renderProjectCardGrid(proj) {
   return `
-    <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-5 flex flex-col justify-between gap-4 hover:border-app-borderMed transition-all cursor-pointer group" onclick="appStore.createConversation('${escapeHtml(proj.name)} Workspace Thread', '')">
+    <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-5 flex flex-col justify-between gap-4 hover:border-app-borderMed transition-all cursor-pointer group shadow-sm" onclick="appStore.createConversation('${escapeHtml(proj.name)} Workspace Thread', '')">
       <div class="flex flex-col gap-3">
         <div class="flex items-center justify-between">
-          <div class="w-10 h-10 rounded-lg bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white">
-            <i data-lucide="${proj.icon || 'box'}" class="w-5 h-5 text-white"></i>
+          <div class="w-10 h-10 rounded-xl bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary">
+            <i data-lucide="${proj.icon || 'box'}" class="w-5 h-5"></i>
           </div>
-          <button class="text-app-textMuted hover:text-white p-1 rounded hover:bg-app-hover">
+          <button class="text-app-textMuted hover:text-app-textPrimary p-1 rounded-lg hover:bg-app-hover">
             <i data-lucide="more-horizontal" class="w-4 h-4"></i>
           </button>
         </div>
         <div class="flex flex-col gap-1">
-          <h3 class="text-[15px] font-medium text-white group-hover:text-white transition-colors">${escapeHtml(proj.name)}</h3>
+          <h3 class="text-[15px] font-medium text-app-textPrimary group-hover:text-app-textPrimary transition-colors">${escapeHtml(proj.name)}</h3>
           <p class="text-[12px] text-app-textSecondary font-normal">Active project workspace.</p>
         </div>
       </div>
@@ -130,22 +130,22 @@ function filterProjectsSearch(query) {
 function showCreateProjectModal() {
   const container = document.getElementById('modal-container');
   container.innerHTML = `
-    <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div class="bg-app-surface border border-app-borderSubtle rounded-xl w-full max-w-md p-6 shadow-2xl flex flex-col gap-5">
-        <div class="flex items-center justify-between">
-          <h2 class="text-[16px] font-semibold text-white">Create New Project</h2>
-          <button onclick="closeModal()" class="text-app-textMuted hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in" onclick="closeModal()">
+      <div class="bg-app-surface border border-app-borderSubtle rounded-2xl w-full max-w-md p-6 shadow-2xl flex flex-col gap-5" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between border-b border-app-borderSubtle pb-3">
+          <h2 class="text-[16px] font-semibold text-app-textPrimary">Create New Project</h2>
+          <button onclick="closeModal()" class="text-app-textMuted hover:text-app-textPrimary p-1 rounded-lg hover:bg-app-hover">✕</button>
         </div>
 
         <form onsubmit="handleCreateProjectSubmit(event)" class="flex flex-col gap-4 text-[13px]">
           <div class="flex flex-col gap-1">
             <label class="font-medium text-app-textSecondary">Project Workspace Name</label>
-            <input type="text" id="new-project-name" required placeholder="e.g. Project Delta-9" class="bg-app-input border border-app-borderSubtle text-white rounded-lg px-3.5 py-2 focus:outline-none focus:border-app-borderActive" />
+            <input type="text" id="new-project-name" required placeholder="e.g. Project Delta-9" class="bg-app-input border border-app-borderSubtle text-app-textPrimary rounded-xl px-3.5 py-2 focus:outline-none focus:border-app-borderActive" />
           </div>
 
-          <div class="flex items-center justify-end gap-2.5 pt-2">
-            <button type="button" onclick="closeModal()" class="px-3.5 py-1.5 rounded-lg bg-app-input text-app-textSecondary hover:text-white">Cancel</button>
-            <button type="submit" class="btn-primary px-4 py-1.5 rounded-lg">Create Project</button>
+          <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-app-borderSubtle">
+            <button type="button" onclick="closeModal()" class="px-3.5 py-1.5 rounded-xl bg-app-input border border-app-borderSubtle text-app-textSecondary hover:text-app-textPrimary">Cancel</button>
+            <button type="submit" class="btn-primary px-4 py-1.5 rounded-xl">Create Project</button>
           </div>
         </form>
       </div>

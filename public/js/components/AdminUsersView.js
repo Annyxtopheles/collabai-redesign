@@ -1,4 +1,4 @@
-﻿// AdminUsersView.js - Admin User Approval & Access Management
+﻿// AdminUsersView.js - Admin User Approval & Access Management with Theme Support
 let adminUsersList = [];
 let isAdminLoading = false;
 
@@ -30,15 +30,15 @@ function renderAdminUsersView(state) {
         <div class="flex items-center justify-between">
           <div class="flex flex-col gap-0.5">
             <div class="flex items-center gap-2">
-              <h1 class="text-[22px] font-semibold text-white tracking-tight">User Access & Approvals</h1>
-              <span class="text-[11px] bg-white/[0.08] text-white px-2.5 py-0.5 rounded-full border border-white/[0.08]">Admin Only</span>
+              <h1 class="text-[22px] font-semibold text-app-textPrimary tracking-tight">User Access & Approvals</h1>
+              <span class="text-[11px] bg-app-hoverSubtle text-app-textPrimary px-2.5 py-0.5 rounded-full border border-app-borderSubtle">Admin Only</span>
             </div>
             <p class="text-[13.5px] text-app-textSecondary font-normal">Approve or reject public registration requests before users can access CollabAI.</p>
           </div>
 
           <button 
             onclick="fetchAdminUsers()" 
-            class="px-3.5 py-1.5 rounded-lg bg-app-surface hover:bg-app-hover border border-app-borderSubtle text-white text-[13px] flex items-center gap-1.5 transition-colors">
+            class="px-3.5 py-1.5 rounded-xl bg-app-surface hover:bg-app-hover border border-app-borderSubtle text-app-textPrimary text-[13px] flex items-center gap-1.5 transition-colors shadow-sm">
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
             <span>Refresh</span>
           </button>
@@ -46,24 +46,24 @@ function renderAdminUsersView(state) {
 
         <!-- 3 Stat Cards Row -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-4 flex flex-col gap-0.5">
-            <span class="text-[12px] text-amber-400 font-medium">Pending Review</span>
-            <span class="text-[24px] font-semibold text-white">${pendingUsers.length}</span>
+          <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-4 flex flex-col gap-0.5 shadow-sm">
+            <span class="text-[12px] text-amber-500 font-medium">Pending Review</span>
+            <span class="text-[24px] font-semibold text-app-textPrimary">${pendingUsers.length}</span>
           </div>
-          <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-4 flex flex-col gap-0.5">
-            <span class="text-[12px] text-emerald-400 font-medium">Approved Users</span>
-            <span class="text-[24px] font-semibold text-white">${approvedUsers.length}</span>
+          <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-4 flex flex-col gap-0.5 shadow-sm">
+            <span class="text-[12px] text-emerald-500 font-medium">Approved Users</span>
+            <span class="text-[24px] font-semibold text-app-textPrimary">${approvedUsers.length}</span>
           </div>
-          <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-4 flex flex-col gap-0.5">
+          <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-4 flex flex-col gap-0.5 shadow-sm">
             <span class="text-[12px] text-app-textSecondary font-normal">Total Registered</span>
-            <span class="text-[24px] font-semibold text-white">${adminUsersList.length}</span>
+            <span class="text-[24px] font-semibold text-app-textPrimary">${adminUsersList.length}</span>
           </div>
         </div>
 
         <!-- Users Table Card -->
-        <div class="bg-app-surface border border-app-borderSubtle rounded-xl overflow-hidden shadow-xl flex flex-col">
+        <div class="bg-app-surface border border-app-borderSubtle rounded-2xl overflow-hidden shadow-sm flex flex-col">
           <div class="px-5 py-3.5 border-b border-app-borderSubtle flex items-center justify-between">
-            <span class="text-[14px] font-medium text-white">Registered Users Queue</span>
+            <span class="text-[14px] font-medium text-app-textPrimary">Registered Users Queue</span>
             <span class="text-[12px] text-app-textMuted">${adminUsersList.length} records</span>
           </div>
 
@@ -105,18 +105,18 @@ function renderUserTableRow(u) {
     <tr class="hover:bg-app-hover/40 transition-colors">
       <td class="px-5 py-3.5">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-full bg-white/[0.08] border border-white/[0.08] flex items-center justify-center text-white font-normal text-xs">
+          <div class="w-8 h-8 rounded-full bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary font-medium text-xs">
             ${(u.name || u.email)[0].toUpperCase()}
           </div>
           <div class="flex flex-col">
-            <span class="font-medium text-white">${escapeHtml(u.name || 'User')}</span>
+            <span class="font-medium text-app-textPrimary">${escapeHtml(u.name || 'User')}</span>
             <span class="text-[11.5px] text-app-textMuted">${escapeHtml(u.email)}</span>
           </div>
         </div>
       </td>
 
       <td class="px-5 py-3.5">
-        <span class="text-[11.5px] font-normal px-2 py-0.5 rounded ${u.role === 'admin' ? 'bg-purple-500/15 text-purple-300 border border-purple-500/20' : 'bg-app-input text-app-textSecondary'}">
+        <span class="text-[11.5px] font-normal px-2 py-0.5 rounded ${u.role === 'admin' ? 'bg-purple-500/15 text-purple-400 border border-purple-500/20' : 'bg-app-input text-app-textSecondary border border-app-borderSubtle'}">
           ${u.role === 'admin' ? 'Administrator' : 'User'}
         </span>
       </td>
@@ -127,11 +127,11 @@ function renderUserTableRow(u) {
 
       <td class="px-5 py-3.5">
         ${isPending ? `
-          <span class="text-[11.5px] px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/20 font-medium">Pending</span>
+          <span class="text-[11.5px] px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/20 font-medium">Pending</span>
         ` : isApproved ? `
-          <span class="text-[11.5px] px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 font-medium">Approved</span>
+          <span class="text-[11.5px] px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/20 font-medium">Approved</span>
         ` : `
-          <span class="text-[11.5px] px-2.5 py-0.5 rounded-full bg-red-500/15 text-red-300 border border-red-500/20 font-medium">Rejected</span>
+          <span class="text-[11.5px] px-2.5 py-0.5 rounded-full bg-red-500/15 text-red-500 border border-red-500/20 font-medium">Rejected</span>
         `}
       </td>
 
@@ -144,7 +144,7 @@ function renderUserTableRow(u) {
               <button 
                 onclick="updateUserStatus('${u.id}', 'approved')" 
                 title="Approve User"
-                class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-[11.5px] transition-colors">
+                class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-[11.5px] transition-colors shadow-sm">
                 Approve
               </button>
             ` : ''}
@@ -153,7 +153,7 @@ function renderUserTableRow(u) {
               <button 
                 onclick="updateUserStatus('${u.id}', 'rejected')" 
                 title="Reject / Revoke"
-                class="px-2.5 py-1 rounded-lg bg-app-input hover:bg-red-500/20 text-red-300 font-medium text-[11.5px] border border-app-borderSubtle transition-colors">
+                class="px-2.5 py-1 rounded-lg bg-app-input hover:bg-red-500/20 text-red-500 font-medium text-[11.5px] border border-app-borderSubtle transition-colors">
                 Reject
               </button>
             ` : ''}
@@ -161,7 +161,7 @@ function renderUserTableRow(u) {
             <button 
               onclick="deleteUserRecord('${u.id}')" 
               title="Delete User"
-              class="p-1 text-app-textMuted hover:text-red-400 rounded transition-colors">
+              class="p-1 text-app-textMuted hover:text-red-500 rounded-lg transition-colors">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             </button>
           </div>

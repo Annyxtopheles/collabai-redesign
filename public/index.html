@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cousine:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Tailwind CSS Play CDN with Warm Ivory Off-White + #171717 Dark Palette -->
+  <!-- Tailwind CSS Play CDN with CSS Variable-driven Theme Tokens -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -23,22 +23,23 @@
           },
           colors: {
             app: {
-              canvas: '#111111',
-              sidebar: '#141414',
-              surface: '#171717',
-              elevated: '#1c1c1c',
-              input: '#1f1f1f',
-              hover: '#262626',
-              borderSubtle: '#262626',
-              borderMed: '#303030',
-              borderActive: '#3c3c3c',
-              accent: '#EDEDED',
-              accentHover: '#DFDFDF',
-              textPrimary: '#EDEDED',
-              textSecondary: '#A1A1AA',
-              textMuted: '#71717A',
-              success: '#34D399',
-              purple: '#A78BFA',
+              canvas: 'var(--bg-canvas)',
+              sidebar: 'var(--bg-sidebar)',
+              surface: 'var(--bg-surface)',
+              elevated: 'var(--bg-elevated)',
+              input: 'var(--bg-input)',
+              hover: 'var(--bg-hover)',
+              hoverSubtle: 'var(--bg-hover-subtle)',
+              borderSubtle: 'var(--border-subtle)',
+              borderMed: 'var(--border-med)',
+              borderActive: 'var(--border-active)',
+              accent: 'var(--btn-primary-bg)',
+              accentHover: 'var(--btn-primary-hover)',
+              textPrimary: 'var(--text-primary)',
+              textSecondary: 'var(--text-secondary)',
+              textMuted: 'var(--text-muted)',
+              success: '#10B981',
+              purple: '#8B5CF6',
               red: '#EF4444'
             }
           }

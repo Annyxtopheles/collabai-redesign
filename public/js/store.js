@@ -1,17 +1,20 @@
-﻿// Persistent Reactive State Store
+﻿// Persistent Reactive State Store with Theme Support
 class CollabStore {
   constructor() {
     this.subscribers = [];
     this.state = this.loadState();
+    this.applyTheme(this.state.theme || 'dark');
   }
 
   loadState() {
+    const savedTheme = localStorage.getItem('collab_theme') || 'dark';
     const saved = localStorage.getItem('collab_ai_state');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         return {
           ...parsed,
+          theme: parsed.theme || savedTheme,
           sidebarWidth: parsed.sidebarWidth || 260,
           sidebarCollapsed: parsed.sidebarCollapsed || false,
           selectedModel: parsed.selectedModel || 'openai/gpt-oss-120b',
@@ -31,6 +34,7 @@ class CollabStore {
       sidebarCollapsed: false,
       sidebarWidth: 260,
       searchQuery: '',
+      theme: savedTheme,
       projectViewMode: 'list',
       knowledgeViewMode: 'list',
       agentsViewMode: 'grid',
@@ -52,6 +56,24 @@ class CollabStore {
         }
       ]
     };
+  }
+
+  applyTheme(theme) {
+    document.documentElement.classList.remove('dark', 'light');
+    document.documentElement.classList.add(theme);
+    localStorage.setItem('collab_theme', theme);
+  }
+
+  setTheme(theme) {
+    this.state.theme = theme;
+    this.applyTheme(theme);
+    this.save();
+  }
+
+  toggleTheme() {
+    const nextTheme = this.state.theme === 'dark' ? 'light' : 'dark';
+    this.setTheme(nextTheme);
+    return nextTheme;
   }
 
   save() {
