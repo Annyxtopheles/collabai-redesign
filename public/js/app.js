@@ -28,6 +28,8 @@ function renderApp() {
     viewHtml = renderBugReportsView(state);
   } else if (route.startsWith('/settings')) {
     viewHtml = renderSettingsView(state);
+  } else if (route.startsWith('/admin')) {
+    viewHtml = renderAdminUsersView(state);
   } else if (route.startsWith('/docs')) {
     viewHtml = renderDocsView(state);
   } else if (route.startsWith('/academy')) {
@@ -60,6 +62,7 @@ function toggleUserMenu(event) {
   isUserMenuOpen = true;
   const user = appStore.state.user || DEFAULT_USER;
   const firstName = user.name.split(' ')[0];
+  const isAdmin = user.role === 'admin' || user.email === 'sadman@collabai.dev';
 
   container.innerHTML = `
     <div class="fixed inset-0 bg-transparent z-40" onclick="closeModal()"></div>
@@ -72,13 +75,23 @@ function toggleUserMenu(event) {
           ${firstName[0]}
         </div>
         <div class="flex flex-col min-w-0">
-          <span class="font-medium text-white truncate text-[13px]">${user.name}</span>
-          <span class="text-[11px] text-app-textMuted truncate">${user.email}</span>
+          <div class="flex items-center gap-1.5">
+            <span class="font-medium text-white truncate text-[13px]">${escapeHtml(user.name)}</span>
+            ${isAdmin ? `<span class="text-[9px] px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 font-medium">ADMIN</span>` : ''}
+          </div>
+          <span class="text-[11px] text-app-textMuted truncate">${escapeHtml(user.email)}</span>
         </div>
       </div>
 
       <!-- Menu Items -->
       <div class="flex flex-col gap-0.5 py-1">
+        ${isAdmin ? `
+          <button onclick="appStore.setRoute('/admin'); fetchAdminUsers(); closeModal()" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-emerald-300 hover:text-white hover:bg-emerald-500/10 text-left transition-colors font-normal">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>User Access & Approvals</span>
+          </button>
+        ` : ''}
+
         <button onclick="appStore.setRoute('/settings'); closeModal()" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
           <i data-lucide="settings" class="w-3.5 h-3.5 text-app-textMuted"></i>
           <span>Settings & Preferences</span>

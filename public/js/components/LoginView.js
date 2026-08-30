@@ -1,96 +1,219 @@
-﻿// LoginView.js - Matches Screenshot 3 with brand logo and #171717 surface
-function renderLoginView() {
-  return `
-    <div class="min-h-screen w-full bg-app-canvas flex items-center justify-center p-4 select-none">
-      <div class="w-full max-w-[420px] bg-app-surface border border-app-borderSubtle rounded-2xl p-8 shadow-2xl flex flex-col items-center gap-6">
-        
-        <!-- Brand Logo & Title -->
-        <div class="flex flex-col items-center gap-3">
-          <img src="/logo.png" class="h-10 object-contain" alt="Collab AI" />
-          <p class="text-[13.5px] text-app-textSecondary mt-1">Sign in to your AI collaboration platform</p>
-        </div>
+﻿// LoginView.js - Sign In & Sign Up with Admin Approval Flow
+let activeAuthTab = 'signin';
+let registrationPendingUser = null;
 
-        <!-- Login Form -->
-        <form onsubmit="handleLoginSubmit(event)" class="w-full flex flex-col gap-4">
-          <div class="flex flex-col gap-1.5">
-            <label class="text-[13px] font-medium text-app-textSecondary">Email or Username</label>
-            <input 
-              type="text" 
-              id="login-username"
-              required 
-              value="sadman@collabai.dev"
-              placeholder="Enter your email or username" 
-              class="w-full bg-app-input border border-app-borderSubtle text-white text-[14px] rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-app-borderActive transition-colors placeholder-app-textMuted"
-            />
+function renderLoginView() {
+  if (registrationPendingUser) {
+    return `
+      <div class="h-screen w-screen flex items-center justify-center bg-app-canvas p-4 select-none">
+        <div class="w-full max-w-md bg-app-surface border border-app-borderSubtle rounded-2xl p-8 shadow-2xl flex flex-col items-center text-center gap-5 animate-fade-in">
+          
+          <div class="w-12 h-12 rounded-2xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white">
+            <i data-lucide="clock" class="w-6 h-6 text-amber-400"></i>
           </div>
 
           <div class="flex flex-col gap-1.5">
-            <label class="text-[13px] font-medium text-app-textSecondary">Password</label>
-            <div class="relative flex items-center">
-              <input 
-                type="password" 
-                id="login-password"
-                required 
-                value="••••••••••••"
-                placeholder="Enter your password" 
-                class="w-full bg-app-input border border-app-borderSubtle text-white text-[14px] rounded-lg px-3.5 py-2.5 pr-10 focus:outline-none focus:border-app-borderActive transition-colors placeholder-app-textMuted"
-              />
-              <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 text-app-textMuted hover:text-white">
-                <i data-lucide="eye" id="password-eye-icon" class="w-4 h-4"></i>
-              </button>
+            <h2 class="text-[18px] font-semibold text-white">Registration Submitted</h2>
+            <p class="text-[13px] text-app-textSecondary leading-relaxed">
+              Your account (<strong class="text-white">${escapeHtml(registrationPendingUser.email)}</strong>) is pending administrator approval.
+            </p>
+          </div>
+
+          <div class="w-full bg-app-input border border-app-borderSubtle rounded-xl p-3.5 text-[12.5px] text-app-textSecondary text-left flex flex-col gap-1">
+            <div class="flex items-center gap-2 text-amber-400 font-medium">
+              <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              <span>Status: Pending Review</span>
             </div>
+            <span class="text-[11.5px] text-app-textMuted">The administrator (Sadman) will review and approve your account shortly.</span>
           </div>
 
           <button 
-            type="submit" 
-            class="w-full bg-app-accent hover:bg-app-accentHover text-white font-semibold text-[14.5px] py-2.5 rounded-lg transition-all shadow-md mt-2">
-            Sign In
+            onclick="registrationPendingUser = null; activeAuthTab = 'signin'; renderApp()"
+            class="w-full btn-primary text-[13.5px] py-2.5 rounded-xl transition-all shadow-md">
+            Back to Sign In
           </button>
-        </form>
+        </div>
+      </div>
+    `;
+  }
 
-        <div class="w-full flex items-center gap-3">
-          <div class="flex-1 h-[1px] bg-app-borderSubtle"></div>
-          <span class="text-[12px] text-app-textMuted uppercase tracking-wider font-medium">Or continue with</span>
-          <div class="flex-1 h-[1px] bg-app-borderSubtle"></div>
+  return `
+    <div class="h-screen w-screen flex items-center justify-center bg-app-canvas p-4 select-none">
+      <div class="w-full max-w-md bg-app-surface border border-app-borderSubtle rounded-2xl p-8 shadow-2xl flex flex-col gap-6 animate-fade-in">
+        
+        <!-- Logo & Title -->
+        <div class="flex flex-col items-center text-center gap-3">
+          <img src="/logo.png" class="h-8 object-contain" alt="Collab AI" />
+          <div class="flex flex-col gap-0.5">
+            <h1 class="text-[20px] font-semibold text-white tracking-tight">
+              ${activeAuthTab === 'signin' ? 'Sign in to CollabAI' : 'Create an Account'}
+            </h1>
+            <p class="text-[13px] text-app-textSecondary font-normal">
+              ${activeAuthTab === 'signin' ? 'Collaborate with AI agents & orchestrated workflows' : 'Register for access to CollabAI workspace'}
+            </p>
+          </div>
         </div>
 
-        <button 
-          onclick="handleGoogleSignIn()" 
-          class="w-full flex items-center justify-center gap-2.5 bg-app-input hover:bg-app-hover border border-app-borderSubtle text-white text-[13.5px] font-medium py-2.5 rounded-lg transition-colors">
-          <i data-lucide="chrome" class="w-4 h-4 text-white"></i>
-          <span>Sign in with Google</span>
-        </button>
+        <!-- Auth Tabs (Sign In / Sign Up) -->
+        <div class="flex items-center bg-app-input p-1 rounded-xl border border-app-borderSubtle text-[13px]">
+          <button 
+            onclick="setAuthTab('signin')"
+            class="flex-1 py-1.5 rounded-lg font-medium transition-all ${activeAuthTab === 'signin' ? 'bg-app-surface text-white shadow-sm' : 'text-app-textMuted hover:text-white'}">
+            Sign In
+          </button>
+          <button 
+            onclick="setAuthTab('signup')"
+            class="flex-1 py-1.5 rounded-lg font-medium transition-all ${activeAuthTab === 'signup' ? 'bg-app-surface text-white shadow-sm' : 'text-app-textMuted hover:text-white'}">
+            Sign Up
+          </button>
+        </div>
 
-        <a href="javascript:void(0)" onclick="showToast('Password reset link sent to your registered email.')" class="text-[12.5px] text-app-accent hover:underline font-medium">
-          Forgot your password?
-        </a>
+        ${activeAuthTab === 'signin' ? `
+          <!-- Sign In Form -->
+          <form onsubmit="handleLoginSubmit(event)" class="flex flex-col gap-4 text-[13px]">
+            <div class="flex flex-col gap-1">
+              <label class="font-normal text-white">Email address</label>
+              <input 
+                type="email" 
+                id="login-email" 
+                required 
+                value="sadman@collabai.dev"
+                placeholder="name@company.com" 
+                class="bg-app-input border border-app-borderSubtle text-white rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-app-borderActive transition-colors"
+              />
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center justify-between">
+                <label class="font-normal text-white">Password</label>
+              </div>
+              <input 
+                type="password" 
+                id="login-password" 
+                required 
+                value="admin123"
+                placeholder="••••••••" 
+                class="bg-app-input border border-app-borderSubtle text-white rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-app-borderActive transition-colors font-mono"
+              />
+            </div>
+
+            <button 
+              type="submit" 
+              class="w-full btn-primary text-[13.5px] py-2.5 rounded-xl transition-all shadow-md mt-1">
+              Sign In
+            </button>
+          </form>
+        ` : `
+          <!-- Sign Up Form -->
+          <form onsubmit="handleRegisterSubmit(event)" class="flex flex-col gap-3.5 text-[13px]">
+            <div class="flex flex-col gap-1">
+              <label class="font-normal text-white">Full Name</label>
+              <input 
+                type="text" 
+                id="reg-name" 
+                required 
+                placeholder="e.g. Sarah Connor" 
+                class="bg-app-input border border-app-borderSubtle text-white rounded-xl px-3.5 py-2 focus:outline-none focus:border-app-borderActive transition-colors"
+              />
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label class="font-normal text-white">Email address</label>
+              <input 
+                type="email" 
+                id="reg-email" 
+                required 
+                placeholder="name@company.com" 
+                class="bg-app-input border border-app-borderSubtle text-white rounded-xl px-3.5 py-2 focus:outline-none focus:border-app-borderActive transition-colors"
+              />
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label class="font-normal text-white">Password</label>
+              <input 
+                type="password" 
+                id="reg-password" 
+                required 
+                minlength="6"
+                placeholder="At least 6 characters" 
+                class="bg-app-input border border-app-borderSubtle text-white rounded-xl px-3.5 py-2 focus:outline-none focus:border-app-borderActive transition-colors font-mono"
+              />
+            </div>
+
+            <button 
+              type="submit" 
+              class="w-full btn-primary text-[13.5px] py-2.5 rounded-xl transition-all shadow-md mt-1">
+              Create Account
+            </button>
+          </form>
+        `}
+
+        <div class="text-center text-[11.5px] text-app-textMuted">
+          Protected by CollabAI Workspace Admin Verification.
+        </div>
+
       </div>
     </div>
   `;
 }
 
-function togglePasswordVisibility() {
-  const input = document.getElementById('login-password');
-  const icon = document.getElementById('password-eye-icon');
-  if (input) {
-    if (input.type === 'password') {
-      input.type = 'text';
-      icon.setAttribute('data-lucide', 'eye-off');
-    } else {
-      input.type = 'password';
-      icon.setAttribute('data-lucide', 'eye');
+function setAuthTab(tab) {
+  activeAuthTab = tab;
+  renderApp();
+}
+
+async function handleLoginSubmit(e) {
+  e.preventDefault();
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showToast(data.error || 'Login failed', 'error');
+      return;
     }
-    lucide.createIcons();
+
+    appStore.login(data.user);
+    showToast(`Welcome back, ${data.user.name}!`);
+  } catch (err) {
+    showToast('Network error: ' + err.message, 'error');
   }
 }
 
-function handleLoginSubmit(e) {
+async function handleRegisterSubmit(e) {
   e.preventDefault();
-  appStore.login();
-  showToast('Welcome back, Sadman Zaman Khan!');
-}
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
 
-function handleGoogleSignIn() {
-  appStore.login();
-  showToast('Signed in via Google OAuth');
+  try {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showToast(data.error || 'Registration failed', 'error');
+      return;
+    }
+
+    if (data.status === 'approved') {
+      appStore.login(data.user);
+      showToast('Account created and logged in!');
+    } else {
+      registrationPendingUser = { email, name };
+      renderApp();
+    }
+  } catch (err) {
+    showToast('Network error: ' + err.message, 'error');
+  }
 }

@@ -1,0 +1,29 @@
+[
+  {
+    "id": "usr-1788091961211",
+    "name": "Test User",
+    "email": "test@collabai.dev",
+    "passwordHash": "babaa155832e6cc7a8c9b51d680b24a8e3785dd7fd6f8adf653f2343e5317caf",
+    "role": "user",
+    "status": "approved",
+    "createdAt": "2026-08-30T12:12:41.211Z"
+  },
+  {
+    "id": "usr-admin",
+    "name": "Sadman Zaman Khan",
+    "email": "sadman@collabai.dev",
+    "passwordHash": "c5d5dff31091acfa2374ab6e3cca88f43e375fc6903a7abe49139cd907dbdf90",
+    "role": "admin",
+    "status": "approved",
+    "createdAt": "2026-08-25T12:12:30.067Z"
+  },
+  {
+    "id": "usr-demo-1",
+    "name": "Aiden Vance",
+    "email": "aiden.vance@techcorp.io",
+    "passwordHash": "babaa155832e6cc7a8c9b51d680b24a8e3785dd7fd6f8adf653f2343e5317caf",
+    "role": "user",
+    "status": "pending",
+    "createdAt": "2026-08-30T10:12:30.069Z"
+  }
+]

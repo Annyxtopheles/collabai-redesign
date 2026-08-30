@@ -1,9 +1,10 @@
-﻿// server.js - CollabAI Backend Server with Secure Environment-based LLM Streaming
+﻿// server.js - CollabAI Backend with Persistent Auth, Admin Approval System & Live Groq AI
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
+const crypto = require('crypto');
 
 // Load environment variables from .env.local if present
 try {
@@ -17,12 +18,58 @@ try {
       }
     });
   }
-} catch (e) {
-  // Ignore env loading errors
-}
+} catch (e) {}
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
+const DATA_DIR = path.join(__dirname, 'data');
+const USERS_FILE = path.join(DATA_DIR, 'users.json');
+
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+function hashPassword(password) {
+  return crypto.createHash('sha256').update(password + 'collab_salt_2026').digest('hex');
+}
+
+// Persistent user database
+function loadUsers() {
+  if (fs.existsSync(USERS_FILE)) {
+    try {
+      return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+    } catch (e) {}
+  }
+  // Default seeded admin & demo users
+  const defaultUsers = [
+    {
+      id: 'usr-admin',
+      name: 'Sadman Zaman Khan',
+      email: 'sadman@collabai.dev',
+      passwordHash: hashPassword('admin123'),
+      role: 'admin',
+      status: 'approved',
+      createdAt: new Date(Date.now() - 86400000 * 5).toISOString()
+    },
+    {
+      id: 'usr-demo-1',
+      name: 'Aiden Vance',
+      email: 'aiden.vance@techcorp.io',
+      passwordHash: hashPassword('password123'),
+      role: 'user',
+      status: 'pending',
+      createdAt: new Date(Date.now() - 3600000 * 2).toISOString()
+    }
+  ];
+  saveUsers(defaultUsers);
+  return defaultUsers;
+}
+
+function saveUsers(users) {
+  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
+}
+
+let users = loadUsers();
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=UTF-8',
@@ -49,46 +96,9 @@ const db = {
   ]
 };
 
-function getPipelineMetadata(prompt, agentId) {
-  const p = (prompt || '').toLowerCase();
-  
-  if (p.includes('brand') || p.includes('consultant')) {
-    return {
-      pipeline: ['Brand Strategist', 'Market Intelligence', 'Content Critic'],
-      sources: ['Executive Branding Framework v3', 'Tech Leadership Index'],
-      suggestions: ['Draft the LinkedIn headline', 'Outline a 90-day content calendar', 'Suggest 5 speaking topics']
-    };
-  }
-
-  if (p.includes('resume') || p.includes('cv') || p.includes('job') || agentId === 'resume-agent') {
-    return {
-      pipeline: ['Resume Review Agent', 'ATS Knowledge Engine', 'Executive Recruiter'],
-      sources: ['Staff Software Engineer Rubric', 'FAANG ATS Parsing Rules'],
-      suggestions: ['Rewrite the summary paragraph for Staff level', 'Generate action verbs list for AI engineering', 'Audit against FAANG ATS keywords']
-    };
-  }
-
-  if (p.includes('color') || p.includes('palette') || p.includes('theme') || agentId === 'color-palette') {
-    return {
-      pipeline: ['Color Palette Generator', 'Design Tokens Engine', 'WCAG Contrast Validator'],
-      sources: ['Semantic Design System Tokens v2', 'WCAG 2.2 Accessibility Standards'],
-      suggestions: ['Export as Tailwind Config JSON', 'Generate Light Mode Complement', 'Check WCAG AAA Compliance']
-    };
-  }
-
-  return {
-    pipeline: ['Aster Architect', 'Knowledge Base', 'Reasoning Advisor'],
-    sources: ['System Architecture Guide v4', 'Distributed Systems RFC'],
-    suggestions: ['Show error handling flow', 'Add rate limiting configuration', 'Detail deployment steps']
-  };
-}
-
-function streamFromGroq(apiKey, prompt, agentId, res) {
-  const meta = getPipelineMetadata(prompt, agentId);
-  res.write('event: pipeline\ndata: ' + JSON.stringify(meta) + '\n\n');
-
-  const systemPrompt = `You are CollabAI, an advanced collaborative AI agent platform. 
-Respond thoroughly and clearly with clean markdown formatting, structured headers (h3/h4), bold labels, bullet points, and code blocks when appropriate.`;
+function streamFromGroq(apiKey, prompt, res) {
+  const systemPrompt = `You are CollabAI, an advanced collaborative AI assistant. 
+Respond thoroughly with clean markdown formatting, structured headers (h3/h4), bold labels, bullet points, and code blocks when appropriate.`;
 
   const postData = JSON.stringify({
     model: 'openai/gpt-oss-120b',
@@ -127,9 +137,7 @@ Respond thoroughly and clearly with clean markdown formatting, structured header
             if (delta && delta.content) {
               res.write('event: token\ndata: ' + JSON.stringify({ token: delta.content }) + '\n\n');
             }
-          } catch (e) {
-            // Ignore parse errors on partial chunks
-          }
+          } catch (e) {}
         }
       }
     });
@@ -142,33 +150,30 @@ Respond thoroughly and clearly with clean markdown formatting, structured header
 
   req.on('error', (e) => {
     console.error('Groq API Error:', e.message);
-    streamSmartFallback(prompt, agentId, res);
+    streamFallback(prompt, res);
   });
 
   req.write(postData);
   req.end();
 }
 
-function streamSmartFallback(prompt, agentId, res) {
-  const meta = getPipelineMetadata(prompt, agentId);
-  res.write('event: pipeline\ndata: ' + JSON.stringify(meta) + '\n\n');
-
-  const content = `### Analysis & System Response
+function streamFallback(prompt, res) {
+  const content = `### Response
 
 Regarding **"${prompt}"**:
 
-The collaborative agent cluster has processed your request through the verification pipeline.
+The agent cluster has processed your request with optimal throughput.
 
 \`\`\`json
-# Pipeline Ingress
+# Pipeline Status
 POST /api/v1/orchestrate
-Payload: { "request": "${prompt.slice(0, 35)}", "status": "active" }
-Response: 200 OK • { "verified": true, "latency_ms": 8 }
+Payload: { "query": "${prompt.slice(0, 30)}", "status": "active" }
+Response: 200 OK • { "verified": true }
 \`\`\`
 
-#### Key Findings
-- **High-Speed Throughput**: Ingestion and routing completed with zero packet drop across all active nodes. [1]
-- **Context Preservation**: Active thread memories have been synced with the local session state. [2]`;
+#### Key Takeaways
+- Response generated through local collaborative inference engine.
+- Session context is synced.`;
 
   const words = content.split(' ');
   let i = 0;
@@ -192,12 +197,166 @@ const server = http.createServer((req, res) => {
   const pathname = parsedUrl.pathname;
 
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(200);
     res.end();
+    return;
+  }
+
+  // --- AUTH ROUTE: POST /api/auth/register ---
+  if (pathname === '/api/auth/register' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const { name, email, password } = JSON.parse(body || '{}');
+        if (!email || !password) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'Email and password are required' }));
+        }
+
+        const normalizedEmail = email.toLowerCase().trim();
+        const existing = users.find(u => u.email.toLowerCase() === normalizedEmail);
+        if (existing) {
+          res.writeHead(409, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'An account with this email already exists' }));
+        }
+
+        const newUser = {
+          id: 'usr-' + Date.now(),
+          name: name ? name.trim() : normalizedEmail.split('@')[0],
+          email: normalizedEmail,
+          passwordHash: hashPassword(password),
+          role: normalizedEmail === 'sadman@collabai.dev' ? 'admin' : 'user',
+          status: normalizedEmail === 'sadman@collabai.dev' ? 'approved' : 'pending',
+          createdAt: new Date().toISOString()
+        };
+
+        users.unshift(newUser);
+        saveUsers(users);
+
+        res.writeHead(201, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          message: newUser.status === 'approved' 
+            ? 'Account registered and approved!' 
+            : 'Registration submitted successfully. Your account is pending admin approval.',
+          status: newUser.status,
+          user: { id: newUser.id, name: newUser.name, email: newUser.email, role: newUser.role, status: newUser.status }
+        }));
+      } catch (e) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    });
+    return;
+  }
+
+  // --- AUTH ROUTE: POST /api/auth/login ---
+  if (pathname === '/api/auth/login' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const { email, password } = JSON.parse(body || '{}');
+        const normalizedEmail = (email || '').toLowerCase().trim();
+        const user = users.find(u => u.email.toLowerCase() === normalizedEmail);
+
+        if (!user || user.passwordHash !== hashPassword(password || '')) {
+          res.writeHead(401, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'Invalid email or password' }));
+        }
+
+        if (user.status === 'pending') {
+          res.writeHead(403, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ 
+            error: 'Your account is pending administrator approval. Please wait for Sadman to approve your registration.',
+            status: 'pending'
+          }));
+        }
+
+        if (user.status === 'rejected') {
+          res.writeHead(403, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ 
+            error: 'Your access request was declined by the administrator.',
+            status: 'rejected'
+          }));
+        }
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          message: 'Login successful',
+          token: 'tok_' + user.id + '_' + Date.now(),
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            status: user.status
+          }
+        }));
+      } catch (e) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    });
+    return;
+  }
+
+  // --- ADMIN ROUTE: GET /api/admin/users ---
+  if (pathname === '/api/admin/users' && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    const safeUsers = users.map(u => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      status: u.status,
+      createdAt: u.createdAt
+    }));
+    res.end(JSON.stringify(safeUsers));
+    return;
+  }
+
+  // --- ADMIN ROUTE: POST /api/admin/users/:id/status ---
+  if (pathname.startsWith('/api/admin/users/') && pathname.endsWith('/status') && req.method === 'POST') {
+    const parts = pathname.split('/');
+    const userId = parts[4];
+
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const { status } = JSON.parse(body || '{}');
+        const user = users.find(u => u.id === userId);
+        if (!user) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'User not found' }));
+        }
+
+        user.status = status;
+        saveUsers(users);
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ message: `User status updated to ${status}`, user }));
+      } catch (e) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    });
+    return;
+  }
+
+  // --- ADMIN ROUTE: DELETE /api/admin/users/:id ---
+  if (pathname.startsWith('/api/admin/users/') && req.method === 'DELETE') {
+    const parts = pathname.split('/');
+    const userId = parts[4];
+    users = users.filter(u => u.id !== userId);
+    saveUsers(users);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ message: 'User deleted' }));
     return;
   }
 
@@ -208,7 +367,7 @@ const server = http.createServer((req, res) => {
     req.on('end', () => {
       try {
         const payload = JSON.parse(body || '{}');
-        const { message, agentId, apiKey } = payload;
+        const { message, apiKey } = payload;
 
         res.writeHead(200, {
           'Content-Type': 'text/event-stream',
@@ -218,9 +377,9 @@ const server = http.createServer((req, res) => {
 
         const activeKey = apiKey || process.env.GROQ_API_KEY;
         if (activeKey) {
-          streamFromGroq(activeKey, message, agentId, res);
+          streamFromGroq(activeKey, message, res);
         } else {
-          streamSmartFallback(message, agentId, res);
+          streamFallback(message, res);
         }
       } catch (e) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -284,5 +443,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log('CollabAI server running with live LLM streaming on port ' + PORT);
+  console.log('CollabAI server running with full Auth & Admin approval on port ' + PORT);
 });
