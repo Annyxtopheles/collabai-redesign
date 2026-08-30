@@ -1,4 +1,4 @@
-﻿// DashboardView.js - Full Theme Support, Smart Dropdown Direction, Zero-Flicker In-Place Mode Switching
+﻿// DashboardView.js - Full Theme Support, Pixel-Perfect Anchored Dropdowns, Zero-Flicker Mode Switching
 let dashboardComposerMode = 'chat'; // 'chat' | 'search'
 
 function renderDashboardView(state) {
@@ -27,64 +27,50 @@ function renderDashboardView(state) {
 
         <!-- Global Chat Shortcut Composer -->
         <div class="w-full bg-app-surface border border-app-borderSubtle rounded-2xl p-3.5 flex flex-col gap-3 shadow-xl relative">
-          
-          <!-- Smart Positioning Dropdown Model Picker for Dashboard -->
-          <div id="dashboard-model-dropdown-menu" class="hidden w-72 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
-            <div class="px-2.5 py-1.5 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Select Model Provider</div>
-            ${AVAILABLE_MODELS.map(m => `
-              <div 
-                onclick="selectDashboardModel('${m.id}')"
-                class="flex items-center justify-between p-2 rounded-xl cursor-pointer transition-colors ${m.id === activeModelId ? 'bg-app-hover text-app-textPrimary font-medium' : 'text-app-textSecondary hover:bg-app-hover hover:text-app-textPrimary'}">
-                <div class="flex flex-col">
-                  <span class="text-app-textPrimary">${m.name}</span>
-                  <span class="text-[11px] text-app-textMuted">${m.provider}</span>
-                </div>
-                <span class="text-[10.5px] px-1.5 py-0.5 rounded bg-app-input border border-app-borderSubtle text-app-textMuted">${m.badge}</span>
-              </div>
-            `).join('')}
-          </div>
-
-          <!-- Smart Positioning Gemini-style Plus (+) Attachment & Tools Menu -->
-          <div id="dashboard-plus-dropdown-menu" class="hidden w-64 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
-            <div class="px-2.5 py-1 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Tools & Attachments</div>
-            
-            <button onclick="triggerDashboardFileUpload(); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
-              <i data-lucide="upload" class="w-3.5 h-3.5 text-app-textPrimary"></i>
-              <span>Upload files (PDF, Code, CSV)</span>
-            </button>
-
-            <button onclick="appStore.setRoute('/knowledge-base'); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
-              <i data-lucide="database" class="w-3.5 h-3.5 text-app-textPrimary"></i>
-              <span>Attach from Knowledge Base</span>
-            </button>
-
-            <button onclick="setDashboardMode('search'); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
-              <i data-lucide="search" class="w-3.5 h-3.5 text-app-textPrimary"></i>
-              <span>Enable Deep Search Tool</span>
-            </button>
-
-            <button onclick="openTemplatesModal(); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
-              <i data-lucide="layout-template" class="w-3.5 h-3.5 text-app-textPrimary"></i>
-              <span>Prompt Templates Library</span>
-            </button>
-
-            <button onclick="appStore.setRoute('/agents'); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
-              <i data-lucide="bot" class="w-3.5 h-3.5 text-app-textPrimary"></i>
-              <span>Mention @Agent</span>
-            </button>
-          </div>
 
           <!-- Main Input Line -->
           <div class="flex items-center gap-2.5">
             
-            <!-- Gemini-style Plus (+) Button -->
-            <button 
-              id="dashboard-plus-btn"
-              onclick="toggleDashboardPlusMenu(event)" 
-              class="w-8 h-8 rounded-full bg-app-input hover:bg-app-hover border border-app-borderSubtle text-app-textSecondary hover:text-app-textPrimary flex items-center justify-center transition-colors shrink-0" 
-              title="Add attachment or tool">
-              <i data-lucide="plus" class="w-4 h-4"></i>
-            </button>
+            <!-- Gemini-style Plus (+) Button with Directly Anchored Dropdown -->
+            <div class="relative shrink-0">
+              <button 
+                id="dashboard-plus-btn"
+                onclick="toggleDashboardPlusMenu(event)" 
+                class="w-8 h-8 rounded-full bg-app-input hover:bg-app-hover border border-app-borderSubtle text-app-textSecondary hover:text-app-textPrimary flex items-center justify-center transition-colors shrink-0" 
+                title="Add attachment or tool">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+              </button>
+
+              <!-- Directly Anchored Plus Dropdown (Opens Downwards) -->
+              <div id="dashboard-plus-dropdown-menu" class="hidden absolute top-full left-0 mt-2 w-64 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
+                <div class="px-2.5 py-1 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Tools & Attachments</div>
+                
+                <button onclick="triggerDashboardFileUpload(); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
+                  <i data-lucide="upload" class="w-3.5 h-3.5 text-app-textPrimary"></i>
+                  <span>Upload files (PDF, Code, CSV)</span>
+                </button>
+
+                <button onclick="appStore.setRoute('/knowledge-base'); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
+                  <i data-lucide="database" class="w-3.5 h-3.5 text-app-textPrimary"></i>
+                  <span>Attach from Knowledge Base</span>
+                </button>
+
+                <button onclick="setDashboardMode('search'); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
+                  <i data-lucide="search" class="w-3.5 h-3.5 text-app-textPrimary"></i>
+                  <span>Enable Deep Search Tool</span>
+                </button>
+
+                <button onclick="openTemplatesModal(); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
+                  <i data-lucide="layout-template" class="w-3.5 h-3.5 text-app-textPrimary"></i>
+                  <span>Prompt Templates Library</span>
+                </button>
+
+                <button onclick="appStore.setRoute('/agents'); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
+                  <i data-lucide="bot" class="w-3.5 h-3.5 text-app-textPrimary"></i>
+                  <span>Mention @Agent</span>
+                </button>
+              </div>
+            </div>
 
             <input 
               type="file" 
@@ -121,15 +107,35 @@ function renderDashboardView(state) {
           <!-- Sub-toolbar with Model Selector & In-Place Filter Mode Buttons -->
           <div class="flex items-center justify-between pt-2 border-t border-app-borderSubtle text-[12px]">
             <div class="flex items-center gap-2 flex-wrap">
-              <button 
-                type="button"
-                id="dashboard-model-picker-btn"
-                onclick="toggleDashboardModelPicker(event)"
-                class="flex items-center gap-1.5 bg-app-input hover:bg-app-hover px-2.5 py-1 rounded-md border border-app-borderSubtle text-app-textSecondary hover:text-app-textPrimary cursor-pointer transition-colors">
-                <span id="dashboard-active-model-name" class="font-normal text-app-textPrimary">${activeModel.name}</span>
-                <span id="dashboard-active-model-provider" class="text-[10px] text-app-textMuted">· ${activeModel.provider}</span>
-                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-app-textMuted"></i>
-              </button>
+              
+              <!-- Model Picker Button with Directly Anchored Dropdown (Opens Downwards) -->
+              <div class="relative">
+                <button 
+                  type="button"
+                  id="dashboard-model-picker-btn"
+                  onclick="toggleDashboardModelPicker(event)"
+                  class="flex items-center gap-1.5 bg-app-input hover:bg-app-hover px-2.5 py-1 rounded-md border border-app-borderSubtle text-app-textSecondary hover:text-app-textPrimary cursor-pointer transition-colors">
+                  <span id="dashboard-active-model-name" class="font-normal text-app-textPrimary">${activeModel.name}</span>
+                  <span id="dashboard-active-model-provider" class="text-[10px] text-app-textMuted">· ${activeModel.provider}</span>
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-app-textMuted"></i>
+                </button>
+
+                <!-- Directly Anchored Model Selector Dropdown -->
+                <div id="dashboard-model-dropdown-menu" class="hidden absolute top-full left-0 mt-1.5 w-72 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
+                  <div class="px-2.5 py-1.5 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Select Model Provider</div>
+                  ${AVAILABLE_MODELS.map(m => `
+                    <div 
+                      onclick="selectDashboardModel('${m.id}')"
+                      class="flex items-center justify-between p-2 rounded-xl cursor-pointer transition-colors ${m.id === activeModelId ? 'bg-app-hover text-app-textPrimary font-medium' : 'text-app-textSecondary hover:bg-app-hover hover:text-app-textPrimary'}">
+                      <div class="flex flex-col">
+                        <span class="text-app-textPrimary">${m.name}</span>
+                        <span class="text-[11px] text-app-textMuted">${m.provider}</span>
+                      </div>
+                      <span class="text-[10.5px] px-1.5 py-0.5 rounded bg-app-input border border-app-borderSubtle text-app-textMuted">${m.badge}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
 
               <!-- In-Place Zero-Flicker Mode Selector -->
               <div class="flex items-center gap-0.5 bg-app-input p-0.5 rounded-md border border-app-borderSubtle">
@@ -370,22 +376,15 @@ function handleDashboardInput(val) {
   }
 }
 
-// Smart context-menu positioning for Dashboard menus
+// In-place directly anchored toggle functions for Dashboard menus
 function toggleDashboardPlusMenu(e) {
   if (e) e.stopPropagation();
   const plusMenu = document.getElementById('dashboard-plus-dropdown-menu');
   const modelMenu = document.getElementById('dashboard-model-dropdown-menu');
-  const btn = document.getElementById('dashboard-plus-btn');
 
   if (modelMenu) modelMenu.classList.add('hidden');
-  if (plusMenu && btn) {
-    const isHidden = plusMenu.classList.contains('hidden');
-    if (isHidden) {
-      plusMenu.classList.remove('hidden');
-      positionDropdown(plusMenu, btn);
-    } else {
-      plusMenu.classList.add('hidden');
-    }
+  if (plusMenu) {
+    plusMenu.classList.toggle('hidden');
   }
   lucide.createIcons();
 }
@@ -394,17 +393,10 @@ function toggleDashboardModelPicker(e) {
   if (e) e.stopPropagation();
   const modelMenu = document.getElementById('dashboard-model-dropdown-menu');
   const plusMenu = document.getElementById('dashboard-plus-dropdown-menu');
-  const btn = document.getElementById('dashboard-model-picker-btn');
 
   if (plusMenu) plusMenu.classList.add('hidden');
-  if (modelMenu && btn) {
-    const isHidden = modelMenu.classList.contains('hidden');
-    if (isHidden) {
-      modelMenu.classList.remove('hidden');
-      positionDropdown(modelMenu, btn);
-    } else {
-      modelMenu.classList.add('hidden');
-    }
+  if (modelMenu) {
+    modelMenu.classList.toggle('hidden');
   }
   lucide.createIcons();
 }

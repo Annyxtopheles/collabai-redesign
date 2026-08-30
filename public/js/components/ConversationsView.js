@@ -1,4 +1,4 @@
-﻿// ConversationsView.js - Zero-Flicker In-Place Dropdowns, Smart Context-Menu Direction, Full Theme Support
+﻿// ConversationsView.js - Zero-Flicker In-Place Dropdowns, Directly Anchored, Full Theme Support
 let isStreamingActive = false;
 
 function renderConversationsView(state) {
@@ -56,58 +56,44 @@ function renderConversationsView(state) {
 
       </div>
 
-      <!-- Bottom Chat Composer Area with Zero-Flicker In-Place Dropdowns -->
+      <!-- Bottom Chat Composer Area -->
       <div class="p-4 sm:px-12 md:px-20 lg:px-32 max-w-4xl mx-auto w-full flex flex-col gap-1.5 relative z-20 select-none">
-        
-        <!-- Smart Positioning Model Selector Dropdown -->
-        <div id="chat-model-dropdown-menu" class="hidden w-72 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
-          <div class="px-2.5 py-1.5 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Select Model Provider</div>
-          ${AVAILABLE_MODELS.map(m => `
-            <div 
-              onclick="selectChatModel('${m.id}')"
-              class="flex items-center justify-between p-2 rounded-xl cursor-pointer transition-colors ${m.id === activeModelId ? 'bg-app-hover text-app-textPrimary font-medium' : 'text-app-textSecondary hover:bg-app-hover hover:text-app-textPrimary'}">
-              <div class="flex flex-col">
-                <span class="text-app-textPrimary">${m.name}</span>
-                <span class="text-[11px] text-app-textMuted">${m.provider}</span>
-              </div>
-              <span class="text-[10.5px] px-1.5 py-0.5 rounded bg-app-input border border-app-borderSubtle text-app-textMuted">${m.badge}</span>
-            </div>
-          `).join('')}
-        </div>
-
-        <!-- Smart Positioning Plus (+) Attachment & Tools Menu -->
-        <div id="chat-plus-dropdown-menu" class="hidden w-64 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
-          <div class="px-2.5 py-1 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Tools & Attachments</div>
-          
-          <button onclick="triggerChatFileUpload(); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
-            <i data-lucide="upload" class="w-3.5 h-3.5 text-app-textPrimary"></i>
-            <span>Upload files (PDF, Code, CSV)</span>
-          </button>
-
-          <button onclick="appStore.setRoute('/knowledge-base'); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
-            <i data-lucide="database" class="w-3.5 h-3.5 text-app-textPrimary"></i>
-            <span>Attach from Knowledge Base</span>
-          </button>
-
-          <button onclick="appStore.setRoute('/agents'); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
-            <i data-lucide="bot" class="w-3.5 h-3.5 text-app-textPrimary"></i>
-            <span>Mention @Agent</span>
-          </button>
-        </div>
 
         <!-- Composer Box -->
-        <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-3 flex flex-col gap-2 shadow-xl focus-within:border-app-borderActive transition-colors">
+        <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-3 flex flex-col gap-2 shadow-xl focus-within:border-app-borderActive transition-colors relative">
           
           <div class="flex items-center gap-2.5">
             
-            <!-- Gemini-style Plus (+) Button -->
-            <button 
-              id="chat-plus-btn"
-              onclick="toggleChatPlusMenu(event)"
-              class="w-7 h-7 rounded-full bg-app-input hover:bg-app-hover border border-app-borderSubtle text-app-textSecondary hover:text-app-textPrimary flex items-center justify-center transition-colors shrink-0" 
-              title="Add attachment or tool">
-              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-            </button>
+            <!-- Gemini-style Plus (+) Button with Directly Anchored Dropdown (Opens Upwards) -->
+            <div class="relative shrink-0">
+              <button 
+                id="chat-plus-btn"
+                onclick="toggleChatPlusMenu(event)"
+                class="w-7 h-7 rounded-full bg-app-input hover:bg-app-hover border border-app-borderSubtle text-app-textSecondary hover:text-app-textPrimary flex items-center justify-center transition-colors shrink-0" 
+                title="Add attachment or tool">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              </button>
+
+              <!-- Directly Anchored Plus Dropdown (Opens Upwards) -->
+              <div id="chat-plus-dropdown-menu" class="hidden absolute bottom-full left-0 mb-2.5 w-64 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
+                <div class="px-2.5 py-1 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Tools & Attachments</div>
+                
+                <button onclick="triggerChatFileUpload(); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
+                  <i data-lucide="upload" class="w-3.5 h-3.5 text-app-textPrimary"></i>
+                  <span>Upload files (PDF, Code, CSV)</span>
+                </button>
+
+                <button onclick="appStore.setRoute('/knowledge-base'); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
+                  <i data-lucide="database" class="w-3.5 h-3.5 text-app-textPrimary"></i>
+                  <span>Attach from Knowledge Base</span>
+                </button>
+
+                <button onclick="appStore.setRoute('/agents'); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
+                  <i data-lucide="bot" class="w-3.5 h-3.5 text-app-textPrimary"></i>
+                  <span>Mention @Agent</span>
+                </button>
+              </div>
+            </div>
 
             <input 
               type="file" 
@@ -135,18 +121,36 @@ function renderConversationsView(state) {
             </button>
           </div>
 
-          <!-- Bottom Toolbar with Smart Positioner Model Selector Trigger -->
+          <!-- Bottom Toolbar with Model Selector Trigger with Directly Anchored Dropdown (Opens Upwards) -->
           <div class="flex items-center justify-between pt-1.5 border-t border-app-borderSubtle text-[12px]">
             <div class="flex items-center gap-2">
-              <button 
-                type="button"
-                id="chat-model-picker-btn"
-                onclick="toggleModelPicker(event)"
-                class="flex items-center gap-1.5 bg-app-input hover:bg-app-hover px-2.5 py-1 rounded-md border border-app-borderSubtle text-app-textSecondary hover:text-app-textPrimary cursor-pointer transition-colors">
-                <span id="chat-active-model-name" class="font-normal text-app-textPrimary">${activeModel.name}</span>
-                <span id="chat-active-model-provider" class="text-[10px] text-app-textMuted">· ${activeModel.provider}</span>
-                <i data-lucide="chevron-down" class="w-3 h-3 text-app-textMuted"></i>
-              </button>
+              <div class="relative">
+                <button 
+                  type="button"
+                  id="chat-model-picker-btn"
+                  onclick="toggleModelPicker(event)"
+                  class="flex items-center gap-1.5 bg-app-input hover:bg-app-hover px-2.5 py-1 rounded-md border border-app-borderSubtle text-app-textSecondary hover:text-app-textPrimary cursor-pointer transition-colors">
+                  <span id="chat-active-model-name" class="font-normal text-app-textPrimary">${activeModel.name}</span>
+                  <span id="chat-active-model-provider" class="text-[10px] text-app-textMuted">· ${activeModel.provider}</span>
+                  <i data-lucide="chevron-down" class="w-3 h-3 text-app-textMuted"></i>
+                </button>
+
+                <!-- Directly Anchored Model Selector Dropdown (Opens Upwards in Chat) -->
+                <div id="chat-model-dropdown-menu" class="hidden absolute bottom-full left-0 mb-2 w-72 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
+                  <div class="px-2.5 py-1.5 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Select Model Provider</div>
+                  ${AVAILABLE_MODELS.map(m => `
+                    <div 
+                      onclick="selectChatModel('${m.id}')"
+                      class="flex items-center justify-between p-2 rounded-xl cursor-pointer transition-colors ${m.id === activeModelId ? 'bg-app-hover text-app-textPrimary font-medium' : 'text-app-textSecondary hover:bg-app-hover hover:text-app-textPrimary'}">
+                      <div class="flex flex-col">
+                        <span class="text-app-textPrimary">${m.name}</span>
+                        <span class="text-[11px] text-app-textMuted">${m.provider}</span>
+                      </div>
+                      <span class="text-[10.5px] px-1.5 py-0.5 rounded bg-app-input border border-app-borderSubtle text-app-textMuted">${m.badge}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
             </div>
 
             <div class="flex items-center gap-1 text-app-textMuted text-[11px]">
@@ -163,22 +167,15 @@ function renderConversationsView(state) {
   `;
 }
 
-// In-place smart dropdown toggles with automatic direction calculation
+// In-place dropdown toggles
 function toggleModelPicker(e) {
   if (e) e.stopPropagation();
   const menu = document.getElementById('chat-model-dropdown-menu');
   const plusMenu = document.getElementById('chat-plus-dropdown-menu');
-  const btn = document.getElementById('chat-model-picker-btn');
 
   if (plusMenu) plusMenu.classList.add('hidden');
-  if (menu && btn) {
-    const isHidden = menu.classList.contains('hidden');
-    if (isHidden) {
-      menu.classList.remove('hidden');
-      positionDropdown(menu, btn);
-    } else {
-      menu.classList.add('hidden');
-    }
+  if (menu) {
+    menu.classList.toggle('hidden');
   }
   lucide.createIcons();
 }
@@ -187,17 +184,10 @@ function toggleChatPlusMenu(e) {
   if (e) e.stopPropagation();
   const plusMenu = document.getElementById('chat-plus-dropdown-menu');
   const modelMenu = document.getElementById('chat-model-dropdown-menu');
-  const btn = document.getElementById('chat-plus-btn');
 
   if (modelMenu) modelMenu.classList.add('hidden');
-  if (plusMenu && btn) {
-    const isHidden = plusMenu.classList.contains('hidden');
-    if (isHidden) {
-      plusMenu.classList.remove('hidden');
-      positionDropdown(plusMenu, btn);
-    } else {
-      plusMenu.classList.add('hidden');
-    }
+  if (plusMenu) {
+    plusMenu.classList.toggle('hidden');
   }
   lucide.createIcons();
 }
