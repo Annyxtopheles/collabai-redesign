@@ -1,7 +1,6 @@
-﻿// ConversationsView.js - Open Canvas, zero cluttered pipeline headers, ivory off-white palette, working model picker
+﻿// ConversationsView.js - Selectable text, flicker-free in-place sources, spacious suggestions, bad response feedback
 let isStreamingActive = false;
 let isModelPickerOpen = false;
-let expandedSources = {};
 
 function renderConversationsView(state) {
   const conv = state.conversations.find(c => c.id === state.activeConversationId) || state.conversations[0];
@@ -11,12 +10,12 @@ function renderConversationsView(state) {
   const convTitle = conv ? (conv.title || 'New Conversation') : 'New Conversation';
 
   return `
-    <div class="flex-1 flex flex-col h-full overflow-hidden bg-app-canvas relative select-none">
+    <div class="flex-1 flex flex-col h-full overflow-hidden bg-app-canvas relative">
       
       <!-- Minimalist Chat Header -->
       <header class="h-[48px] border-b border-app-borderSubtle px-6 flex items-center justify-between shrink-0 bg-app-canvas select-none z-10">
         <div class="flex items-center gap-2 min-w-0">
-          <h1 class="text-[14px] font-normal text-white truncate">${convTitle}</h1>
+          <h1 class="text-[14px] font-normal text-white truncate">${escapeHtml(convTitle)}</h1>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="appStore.createConversation('New Chat', '')" title="New Chat" class="p-1.5 text-app-textSecondary hover:text-white rounded-lg hover:bg-app-hover transition-colors">
@@ -25,12 +24,12 @@ function renderConversationsView(state) {
         </div>
       </header>
 
-      <!-- Message Stream Area (Open Canvas layout) -->
-      <div class="flex-1 overflow-y-auto px-6 sm:px-12 md:px-20 lg:px-32 py-6 flex flex-col gap-8" id="chat-messages-container">
+      <!-- Message Stream Area (Selectable Open Canvas layout) -->
+      <div class="flex-1 overflow-y-auto px-6 sm:px-12 md:px-20 lg:px-32 py-6 flex flex-col gap-8 select-text" id="chat-messages-container">
         
         <!-- Empty Conversation State -->
         ${messages.length === 0 ? `
-          <div class="flex-1 flex flex-col items-center justify-center text-center max-w-lg mx-auto gap-3.5 my-auto">
+          <div class="flex-1 flex flex-col items-center justify-center text-center max-w-lg mx-auto gap-3.5 my-auto select-none">
             <div class="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white">
               <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
             </div>
@@ -41,12 +40,12 @@ function renderConversationsView(state) {
             <div class="flex items-center gap-2 pt-2 flex-wrap justify-center">
               <button 
                 onclick="sendChatSuggestion('Draft a high-speed async event architecture')"
-                class="text-[12.5px] bg-app-surface hover:bg-app-hover text-white font-normal px-3.5 py-1.5 rounded-lg border border-app-borderSubtle transition-all">
+                class="text-[12.5px] bg-app-surface hover:bg-app-hover text-white font-normal px-4 py-2 rounded-xl border border-app-borderSubtle transition-all">
                 "Draft async architecture"
               </button>
               <button 
                 onclick="sendChatSuggestion('Review my resume for Staff AI Engineer')"
-                class="text-[12.5px] bg-app-surface hover:bg-app-hover text-white font-normal px-3.5 py-1.5 rounded-lg border border-app-borderSubtle transition-all">
+                class="text-[12.5px] bg-app-surface hover:bg-app-hover text-white font-normal px-4 py-2 rounded-xl border border-app-borderSubtle transition-all">
                 "Review Tech Resume"
               </button>
             </div>
@@ -57,12 +56,12 @@ function renderConversationsView(state) {
         ${messages.map(msg => renderChatMessageBubble(msg)).join('')}
 
         <!-- Live Streaming Open Container -->
-        <div id="live-streaming-bubble" class="hidden flex-col gap-3 w-full animate-fade-in"></div>
+        <div id="live-streaming-bubble" class="hidden flex-col gap-3 w-full animate-fade-in select-text"></div>
 
       </div>
 
       <!-- Bottom Chat Composer Area with Working Model Selector -->
-      <div class="p-4 sm:px-12 md:px-20 lg:px-32 max-w-4xl mx-auto w-full flex flex-col gap-1.5 relative z-20">
+      <div class="p-4 sm:px-12 md:px-20 lg:px-32 max-w-4xl mx-auto w-full flex flex-col gap-1.5 relative z-20 select-none">
         
         <!-- Model Selector Dropdown Menu -->
         ${isModelPickerOpen ? `
@@ -95,7 +94,7 @@ function renderConversationsView(state) {
               placeholder="Message CollabAI..."
               oninput="autoGrowTextarea(this)"
               onkeydown="handleChatKeydown(event)"
-              class="flex-1 bg-transparent text-white text-[14px] font-normal placeholder-app-textMuted focus:outline-none resize-none max-h-32"
+              class="flex-1 bg-transparent text-white text-[14px] font-normal placeholder-app-textMuted focus:outline-none resize-none max-h-32 select-text"
             ></textarea>
             <button 
               id="chat-send-button"
@@ -145,77 +144,97 @@ function selectChatModel(modelId) {
   showToast(`Switched model to ${modelId}`);
 }
 
-function toggleSourcesExpand(msgId) {
-  expandedSources[msgId] = !expandedSources[msgId];
-  renderApp();
+// In-place smooth toggle for sources without full-screen flicker
+function toggleSourcesInPlace(msgId) {
+  const box = document.getElementById(`sources-box-${msgId}`);
+  const chevron = document.getElementById(`sources-chevron-${msgId}`);
+  if (!box) return;
+
+  if (box.classList.contains('hidden')) {
+    box.classList.remove('hidden');
+    if (chevron) chevron.setAttribute('data-lucide', 'chevron-up');
+  } else {
+    box.classList.add('hidden');
+    if (chevron) chevron.setAttribute('data-lucide', 'chevron-down');
+  }
+  lucide.createIcons();
 }
 
 function renderChatMessageBubble(msg) {
   if (msg.role === 'user') {
     return `
       <div class="flex justify-end w-full">
-        <div class="max-w-[80%] bg-app-surface border border-app-borderSubtle text-white rounded-2xl px-5 py-3 text-[14px] font-normal leading-relaxed shadow-sm">
+        <div class="max-w-[80%] bg-app-surface border border-app-borderSubtle text-white rounded-2xl px-5 py-3 text-[14px] font-normal leading-relaxed shadow-sm user-msg-bubble">
           ${escapeHtml(msg.content)}
         </div>
       </div>
     `;
   }
 
-  // AI Assistant message: OPEN on canvas (Removed Aster Architect info & harsh breaklines)
+  // AI Assistant message: Clean, Selectable, Compact Headings
   const cleanContent = (msg.content || '').replace(/\n---+\n/g, '\n\n');
   const parsedMarkdown = marked.parse(cleanContent);
-  const isSourcesOpen = !!expandedSources[msg.id];
+  const hasSources = msg.sources && msg.sources.length > 0;
+  const hasSuggestions = msg.suggestions && msg.suggestions.length > 0;
 
   return `
-    <div class="flex flex-col gap-3 w-full animate-fade-in">
+    <div class="flex flex-col gap-3 w-full animate-fade-in select-text">
       
-      <!-- Open AI Content Area (Zero cluttered pipeline headers) -->
+      <!-- Open AI Content Area -->
       <div class="prose-open">
         ${parsedMarkdown}
       </div>
 
-      <!-- Collapsible High-Contrast Sources Accordion -->
-      ${msg.sources && msg.sources.length > 0 ? `
-        <div class="flex flex-col gap-2 pt-1">
+      <!-- Collapsible Sources Accordion (Smooth in-place toggle without flickering) -->
+      ${hasSources ? `
+        <div class="flex flex-col gap-2 pt-0.5 select-none">
           <button 
-            onclick="toggleSourcesExpand('${msg.id}')"
-            class="flex items-center gap-2 text-[12.5px] font-normal text-white bg-app-surface hover:bg-app-hover border border-app-borderSubtle px-3 py-1.5 rounded-lg w-fit transition-colors">
+            type="button"
+            onclick="toggleSourcesInPlace('${msg.id}')"
+            class="flex items-center gap-1.5 text-[12px] font-normal text-app-textSecondary hover:text-white bg-app-surface hover:bg-app-hover border border-app-borderSubtle px-2.5 py-1 rounded-lg w-fit transition-colors">
             <i data-lucide="file-text" class="w-3.5 h-3.5 text-white"></i>
-            <span class="font-normal">Sources (${msg.sources.length})</span>
-            <i data-lucide="${isSourcesOpen ? 'chevron-up' : 'chevron-down'}" class="w-3.5 h-3.5 text-app-textMuted"></i>
+            <span>Sources (${msg.sources.length})</span>
+            <i id="sources-chevron-${msg.id}" data-lucide="chevron-down" class="w-3 h-3 text-app-textMuted"></i>
           </button>
 
-          ${isSourcesOpen ? `
-            <div class="flex items-center gap-2 flex-wrap pl-1 animate-fade-in">
-              ${msg.sources.map(src => `
-                <div class="flex items-center gap-1.5 bg-app-input border border-app-borderSubtle px-3 py-1.5 rounded-lg text-white font-normal text-[13px] hover:border-app-borderActive transition-colors cursor-pointer">
-                  <i data-lucide="file" class="w-3.5 h-3.5 text-white"></i>
-                  <span>${src}</span>
-                </div>
-              `).join('')}
-            </div>
-          ` : ''}
+          <div id="sources-box-${msg.id}" class="hidden flex items-center gap-2 flex-wrap pl-1 animate-fade-in pt-1">
+            ${msg.sources.map(src => `
+              <div class="flex items-center gap-1.5 bg-app-input border border-app-borderSubtle px-3 py-1.5 rounded-lg text-white font-normal text-[12.5px] hover:border-app-borderActive transition-colors cursor-pointer">
+                <i data-lucide="file" class="w-3.5 h-3.5 text-white"></i>
+                <span>${src}</span>
+              </div>
+            `).join('')}
+          </div>
         </div>
       ` : ''}
 
-      <!-- Suggestions Row with high-contrast label -->
-      ${msg.suggestions && msg.suggestions.length > 0 ? `
-        <div class="flex items-center gap-2 pt-2 flex-wrap text-[12px]">
-          <span class="font-normal uppercase tracking-wider text-[11px] text-white">SUGGESTIONS:</span>
-          ${msg.suggestions.map(sug => `
-            <button 
-              onclick="sendChatSuggestion('${escapeHtml(sug)}')"
-              class="text-[12px] bg-app-surface hover:bg-app-hover border border-app-borderSubtle text-white font-normal px-3 py-1 rounded-full transition-colors">
-              ${sug}
-            </button>
-          `).join('')}
+      <!-- Suggestions Row (Title Case, spacious comfortable buttons) -->
+      ${hasSuggestions ? `
+        <div class="flex flex-col gap-2 pt-1.5 select-none">
+          <span class="text-[12px] text-app-textSecondary font-normal">Suggestions:</span>
+          <div class="flex items-center gap-2 flex-wrap">
+            ${msg.suggestions.map(sug => `
+              <button 
+                onclick="sendChatSuggestion('${escapeHtml(sug)}')"
+                class="text-[12.5px] bg-app-surface hover:bg-app-elevated border border-app-borderSubtle text-white font-normal px-4 py-1.5 rounded-xl transition-all shadow-sm hover:border-app-borderMed">
+                ${sug}
+              </button>
+            `).join('')}
+          </div>
         </div>
       ` : ''}
 
-      <!-- Bottom message utility actions -->
-      <div class="flex items-center justify-end gap-2 pt-1 text-app-textMuted">
-        <button onclick="navigator.clipboard.writeText('${escapeHtml(msg.content)}'); showToast('Copied to clipboard')" class="p-1 hover:text-white" title="Copy"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
-        <button class="p-1 hover:text-white" title="Good response"><i data-lucide="thumbs-up" class="w-3.5 h-3.5"></i></button>
+      <!-- Bottom message utility actions (Copy, Good Response, Bad Response) -->
+      <div class="flex items-center justify-end gap-3 pt-1 text-app-textMuted select-none">
+        <button onclick="navigator.clipboard.writeText('${escapeHtml(msg.content)}'); showToast('Copied to clipboard')" class="p-1 hover:text-white transition-colors" title="Copy output">
+          <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+        </button>
+        <button onclick="showToast('Thank you for the positive feedback!')" class="p-1 hover:text-white transition-colors" title="Good response">
+          <i data-lucide="thumbs-up" class="w-3.5 h-3.5"></i>
+        </button>
+        <button onclick="showToast('Feedback noted. We will improve.')" class="p-1 hover:text-white transition-colors" title="Bad response">
+          <i data-lucide="thumbs-down" class="w-3.5 h-3.5"></i>
+        </button>
       </div>
 
     </div>
@@ -299,7 +318,6 @@ function triggerConversationStreaming(convId, userPrompt) {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     
-    let pipeline = [];
     let sources = ['Aster Architecture Docs', 'API Schema Reference'];
     let suggestions = ['Show error handling flow', 'Add rate limiting configuration', 'Detail deployment steps'];
     let accumulatedContent = '';
