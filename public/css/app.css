@@ -8,27 +8,27 @@
 
 /* Fluid animations for sidebar collapse/expand */
 .sidebar-panel {
-  transition: width 280ms cubic-bezier(0.4, 0, 0.2, 1), transform 280ms cubic-bezier(0.4, 0, 0.2, 1), opacity 200ms ease;
+  transition: width 240ms cubic-bezier(0.4, 0, 0.2, 1), transform 240ms cubic-bezier(0.4, 0, 0.2, 1), opacity 200ms ease;
   will-change: width, transform;
 }
 
 .content-area {
-  transition: margin-left 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: margin-left 240ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Resizer handle */
+/* Resizer handle on sidebar */
 .resizer-handle {
-  width: 5px;
+  width: 6px;
   cursor: col-resize;
   position: absolute;
-  right: 0;
+  right: -3px;
   top: 0;
   bottom: 0;
-  z-index: 40;
+  z-index: 50;
   transition: background-color 0.15s;
 }
 .resizer-handle:hover, .resizer-handle.resizing {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.25);
 }
 
 ::-webkit-scrollbar {
@@ -56,7 +56,7 @@
   animation: shimmer 1.6s infinite ease-in-out;
 }
 
-/* Open AI Assistant Response Styling (Clean, no card box like Claude/Gemini) */
+/* Open AI Assistant Response Styling (Clean, no box, no harsh breaklines) */
 .prose-open {
   color: #E4E4E7;
   font-size: 14.5px;
@@ -83,6 +83,11 @@
   line-height: 1.65;
   margin-bottom: 12px;
   font-weight: 400;
+}
+.prose-open hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin: 16px 0;
 }
 .prose-open ul {
   list-style-type: disc;
@@ -123,10 +128,18 @@
   border-radius: 4px;
   font-family: 'Cousine', monospace;
   font-size: 12px;
-  color: #93C5FD;
+  color: #FFFFFF;
+}
+.prose-open a {
+  color: #FFFFFF;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.prose-open a:hover {
+  color: #E4E4E7;
 }
 .prose-open blockquote {
-  border-left: 2px solid #3b82f6;
+  border-left: 2px solid #52525B;
   padding-left: 14px;
   color: #A1A1AA;
   margin: 12px 0;
@@ -134,9 +147,9 @@
 
 /* Fade In Animation */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
+  from { opacity: 0; transform: translateY(3px); }
   to { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-in {
-  animation: fadeIn 200ms ease-out forwards;
+  animation: fadeIn 180ms ease-out forwards;
 }

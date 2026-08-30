@@ -1,4 +1,4 @@
-﻿// Sidebar.js - Single unified sidebar with New Chat, Deep Search, and Recents (Claude/Gemini style)
+﻿// Sidebar.js - Single unified sidebar, proportional logo, draggable resizer from both expanded & collapsed states
 let currentSearchQuery = '';
 
 function renderSidebar(state) {
@@ -23,9 +23,11 @@ function renderSidebar(state) {
 
   if (isCollapsed) {
     return `
-      <aside class="w-[60px] bg-app-sidebar border-r border-app-borderSubtle flex flex-col justify-between py-4 px-2 z-30 sidebar-panel select-none">
+      <aside 
+        id="main-sidebar-panel"
+        class="w-[60px] bg-app-sidebar border-r border-app-borderSubtle flex flex-col justify-between py-4 px-2 z-30 sidebar-panel select-none relative">
         <div class="flex flex-col items-center gap-4">
-          <!-- Collapsed Logo Icon -->
+          <!-- Collapsed Logo Icon (w-6 h-6) -->
           <div class="cursor-pointer flex items-center justify-center w-9 h-9 rounded-lg hover:bg-app-hover transition-colors" onclick="appStore.toggleSidebar()" title="Expand Sidebar">
             <img src="/logo-icon.png" class="h-6 w-6 object-contain" alt="Collab AI" />
           </div>
@@ -56,11 +58,14 @@ function renderSidebar(state) {
         </div>
 
         <!-- Bottom Profile -->
-        <div class="flex flex-col items-center gap-2">
+        <div class="flex flex-col items-center">
           <div class="w-8 h-8 rounded-full bg-white/[0.08] border border-white/[0.08] flex items-center justify-center cursor-pointer hover:bg-white/[0.14] transition-colors" onclick="toggleUserMenu(event)" title="${firstName}">
             <span class="text-xs font-normal text-white">${firstName[0]}</span>
           </div>
         </div>
+
+        <!-- Resizer Handle on Collapsed Sidebar (Drag to open/expand) -->
+        <div class="resizer-handle" onmousedown="initSidebarResize(event)"></div>
       </aside>
     `;
   }
@@ -73,17 +78,17 @@ function renderSidebar(state) {
       
       <div class="flex flex-col gap-3 min-h-0 flex-1">
         
-        <!-- Header: Logo & Collapse Button -->
-        <div class="flex items-center justify-between px-1.5 cursor-pointer">
-          <div onclick="appStore.setRoute('/dashboard')" class="flex items-center gap-2">
-            <img src="/logo.png" class="h-5 object-contain" alt="Collab AI" />
+        <!-- Header: Bigger Logo (Matching standalone icon proportion) & Collapse Button -->
+        <div class="flex items-center justify-between px-1 cursor-pointer">
+          <div onclick="appStore.setRoute('/dashboard')" class="flex items-center">
+            <img src="/logo.png" class="h-7 object-contain" alt="Collab AI" />
           </div>
           <button onclick="appStore.toggleSidebar()" class="text-app-textMuted hover:text-white p-1 rounded hover:bg-app-hover transition-colors" title="Collapse sidebar">
             <i data-lucide="panel-left-close" class="w-4 h-4"></i>
           </button>
         </div>
 
-        <!-- + New Chat Button (Top Action) -->
+        <!-- + New Chat Button -->
         <div class="flex flex-col gap-1.5 pt-1">
           <button 
             onclick="appStore.createConversation('New Chat', '')"
@@ -92,7 +97,7 @@ function renderSidebar(state) {
             <span>New chat</span>
           </button>
 
-          <!-- Search Chats (Searches titles AND internal message contents) -->
+          <!-- Search Chats & Content -->
           <div class="relative flex items-center">
             <i data-lucide="search" class="w-3.5 h-3.5 text-app-textMuted absolute left-3 pointer-events-none"></i>
             <input 
@@ -123,11 +128,11 @@ function renderSidebar(state) {
           }).join('')}
         </nav>
 
-        <!-- Recents List Section (Gemini & Claude Style) -->
+        <!-- Recents List Section -->
         <div class="flex-1 flex flex-col min-h-0 pt-2 border-t border-app-borderSubtle">
           <div class="flex items-center justify-between px-2 pb-1.5">
             <span class="text-[11px] font-normal uppercase tracking-wider text-app-textMuted">Recents</span>
-            ${currentSearchQuery ? `<span class="text-[10.5px] text-app-accent">${recents.length} found</span>` : ''}
+            ${currentSearchQuery ? `<span class="text-[10.5px] text-white">${recents.length} found</span>` : ''}
           </div>
 
           <div class="flex-1 overflow-y-auto flex flex-col gap-0.5 pr-1" id="recents-list-container">
@@ -151,14 +156,8 @@ function renderSidebar(state) {
 
       </div>
 
-      <!-- Bottom Actions & User Profile -->
-      <div class="flex flex-col gap-2 pt-2 border-t border-app-borderSubtle">
-        <button onclick="appStore.setRoute('/settings')" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-[12px] font-normal text-app-textMuted hover:text-white hover:bg-app-hover transition-colors">
-          <i data-lucide="settings" class="w-3.5 h-3.5"></i>
-          <span>Settings & API Keys</span>
-        </button>
-
-        <!-- User Profile Pill -->
+      <!-- Bottom Profile Pill (No redundant Settings button hovering above) -->
+      <div class="pt-2 border-t border-app-borderSubtle">
         <div id="sidebar-profile-button" class="flex items-center justify-between p-1.5 rounded-lg bg-app-surface hover:bg-app-hover border border-app-borderSubtle cursor-pointer transition-colors" onclick="toggleUserMenu(event)">
           <div class="flex items-center gap-2 min-w-0">
             <div class="w-6 h-6 rounded-full bg-white/[0.08] border border-white/[0.08] flex items-center justify-center text-white font-normal text-xs">
@@ -190,15 +189,20 @@ function initSidebarResize(e) {
 
   sidebar.classList.remove('sidebar-panel');
   const startX = e.clientX;
-  const startWidth = sidebar.getBoundingClientRect().width;
+  const isCurrentlyCollapsed = appStore.state.sidebarCollapsed;
+  const startWidth = isCurrentlyCollapsed ? 60 : sidebar.getBoundingClientRect().width;
 
   function onMouseMove(moveEvent) {
-    const newWidth = startWidth + (moveEvent.clientX - startX);
-    if (newWidth < 140) {
-      appStore.setSidebarWidth(100);
-      onMouseUp();
+    const delta = moveEvent.clientX - startX;
+    const newWidth = startWidth + delta;
+
+    if (newWidth < 130) {
+      sidebar.style.width = '60px';
     } else {
-      sidebar.style.width = Math.min(Math.max(newWidth, 200), 400) + 'px';
+      if (appStore.state.sidebarCollapsed) {
+        appStore.state.sidebarCollapsed = false;
+      }
+      sidebar.style.width = Math.min(Math.max(newWidth, 180), 400) + 'px';
     }
   }
 

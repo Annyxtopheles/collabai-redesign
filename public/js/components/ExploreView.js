@@ -1,4 +1,4 @@
-﻿// Explore Agents & Templates Catalog
+﻿// Explore Agents & Templates Catalog - Clean white typography
 function renderExploreView(state) {
   const agents = state.agents || [];
 
@@ -28,14 +28,14 @@ function renderExploreView(state) {
             ${templates.map(t => `
               <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-5 flex flex-col justify-between gap-3 hover:border-app-borderMed transition-all cursor-pointer group" onclick="appStore.createConversation('${t.title}', '')">
                 <div class="flex flex-col gap-1.5">
-                  <h3 class="text-[14.5px] font-medium text-white group-hover:text-app-accent transition-colors">${t.title}</h3>
+                  <h3 class="text-[14.5px] font-medium text-white group-hover:text-white transition-colors">${t.title}</h3>
                   <p class="text-[12.5px] text-app-textSecondary font-normal line-clamp-2">${t.desc}</p>
                 </div>
                 <div class="flex items-center justify-between pt-2 border-t border-app-borderSubtle">
                   <div class="flex items-center gap-1">
                     ${t.tags.map(tag => `<span class="text-[10.5px] px-2 py-0.5 rounded bg-app-input text-app-textMuted border border-app-borderSubtle">${tag}</span>`).join('')}
                   </div>
-                  <span class="text-[12px] text-app-accent font-normal group-hover:underline">Use Template →</span>
+                  <span class="text-[12px] text-white font-normal hover:underline">Use Template →</span>
                 </div>
               </div>
             `).join('')}
