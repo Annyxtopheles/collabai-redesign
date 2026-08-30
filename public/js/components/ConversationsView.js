@@ -1,4 +1,4 @@
-﻿// ConversationsView.js - Clean Minimalist Surfaces, Transparent Background for Ambient Starfield
+﻿// ConversationsView.js - Solid Opaque Surfaces, Background-Only Ambient Stars
 let isStreamingActive = false;
 
 function renderConversationsView(state) {
@@ -24,7 +24,7 @@ function renderConversationsView(state) {
       </header>
 
       <!-- Message Stream Area (Selectable Open Canvas layout) -->
-      <div class="flex-1 overflow-y-auto px-6 sm:px-12 md:px-20 lg:px-32 py-6 flex flex-col gap-8 select-text" id="chat-messages-container">
+      <div class="flex-1 overflow-y-auto px-6 sm:px-12 md:px-20 lg:px-32 py-6 flex flex-col gap-8 select-text relative z-10" id="chat-messages-container">
         
         <!-- Empty Conversation State (Direct, elegant, removed sparkles icon) -->
         ${messages.length === 0 ? `
@@ -59,8 +59,8 @@ function renderConversationsView(state) {
       <!-- Bottom Chat Composer Area -->
       <div class="p-4 sm:px-12 md:px-20 lg:px-32 max-w-4xl mx-auto w-full flex flex-col gap-1.5 relative z-20 select-none">
 
-        <!-- Composer Box (Clean, no muddy drop-shadow) -->
-        <div class="bg-app-surface/90 backdrop-blur-md border border-app-borderSubtle rounded-2xl p-3 flex flex-col gap-2 focus-within:border-app-borderActive transition-colors relative">
+        <!-- Composer Box (Solid Opaque Surface) -->
+        <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-3 flex flex-col gap-2 focus-within:border-app-borderActive transition-colors relative z-20">
           
           <div class="flex items-center gap-2.5">
             
@@ -132,7 +132,7 @@ function renderConversationsView(state) {
                   class="flex items-center gap-1.5 bg-app-input hover:bg-app-hover px-2.5 py-1 rounded-md border border-app-borderSubtle text-app-textSecondary hover:text-app-textPrimary cursor-pointer transition-colors">
                   <span id="chat-active-model-name" class="font-normal text-app-textPrimary">${activeModel.name}</span>
                   <span id="chat-active-model-provider" class="text-[10px] text-app-textMuted">· ${activeModel.provider}</span>
-                  <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-app-textMuted"></i>
+                  <i data-lucide="chevron-down" class="w-3 h-3 text-app-textMuted"></i>
                 </button>
 
                 <!-- Directly Anchored Model Selector Dropdown (Opens Upwards in Chat) -->
