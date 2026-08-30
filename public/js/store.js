@@ -1,4 +1,4 @@
-﻿// Persistent Reactive State Store with Multi-Theme Support (Dark, Light, Pink)
+﻿// Persistent Reactive State Store with Multi-Theme Support (Dark, Light, Pink) & Ambient Particles
 class CollabStore {
   constructor() {
     this.subscribers = [];
@@ -62,6 +62,10 @@ class CollabStore {
     document.documentElement.classList.remove('dark', 'light', 'pink');
     document.documentElement.classList.add(theme);
     localStorage.setItem('collab_theme', theme);
+
+    if (typeof ambientStarfield !== 'undefined' && ambientStarfield.checkThemeState) {
+      ambientStarfield.checkThemeState();
+    }
   }
 
   setTheme(theme) {

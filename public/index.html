@@ -56,7 +56,9 @@
   <link rel="stylesheet" href="/css/app.css" />
 </head>
 <body class="bg-app-canvas text-app-textPrimary font-sans antialiased overflow-hidden">
-  <div id="app-root" class="h-screen w-screen flex overflow-hidden">
+  
+  <!-- App View Root Layer -->
+  <div id="app-root" class="h-screen w-screen flex overflow-hidden relative z-10">
     <!-- Rendered Dynamically by app.js -->
   </div>
 
@@ -67,6 +69,7 @@
   <script src="/js/types.js"></script>
   <script src="/js/utils/time.js"></script>
   <script src="/js/store.js"></script>
+  <script src="/js/components/SparklesBackground.js"></script>
   <script src="/js/components/Sidebar.js"></script>
   <script src="/js/components/HeaderBreadcrumb.js"></script>
   <script src="/js/components/LoginView.js"></script>
