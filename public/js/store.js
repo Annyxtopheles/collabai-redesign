@@ -1,4 +1,4 @@
-// Persistent Reactive State Store
+﻿// Persistent Reactive State Store
 class CollabStore {
   constructor() {
     this.subscribers = [];
@@ -9,7 +9,11 @@ class CollabStore {
     const saved = localStorage.getItem('collab_ai_state');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        return {
+          ...parsed,
+          sidebarWidth: parsed.sidebarWidth || 230
+        };
       } catch (e) {
         console.error('Failed to parse saved state, using default', e);
       }
@@ -20,6 +24,7 @@ class CollabStore {
       currentRoute: '/dashboard',
       activeConversationId: 'conv-1',
       sidebarCollapsed: false,
+      sidebarWidth: 230,
       agents: DEFAULT_AGENTS,
       conversations: DEFAULT_CONVERSATIONS,
       projects: DEFAULT_PROJECTS,
@@ -69,6 +74,16 @@ class CollabStore {
     this.save();
   }
 
+  setSidebarWidth(width) {
+    if (width < 140) {
+      this.state.sidebarCollapsed = true;
+    } else {
+      this.state.sidebarCollapsed = false;
+      this.state.sidebarWidth = Math.min(Math.max(width, 180), 380);
+    }
+    this.save();
+  }
+
   setSelectedModel(model) {
     this.state.selectedModel = model;
     this.save();
@@ -79,7 +94,19 @@ class CollabStore {
     this.save();
   }
 
+  // Deduplicate New Chat: reuse existing empty chat if available
   createConversation(title = 'New Conversation', initialMessage = '', agentId = 'aster-architect') {
+    // If no initial message, check if an empty conversation already exists
+    if (!initialMessage) {
+      const existingEmpty = this.state.conversations.find(c => (!c.messages || c.messages.length === 0));
+      if (existingEmpty) {
+        this.state.activeConversationId = existingEmpty.id;
+        this.state.currentRoute = '/conversations';
+        this.save();
+        return existingEmpty.id;
+      }
+    }
+
     const newId = 'conv-' + Date.now();
     const newConv = {
       id: newId,
@@ -101,9 +128,9 @@ class CollabStore {
   addMessage(conversationId, message) {
     const conv = this.state.conversations.find(c => c.id === conversationId);
     if (conv) {
+      if (!conv.messages) conv.messages = [];
       conv.messages.push(message);
       conv.timestamp = Date.now();
-      // Auto-update title if it was first message
       if (conv.messages.length === 1 && message.role === 'user') {
         conv.title = message.content.slice(0, 34) + (message.content.length > 34 ? '...' : '');
       }
@@ -127,7 +154,7 @@ class CollabStore {
       id: 'proj-' + Date.now(),
       name: name,
       icon: 'box',
-      color: '#3B82F6',
+      color: '#ffffff',
       itemCount: 0,
       threadCount: 0,
       instructionCount: 1,
