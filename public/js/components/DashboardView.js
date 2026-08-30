@@ -1,8 +1,7 @@
-﻿// DashboardView.js - Working Deep Search & Templates, Gemini-style Plus Menu, Modern Arrow Send Button
+﻿// DashboardView.js - Working Deep Search & Templates Modal, Gemini-style Plus Menu, Modern Arrow Button
 let isDashboardModelPickerOpen = false;
 let isDashboardPlusMenuOpen = false;
-let dashboardComposerMode = 'chat'; // 'chat' | 'search' | 'template'
-let isTemplatesPopoverOpen = false;
+let dashboardComposerMode = 'chat'; // 'chat' | 'search'
 let deepSearchResults = [];
 
 function renderDashboardView(state) {
@@ -15,8 +14,6 @@ function renderDashboardView(state) {
 
   const placeholderText = dashboardComposerMode === 'search'
     ? 'Deep search across all workspace docs, past chats & agents...'
-    : dashboardComposerMode === 'template'
-    ? 'Choose or customize a prompt template...'
     : 'Ask anything, mention @agent, or start a new conversation...';
 
   return `
@@ -31,7 +28,7 @@ function renderDashboardView(state) {
           <p class="text-[14px] text-app-textSecondary font-normal">You have 12 active automations running across ${projects.length} projects.</p>
         </div>
 
-        <!-- Global Chat Shortcut Composer (with Gemini-style + menu, working Deep Search/Templates, modern Arrow button) -->
+        <!-- Global Chat Shortcut Composer -->
         <div class="w-full bg-app-surface border border-app-borderSubtle rounded-2xl p-3.5 flex flex-col gap-3 shadow-xl relative">
           
           <!-- Dropdown Model Picker for Dashboard -->
@@ -72,7 +69,7 @@ function renderDashboardView(state) {
                 <span>Enable Deep Search Tool</span>
               </button>
 
-              <button onclick="setDashboardMode('template'); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
+              <button onclick="openTemplatesModal(); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
                 <i data-lucide="layout-template" class="w-3.5 h-3.5 text-white"></i>
                 <span>Prompt Templates Library</span>
               </button>
@@ -81,33 +78,6 @@ function renderDashboardView(state) {
                 <i data-lucide="bot" class="w-3.5 h-3.5 text-white"></i>
                 <span>Mention @Agent</span>
               </button>
-            </div>
-          ` : ''}
-
-          <!-- Templates Popover Modal -->
-          ${isTemplatesPopoverOpen ? `
-            <div class="absolute bottom-[65px] left-3.5 right-3.5 bg-app-surface border border-app-borderSubtle rounded-2xl p-4 shadow-2xl z-50 flex flex-col gap-3 animate-fade-in">
-              <div class="flex items-center justify-between border-b border-app-borderSubtle pb-2">
-                <div class="flex items-center gap-2">
-                  <i data-lucide="sparkles" class="w-4 h-4 text-white"></i>
-                  <span class="text-[13px] font-medium text-white">Prompt Templates Library</span>
-                </div>
-                <button onclick="isTemplatesPopoverOpen = false; renderApp()" class="text-app-textMuted hover:text-white text-xs">✕</button>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-64 overflow-y-auto pr-1">
-                ${DEFAULT_PROMPT_TEMPLATES.map(tmpl => `
-                  <div 
-                    onclick="applyPromptTemplate('${escapeHtml(tmpl.prompt)}')"
-                    class="p-3 bg-app-input hover:bg-app-hover border border-app-borderSubtle rounded-xl cursor-pointer transition-colors flex flex-col gap-1 text-[12px] group">
-                    <div class="flex items-center justify-between">
-                      <span class="font-medium text-white group-hover:text-white">${tmpl.title}</span>
-                      <span class="text-[10px] px-1.5 py-0.2 rounded bg-app-surface text-app-textMuted">${tmpl.category}</span>
-                    </div>
-                    <p class="text-[11.5px] text-app-textSecondary line-clamp-2">${tmpl.prompt}</p>
-                  </div>
-                `).join('')}
-              </div>
             </div>
           ` : ''}
 
@@ -152,7 +122,7 @@ function renderDashboardView(state) {
             </div>
           </div>
 
-          <!-- Deep Search Results Live Popover (when search mode is active and query exists) -->
+          <!-- Deep Search Results Live Panel (when search mode is active and query matches) -->
           ${dashboardComposerMode === 'search' && deepSearchResults.length > 0 ? `
             <div class="bg-app-input border border-app-borderSubtle rounded-xl p-2 flex flex-col gap-1 max-h-48 overflow-y-auto animate-fade-in text-[12.5px]">
               <div class="px-2 py-1 text-[11px] text-app-textMuted uppercase font-medium">Search Results (${deepSearchResults.length})</div>
@@ -170,7 +140,7 @@ function renderDashboardView(state) {
             </div>
           ` : ''}
 
-          <!-- Sub-toolbar with Working Model Selector Dropdown & Functional Mode Buttons -->
+          <!-- Sub-toolbar with Model Selector & Filter Mode Buttons -->
           <div class="flex items-center justify-between pt-2 border-t border-app-borderSubtle text-[12px]">
             <div class="flex items-center gap-2 flex-wrap">
               <button 
@@ -183,7 +153,7 @@ function renderDashboardView(state) {
                 <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-app-textMuted"></i>
               </button>
 
-              <!-- Functional Mode Selector (Chat / Deep Search / Templates) -->
+              <!-- Functional Mode Selector (Chat / Deep Search / Templates Modal Trigger) -->
               <div class="flex items-center gap-0.5 bg-app-input p-0.5 rounded-md border border-app-borderSubtle">
                 <button 
                   onclick="setDashboardMode('chat')"
@@ -196,8 +166,8 @@ function renderDashboardView(state) {
                   Deep Search
                 </button>
                 <button 
-                  onclick="setDashboardMode('template')"
-                  class="px-2.5 py-0.5 rounded text-[11.5px] transition-colors ${dashboardComposerMode === 'template' ? 'btn-primary font-medium' : 'text-app-textMuted hover:text-white'}">
+                  onclick="openTemplatesModal()"
+                  class="px-2.5 py-0.5 rounded text-[11.5px] transition-colors text-app-textMuted hover:text-white">
                   Templates
                 </button>
               </div>
@@ -306,11 +276,6 @@ function renderDashboardView(state) {
 
 function setDashboardMode(mode) {
   dashboardComposerMode = mode;
-  if (mode === 'template') {
-    isTemplatesPopoverOpen = true;
-  } else {
-    isTemplatesPopoverOpen = false;
-  }
   renderApp();
   setTimeout(() => {
     const input = document.getElementById('dashboard-composer-input');
@@ -318,21 +283,59 @@ function setDashboardMode(mode) {
   }, 100);
 }
 
+function openTemplatesModal() {
+  const container = document.getElementById('modal-container');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closeModal()">
+      <div class="bg-app-surface border border-app-borderSubtle rounded-2xl w-full max-w-2xl p-6 shadow-2xl flex flex-col gap-4 animate-fade-in" onclick="event.stopPropagation()">
+        
+        <div class="flex items-center justify-between border-b border-app-borderSubtle pb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white">
+              <i data-lucide="layout-template" class="w-4 h-4 text-white"></i>
+            </div>
+            <div class="flex flex-col">
+              <h2 class="text-[15.5px] font-semibold text-white">Prompt Templates Library</h2>
+              <span class="text-[12px] text-app-textSecondary">Click any template to populate the chat composer</span>
+            </div>
+          </div>
+          <button onclick="closeModal()" class="text-app-textMuted hover:text-white p-1 rounded-lg hover:bg-app-hover">✕</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-1">
+          ${DEFAULT_PROMPT_TEMPLATES.map(tmpl => `
+            <div 
+              onclick="applyPromptTemplate('${escapeHtml(tmpl.prompt)}')"
+              class="p-4 bg-app-input hover:bg-app-hover border border-app-borderSubtle hover:border-app-borderMed rounded-xl cursor-pointer transition-all flex flex-col justify-between gap-2.5 text-[12.5px] group">
+              <div class="flex flex-col gap-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-medium text-white group-hover:text-white">${tmpl.title}</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-app-surface border border-app-borderSubtle text-app-textMuted">${tmpl.category}</span>
+                </div>
+                <p class="text-[12px] text-app-textSecondary line-clamp-2 leading-relaxed">${tmpl.prompt}</p>
+              </div>
+              <span class="text-[11.5px] text-white group-hover:underline">Use Template →</span>
+            </div>
+          `).join('')}
+        </div>
+
+      </div>
+    </div>
+  `;
+  lucide.createIcons();
+}
+
 function applyPromptTemplate(promptText) {
-  isTemplatesPopoverOpen = false;
+  closeModal();
   dashboardComposerMode = 'chat';
   const input = document.getElementById('dashboard-composer-input');
   if (input) {
     input.value = promptText;
+    input.focus();
   }
-  renderApp();
-  setTimeout(() => {
-    const inp = document.getElementById('dashboard-composer-input');
-    if (inp) {
-      inp.value = promptText;
-      inp.focus();
-    }
-  }, 100);
+  showToast('Template applied to composer!');
 }
 
 function handleDashboardInput(val) {
@@ -353,7 +356,6 @@ function toggleDashboardPlusMenu(e) {
   if (e) e.stopPropagation();
   isDashboardPlusMenuOpen = !isDashboardPlusMenuOpen;
   isDashboardModelPickerOpen = false;
-  isTemplatesPopoverOpen = false;
   renderApp();
 }
 
@@ -361,14 +363,12 @@ function toggleDashboardModelPicker(e) {
   if (e) e.stopPropagation();
   isDashboardModelPickerOpen = !isDashboardModelPickerOpen;
   isDashboardPlusMenuOpen = false;
-  isTemplatesPopoverOpen = false;
   renderApp();
 }
 
 function closeDashboardMenus() {
   isDashboardPlusMenuOpen = false;
   isDashboardModelPickerOpen = false;
-  isTemplatesPopoverOpen = false;
   renderApp();
 }
 
