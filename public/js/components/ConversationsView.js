@@ -1,4 +1,4 @@
-﻿// ConversationsView.js - Zero-Flicker In-Place Dropdowns, Full Theme Support (Dark & Light)
+﻿// ConversationsView.js - Zero-Flicker In-Place Dropdowns, Smart Context-Menu Direction, Full Theme Support
 let isStreamingActive = false;
 
 function renderConversationsView(state) {
@@ -59,8 +59,8 @@ function renderConversationsView(state) {
       <!-- Bottom Chat Composer Area with Zero-Flicker In-Place Dropdowns -->
       <div class="p-4 sm:px-12 md:px-20 lg:px-32 max-w-4xl mx-auto w-full flex flex-col gap-1.5 relative z-20 select-none">
         
-        <!-- Zero-Flicker In-Place Model Selector Dropdown -->
-        <div id="chat-model-dropdown-menu" class="hidden absolute bottom-[135px] left-4 sm:left-12 md:left-20 lg:left-32 w-72 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
+        <!-- Smart Positioning Model Selector Dropdown -->
+        <div id="chat-model-dropdown-menu" class="hidden w-72 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
           <div class="px-2.5 py-1.5 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Select Model Provider</div>
           ${AVAILABLE_MODELS.map(m => `
             <div 
@@ -75,8 +75,8 @@ function renderConversationsView(state) {
           `).join('')}
         </div>
 
-        <!-- Zero-Flicker In-Place Plus (+) Attachment & Tools Menu -->
-        <div id="chat-plus-dropdown-menu" class="hidden absolute bottom-[135px] left-4 sm:left-12 md:left-20 lg:left-32 w-64 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
+        <!-- Smart Positioning Plus (+) Attachment & Tools Menu -->
+        <div id="chat-plus-dropdown-menu" class="hidden w-64 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
           <div class="px-2.5 py-1 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Tools & Attachments</div>
           
           <button onclick="triggerChatFileUpload(); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
@@ -135,7 +135,7 @@ function renderConversationsView(state) {
             </button>
           </div>
 
-          <!-- Bottom Toolbar with Zero-Flicker Model Selector Trigger -->
+          <!-- Bottom Toolbar with Smart Positioner Model Selector Trigger -->
           <div class="flex items-center justify-between pt-1.5 border-t border-app-borderSubtle text-[12px]">
             <div class="flex items-center gap-2">
               <button 
@@ -163,13 +163,23 @@ function renderConversationsView(state) {
   `;
 }
 
-// In-place dropdown toggles without full-page re-rendering
+// In-place smart dropdown toggles with automatic direction calculation
 function toggleModelPicker(e) {
   if (e) e.stopPropagation();
   const menu = document.getElementById('chat-model-dropdown-menu');
   const plusMenu = document.getElementById('chat-plus-dropdown-menu');
+  const btn = document.getElementById('chat-model-picker-btn');
+
   if (plusMenu) plusMenu.classList.add('hidden');
-  if (menu) menu.classList.toggle('hidden');
+  if (menu && btn) {
+    const isHidden = menu.classList.contains('hidden');
+    if (isHidden) {
+      menu.classList.remove('hidden');
+      positionDropdown(menu, btn);
+    } else {
+      menu.classList.add('hidden');
+    }
+  }
   lucide.createIcons();
 }
 
@@ -177,8 +187,18 @@ function toggleChatPlusMenu(e) {
   if (e) e.stopPropagation();
   const plusMenu = document.getElementById('chat-plus-dropdown-menu');
   const modelMenu = document.getElementById('chat-model-dropdown-menu');
+  const btn = document.getElementById('chat-plus-btn');
+
   if (modelMenu) modelMenu.classList.add('hidden');
-  if (plusMenu) plusMenu.classList.toggle('hidden');
+  if (plusMenu && btn) {
+    const isHidden = plusMenu.classList.contains('hidden');
+    if (isHidden) {
+      plusMenu.classList.remove('hidden');
+      positionDropdown(plusMenu, btn);
+    } else {
+      plusMenu.classList.add('hidden');
+    }
+  }
   lucide.createIcons();
 }
 

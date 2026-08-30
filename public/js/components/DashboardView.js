@@ -1,4 +1,4 @@
-﻿// DashboardView.js - Full Theme Support, Zero-Flicker In-Place Mode Switching (Chat, Deep Search, Templates)
+﻿// DashboardView.js - Full Theme Support, Smart Dropdown Direction, Zero-Flicker In-Place Mode Switching
 let dashboardComposerMode = 'chat'; // 'chat' | 'search'
 
 function renderDashboardView(state) {
@@ -28,8 +28,8 @@ function renderDashboardView(state) {
         <!-- Global Chat Shortcut Composer -->
         <div class="w-full bg-app-surface border border-app-borderSubtle rounded-2xl p-3.5 flex flex-col gap-3 shadow-xl relative">
           
-          <!-- Zero-Flicker In-Place Dropdown Model Picker for Dashboard -->
-          <div id="dashboard-model-dropdown-menu" class="hidden absolute bottom-[65px] left-3.5 w-72 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
+          <!-- Smart Positioning Dropdown Model Picker for Dashboard -->
+          <div id="dashboard-model-dropdown-menu" class="hidden w-72 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
             <div class="px-2.5 py-1.5 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Select Model Provider</div>
             ${AVAILABLE_MODELS.map(m => `
               <div 
@@ -44,8 +44,8 @@ function renderDashboardView(state) {
             `).join('')}
           </div>
 
-          <!-- Zero-Flicker In-Place Gemini-style Plus (+) Attachment & Tools Menu -->
-          <div id="dashboard-plus-dropdown-menu" class="hidden absolute bottom-[105px] left-3.5 w-64 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
+          <!-- Smart Positioning Gemini-style Plus (+) Attachment & Tools Menu -->
+          <div id="dashboard-plus-dropdown-menu" class="hidden w-64 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
             <div class="px-2.5 py-1 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Tools & Attachments</div>
             
             <button onclick="triggerDashboardFileUpload(); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
@@ -370,13 +370,23 @@ function handleDashboardInput(val) {
   }
 }
 
-// In-place dropdown toggles without full-page re-rendering
+// Smart context-menu positioning for Dashboard menus
 function toggleDashboardPlusMenu(e) {
   if (e) e.stopPropagation();
   const plusMenu = document.getElementById('dashboard-plus-dropdown-menu');
   const modelMenu = document.getElementById('dashboard-model-dropdown-menu');
+  const btn = document.getElementById('dashboard-plus-btn');
+
   if (modelMenu) modelMenu.classList.add('hidden');
-  if (plusMenu) plusMenu.classList.toggle('hidden');
+  if (plusMenu && btn) {
+    const isHidden = plusMenu.classList.contains('hidden');
+    if (isHidden) {
+      plusMenu.classList.remove('hidden');
+      positionDropdown(plusMenu, btn);
+    } else {
+      plusMenu.classList.add('hidden');
+    }
+  }
   lucide.createIcons();
 }
 
@@ -384,8 +394,18 @@ function toggleDashboardModelPicker(e) {
   if (e) e.stopPropagation();
   const modelMenu = document.getElementById('dashboard-model-dropdown-menu');
   const plusMenu = document.getElementById('dashboard-plus-dropdown-menu');
+  const btn = document.getElementById('dashboard-model-picker-btn');
+
   if (plusMenu) plusMenu.classList.add('hidden');
-  if (modelMenu) modelMenu.classList.toggle('hidden');
+  if (modelMenu && btn) {
+    const isHidden = modelMenu.classList.contains('hidden');
+    if (isHidden) {
+      modelMenu.classList.remove('hidden');
+      positionDropdown(modelMenu, btn);
+    } else {
+      modelMenu.classList.add('hidden');
+    }
+  }
   lucide.createIcons();
 }
 

@@ -1,6 +1,28 @@
 ﻿// Main Application Controller & Router
 let isUserMenuOpen = false;
 
+// Windows-Style Smart Dropdown Positioning (Upwards/Downwards based on viewport space)
+function positionDropdown(menuEl, triggerBtn) {
+  if (!menuEl || !triggerBtn) return;
+  const rect = triggerBtn.getBoundingClientRect();
+  const menuHeight = menuEl.offsetHeight || 280;
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const spaceAbove = rect.top;
+
+  menuEl.style.position = 'fixed';
+  menuEl.style.left = `${Math.max(12, Math.min(rect.left, window.innerWidth - 300))}px`;
+  menuEl.style.zIndex = '9999';
+
+  // If there is enough room below or more space below than above, open downwards; otherwise open upwards
+  if (spaceBelow >= menuHeight || spaceBelow > spaceAbove) {
+    menuEl.style.top = `${rect.bottom + 6}px`;
+    menuEl.style.bottom = 'auto';
+  } else {
+    menuEl.style.bottom = `${window.innerHeight - rect.top + 6}px`;
+    menuEl.style.top = 'auto';
+  }
+}
+
 function renderApp() {
   const root = document.getElementById('app-root');
   if (!root) return;
