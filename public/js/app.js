@@ -245,6 +245,10 @@ document.addEventListener('click', (e) => {
     const dashPlusMenu = document.getElementById('dashboard-plus-dropdown-menu');
     if (dashPlusMenu) dashPlusMenu.classList.add('hidden');
   }
+  if (!e.target.closest('#dashboard-templates-btn') && !e.target.closest('#dashboard-templates-dropdown-menu')) {
+    const dashTmplMenu = document.getElementById('dashboard-templates-dropdown-menu');
+    if (dashTmplMenu) dashTmplMenu.classList.add('hidden');
+  }
 });
 
 window.addEventListener('keydown', (e) => {

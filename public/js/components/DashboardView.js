@@ -1,4 +1,4 @@
-﻿// DashboardView.js - High Z-Index Layering for Dropdowns Over Cards
+﻿// DashboardView.js - High Z-Index Layering, In-Place Templates Popover (Zero Lightbox), Direct Anchoring
 let dashboardComposerMode = 'chat'; // 'chat' | 'search'
 
 function renderDashboardView(state) {
@@ -25,7 +25,7 @@ function renderDashboardView(state) {
           <p class="text-[14px] text-app-textSecondary font-normal">You have 12 active automations running across ${projects.length} projects.</p>
         </div>
 
-        <!-- Global Chat Shortcut Composer (High z-index z-30 so dropdowns float ON TOP of cards below) -->
+        <!-- Global Chat Shortcut Composer (High z-index z-30) -->
         <div class="w-full bg-app-surface border border-app-borderSubtle rounded-2xl p-3.5 flex flex-col gap-3 relative z-30">
 
           <!-- Main Input Line -->
@@ -41,7 +41,7 @@ function renderDashboardView(state) {
                 <i data-lucide="plus" class="w-4 h-4"></i>
               </button>
 
-              <!-- Directly Anchored Plus Dropdown (Opens Downwards with high z-50) -->
+              <!-- Directly Anchored Plus Dropdown (Opens Downwards with z-50) -->
               <div id="dashboard-plus-dropdown-menu" class="hidden absolute top-full left-0 mt-2 w-64 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
                 <div class="px-2.5 py-1 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Tools & Attachments</div>
                 
@@ -60,9 +60,9 @@ function renderDashboardView(state) {
                   <span>Enable Deep Search Tool</span>
                 </button>
 
-                <button onclick="openTemplatesModal(); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
+                <button onclick="toggleDashboardTemplates(event); closeDashboardPlusMenu()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
                   <i data-lucide="layout-template" class="w-3.5 h-3.5 text-app-textPrimary"></i>
-                  <span>Prompt Templates Library</span>
+                  <span>Browse Templates Popover</span>
                 </button>
 
                 <button onclick="appStore.setRoute('/agents'); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-xl text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
@@ -108,7 +108,7 @@ function renderDashboardView(state) {
           <div class="flex items-center justify-between pt-2 border-t border-app-borderSubtle text-[12px] relative z-40">
             <div class="flex items-center gap-2 flex-wrap">
               
-              <!-- Model Picker Button with Directly Anchored Dropdown (Opens Downwards) -->
+              <!-- Model Picker Button with Directly Anchored Dropdown -->
               <div class="relative z-50">
                 <button 
                   type="button"
@@ -137,7 +137,7 @@ function renderDashboardView(state) {
                 </div>
               </div>
 
-              <!-- In-Place Zero-Flicker Mode Selector -->
+              <!-- In-Place Zero-Flicker Mode & Popover Selector -->
               <div class="flex items-center gap-0.5 bg-app-input p-0.5 rounded-md border border-app-borderSubtle">
                 <button 
                   id="dashboard-mode-chat-btn"
@@ -151,11 +151,40 @@ function renderDashboardView(state) {
                   class="px-2.5 py-0.5 rounded text-[11.5px] transition-all ${dashboardComposerMode === 'search' ? 'btn-primary font-medium' : 'text-app-textMuted hover:text-app-textPrimary'}">
                   Deep Search
                 </button>
-                <button 
-                  onclick="openTemplatesModal()"
-                  class="px-2.5 py-0.5 rounded text-[11.5px] transition-all text-app-textMuted hover:text-app-textPrimary">
-                  Templates
-                </button>
+
+                <!-- In-Place Sleek Templates Popover Trigger (Zero Lightbox) -->
+                <div class="relative z-50">
+                  <button 
+                    id="dashboard-templates-btn"
+                    onclick="toggleDashboardTemplates(event)"
+                    class="px-2.5 py-0.5 rounded text-[11.5px] transition-all text-app-textMuted hover:text-app-textPrimary flex items-center gap-1">
+                    <span>Templates</span>
+                    <i data-lucide="chevron-down" class="w-3 h-3 text-app-textMuted"></i>
+                  </button>
+
+                  <!-- Directly Anchored Sleek Templates Popover Menu -->
+                  <div id="dashboard-templates-dropdown-menu" class="hidden absolute top-full left-0 sm:left-auto sm:right-0 mt-1.5 w-80 max-w-[90vw] bg-app-surface border border-app-borderSubtle rounded-2xl p-2 shadow-2xl z-50 flex flex-col gap-1 animate-fade-in text-[12.5px]">
+                    <div class="px-2.5 py-1 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle flex items-center justify-between">
+                      <span>Prompt Templates</span>
+                      <span class="text-[10px] text-app-textSecondary">Click to insert</span>
+                    </div>
+
+                    <div class="flex flex-col gap-1 max-h-72 overflow-y-auto pr-0.5 pt-1">
+                      ${DEFAULT_PROMPT_TEMPLATES.map(tmpl => `
+                        <div 
+                          onclick="applyPromptTemplate('${escapeHtml(tmpl.prompt)}')"
+                          class="p-2.5 rounded-xl bg-app-input hover:bg-app-hover border border-transparent hover:border-app-borderSubtle cursor-pointer transition-all flex flex-col gap-1 text-[12px] group">
+                          <div class="flex items-center justify-between">
+                            <span class="font-medium text-app-textPrimary group-hover:text-app-textPrimary truncate">${tmpl.title}</span>
+                            <span class="text-[9.5px] px-1.5 py-0.2 rounded bg-app-surface border border-app-borderSubtle text-app-textMuted shrink-0">${tmpl.category}</span>
+                          </div>
+                          <p class="text-[11px] text-app-textSecondary line-clamp-2 leading-relaxed font-normal">${tmpl.prompt}</p>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
 
@@ -284,52 +313,24 @@ function setDashboardMode(mode) {
   }
 }
 
-function openTemplatesModal() {
-  const container = document.getElementById('modal-container');
-  if (!container) return;
+// In-place Sleek Templates Popover Toggle (No Lightbox)
+function toggleDashboardTemplates(e) {
+  if (e) e.stopPropagation();
+  const tmplMenu = document.getElementById('dashboard-templates-dropdown-menu');
+  const modelMenu = document.getElementById('dashboard-model-dropdown-menu');
+  const plusMenu = document.getElementById('dashboard-plus-dropdown-menu');
 
-  container.innerHTML = `
-    <div class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closeModal()">
-      <div class="bg-app-surface border border-app-borderSubtle rounded-2xl w-full max-w-2xl p-6 shadow-2xl flex flex-col gap-4 animate-fade-in" onclick="event.stopPropagation()">
-        
-        <div class="flex items-center justify-between border-b border-app-borderSubtle pb-3">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary">
-              <i data-lucide="layout-template" class="w-4 h-4"></i>
-            </div>
-            <div class="flex flex-col">
-              <h2 class="text-[15.5px] font-semibold text-app-textPrimary">Prompt Templates Library</h2>
-              <span class="text-[12px] text-app-textSecondary">Click any template to populate the chat composer</span>
-            </div>
-          </div>
-          <button onclick="closeModal()" class="text-app-textMuted hover:text-app-textPrimary p-1 rounded-lg hover:bg-app-hover">✕</button>
-        </div>
+  if (modelMenu) modelMenu.classList.add('hidden');
+  if (plusMenu) plusMenu.classList.add('hidden');
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-1">
-          ${DEFAULT_PROMPT_TEMPLATES.map(tmpl => `
-            <div 
-              onclick="applyPromptTemplate('${escapeHtml(tmpl.prompt)}')"
-              class="p-4 bg-app-input hover:bg-app-hover border border-app-borderSubtle hover:border-app-borderMed rounded-xl cursor-pointer transition-all flex flex-col justify-between gap-2.5 text-[12.5px] group">
-              <div class="flex flex-col gap-1">
-                <div class="flex items-center justify-between">
-                  <span class="font-medium text-app-textPrimary group-hover:text-app-textPrimary">${tmpl.title}</span>
-                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-app-surface border border-app-borderSubtle text-app-textMuted">${tmpl.category}</span>
-                </div>
-                <p class="text-[12px] text-app-textSecondary line-clamp-2 leading-relaxed">${tmpl.prompt}</p>
-              </div>
-              <span class="text-[11.5px] text-app-textPrimary font-medium group-hover:underline">Use Template →</span>
-            </div>
-          `).join('')}
-        </div>
-
-      </div>
-    </div>
-  `;
+  if (tmplMenu) {
+    tmplMenu.classList.toggle('hidden');
+  }
   lucide.createIcons();
 }
 
 function applyPromptTemplate(promptText) {
-  closeModal();
+  closeDashboardMenus();
   setDashboardMode('chat');
   const input = document.getElementById('dashboard-composer-input');
   if (input) {
@@ -381,20 +382,29 @@ function toggleDashboardPlusMenu(e) {
   if (e) e.stopPropagation();
   const plusMenu = document.getElementById('dashboard-plus-dropdown-menu');
   const modelMenu = document.getElementById('dashboard-model-dropdown-menu');
+  const tmplMenu = document.getElementById('dashboard-templates-dropdown-menu');
 
   if (modelMenu) modelMenu.classList.add('hidden');
+  if (tmplMenu) tmplMenu.classList.add('hidden');
   if (plusMenu) {
     plusMenu.classList.toggle('hidden');
   }
   lucide.createIcons();
 }
 
+function closeDashboardPlusMenu() {
+  const plusMenu = document.getElementById('dashboard-plus-dropdown-menu');
+  if (plusMenu) plusMenu.classList.add('hidden');
+}
+
 function toggleDashboardModelPicker(e) {
   if (e) e.stopPropagation();
   const modelMenu = document.getElementById('dashboard-model-dropdown-menu');
   const plusMenu = document.getElementById('dashboard-plus-dropdown-menu');
+  const tmplMenu = document.getElementById('dashboard-templates-dropdown-menu');
 
   if (plusMenu) plusMenu.classList.add('hidden');
+  if (tmplMenu) tmplMenu.classList.add('hidden');
   if (modelMenu) {
     modelMenu.classList.toggle('hidden');
   }
@@ -404,8 +414,10 @@ function toggleDashboardModelPicker(e) {
 function closeDashboardMenus() {
   const modelMenu = document.getElementById('dashboard-model-dropdown-menu');
   const plusMenu = document.getElementById('dashboard-plus-dropdown-menu');
+  const tmplMenu = document.getElementById('dashboard-templates-dropdown-menu');
   if (modelMenu) modelMenu.classList.add('hidden');
   if (plusMenu) plusMenu.classList.add('hidden');
+  if (tmplMenu) tmplMenu.classList.add('hidden');
 }
 
 // In-place model selection with zero flicker
