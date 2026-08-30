@@ -20,7 +20,7 @@ try {
   }
 } catch (e) {}
 
-const PORT = process.env.PORT || 3000;
+const PORT = parseInt(process.env.PORT, 10) || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const DATA_DIR = path.join(__dirname, 'data');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
@@ -40,7 +40,6 @@ function loadUsers() {
       return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
     } catch (e) {}
   }
-  // Default seeded admin & demo users
   const defaultUsers = [
     {
       id: 'usr-admin',
@@ -50,15 +49,6 @@ function loadUsers() {
       role: 'admin',
       status: 'approved',
       createdAt: new Date(Date.now() - 86400000 * 5).toISOString()
-    },
-    {
-      id: 'usr-demo-1',
-      name: 'Aiden Vance',
-      email: 'aiden.vance@techcorp.io',
-      passwordHash: hashPassword('password123'),
-      role: 'user',
-      status: 'pending',
-      createdAt: new Date(Date.now() - 3600000 * 2).toISOString()
     }
   ];
   saveUsers(defaultUsers);
@@ -203,6 +193,13 @@ const server = http.createServer((req, res) => {
   if (req.method === 'OPTIONS') {
     res.writeHead(200);
     res.end();
+    return;
+  }
+
+  // --- HEALTH CHECK FOR RENDER ---
+  if (pathname === '/health' || pathname === '/api/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'healthy', uptime: process.uptime() }));
     return;
   }
 
@@ -422,26 +419,29 @@ const server = http.createServer((req, res) => {
     }
   }
 
-  // --- STATIC FILE SERVING ---
-  let filePath = path.join(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname);
-  fs.stat(filePath, (err, stats) => {
-    if (err || !stats.isFile()) {
-      filePath = path.join(PUBLIC_DIR, 'index.html');
+  // --- STATIC FILE SERVING WITH SPA FALLBACK ---
+  let reqPath = pathname === '/' ? '/index.html' : pathname;
+  let targetFile = path.join(PUBLIC_DIR, reqPath);
+
+  // If path doesn't exist as a static file, fallback to index.html for SPA router
+  if (!fs.existsSync(targetFile) || fs.statSync(targetFile).isDirectory()) {
+    targetFile = path.join(PUBLIC_DIR, 'index.html');
+  }
+
+  const ext = path.extname(targetFile).toLowerCase();
+  const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+
+  fs.readFile(targetFile, (err, content) => {
+    if (err) {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      res.end('Not Found');
+    } else {
+      res.writeHead(200, { 'Content-Type': contentType });
+      res.end(content);
     }
-    const ext = path.extname(filePath).toLowerCase();
-    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-    fs.readFile(filePath, (readErr, content) => {
-      if (readErr) {
-        res.writeHead(500);
-        res.end('Server Error');
-      } else {
-        res.writeHead(200, { 'Content-Type': contentType });
-        res.end(content);
-      }
-    });
   });
 });
 
-server.listen(PORT, () => {
-  console.log('CollabAI server running with full Auth & Admin approval on port ' + PORT);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`CollabAI server running on port ${PORT} bound to 0.0.0.0`);
 });
