@@ -48,7 +48,7 @@ function renderApp() {
   lucide.createIcons();
 }
 
-// Functioning Profile Dropdown Menu with Multi-Theme Switcher (Dark, Light, Pink)
+// Functioning Profile Dropdown Menu with Multi-Theme Switcher & Notifications
 function toggleUserMenu(event) {
   if (event) event.stopPropagation();
   const container = document.getElementById('modal-container');
@@ -118,6 +118,16 @@ function toggleUserMenu(event) {
 
       <!-- Menu Items -->
       <div class="flex flex-col gap-0.5 py-0.5">
+        
+        <!-- Notifications Action Item -->
+        <button onclick="showToast('You have 0 unread notifications'); closeModal()" class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="bell" class="w-3.5 h-3.5 text-app-textMuted"></i>
+            <span>Notifications</span>
+          </div>
+          <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-app-input border border-app-borderSubtle text-app-textMuted">0 unread</span>
+        </button>
+
         ${isAdmin ? `
           <button onclick="appStore.setRoute('/admin'); fetchAdminUsers(); closeModal()" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-emerald-500 hover:bg-emerald-500/10 text-left transition-colors font-normal">
             <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-500"></i>

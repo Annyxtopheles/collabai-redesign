@@ -10,9 +10,6 @@ function renderHeaderBreadcrumb(breadcrumbTitle, actionButtons = '') {
 
       <div class="flex items-center gap-3">
         ${actionButtons}
-        <button class="p-1.5 text-app-textSecondary hover:text-app-textPrimary rounded-lg hover:bg-app-hover transition-colors" title="Notifications">
-          <i data-lucide="bell" class="w-4 h-4"></i>
-        </button>
       </div>
     </header>
   `;
