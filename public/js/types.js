@@ -17,6 +17,44 @@ const DEFAULT_USER = {
   avatarUrl: null
 };
 
+const DEFAULT_PROMPT_TEMPLATES = [
+  {
+    id: 'tmpl-1',
+    title: 'Async System Architecture RFC',
+    category: 'Architecture',
+    icon: 'cpu',
+    prompt: 'Draft an engineering RFC for a distributed, event-driven worker pool utilizing Kafka, Redis, and dead-letter queues. Include failure recovery and scaling strategies.'
+  },
+  {
+    id: 'tmpl-2',
+    title: 'Staff AI Engineer Resume Review',
+    category: 'Career',
+    icon: 'file-text',
+    prompt: 'Review and optimize my engineering achievements for a Staff AI / Infrastructure role. Rewrite bullet points using Google XYZ format with quantified business impact.'
+  },
+  {
+    id: 'tmpl-3',
+    title: 'WCAG AAA Color Token Palette',
+    category: 'Design',
+    icon: 'palette',
+    prompt: 'Generate an accessible, high-contrast dark mode color palette with semantic CSS variable tokens adhering to WCAG AAA contrast ratios.'
+  },
+  {
+    id: 'tmpl-4',
+    title: 'FastAPI Backend with Pydantic v2',
+    category: 'Code',
+    icon: 'code',
+    prompt: 'Write a production-ready FastAPI endpoint with Pydantic v2 validation models, JWT verification, rate limiting, and pytest test fixtures.'
+  },
+  {
+    id: 'tmpl-5',
+    title: 'Multi-Agent Orchestration Layout',
+    category: 'Agents',
+    icon: 'bot',
+    prompt: 'Design a multi-agent orchestration architecture where a Planner agent breaks down user intent, delegates to specialist workers, and synthesizes output.'
+  }
+];
+
 const DEFAULT_AGENTS = [
   {
     id: 'aster-architect',
@@ -101,30 +139,34 @@ const DEFAULT_CONVERSATIONS = [
       {
         id: 'm-2',
         role: 'assistant',
-        pipeline: ['Aster Architect', 'Knowledge Base', 'Reasoning Advisor'],
-        sources: ['Aster Architecture Docs', 'API Schema Reference'],
-        content: `### System Architecture Design: Aster Processor
+        content: `### Aster Workflow Architecture
 
-The Aster workflow processor utilizes an asynchronous event-driven layout. Below are the primary modular layers and API schemas.
+To achieve high-throughput, non-blocking orchestration across distributed services, the Aster Workflow Engine utilizes an event-driven architecture.
+
+#### 1. Core Component Hierarchy
+- **Ingress Gateway (Edge Router)**: Terminates incoming HTTPS/gRPC requests, validates cryptographic signatures, and issues monotonic sequence IDs.
+- **Buffer & Event Bus**: Apache Kafka / Redis Streams cluster partitioned by \`tenant_id\` ensuring FIFO execution per workflow.
+- **Worker Dispatcher**: Lightweight supervisor managing asynchronous task workers with automatic retry backoff.
 
 \`\`\`json
-# Layer 1: Ingestion Edge & Webhook Dispatcher
-POST /api/v1/workflows/trigger
-Payload: { "workflow_id": "uuid-9081", "async": true, "context": {} }
-Response: 202 Accepted • { "job_id": "job-5502", "status": "queued" }
-
-# Layer 2: Async Queue Broker (Redis Cache) [2]
-GET /api/v1/jobs/:job_id/status
-Response: 200 OK • { "job_id": "job-5502", "progress": "42%", "active_nodes": 2 }
+{
+  "engine": "Aster-Core-v4",
+  "concurrency": "10,000 req/sec",
+  "p99_latency": "14.2ms",
+  "fault_tolerance": "active-active multi-region"
+}
 \`\`\`
 
-#### Key Scalability Considerations
-- **Idempotency Keys**: Restrict repeated HTTP execution by caching unique transaction tokens at the ingress API edge. [1]
-- **Node Quarantine**: Isolate heavy tasks dynamically into separate memory pools to prevent main queue starvation.`,
+#### 2. Fault Tolerance & Dead-Letter Queues
+Failed task executions are routed to an exponential-backoff retry queue up to 3 attempts. Unrecoverable payloads trigger telemetry events to the monitoring mesh.`,
+        sources: [
+          'Aster Engine Specifications v4.2',
+          'Distributed Queue Benchmark Report'
+        ],
         suggestions: [
-          'Show the error-handling flow',
-          'Add rate limiting to this endpoint',
-          'Detail the retry strategy'
+          'Detail the Redis Streams partition strategy',
+          'Show the Go worker implementation',
+          'Add Prometheus metrics schema'
         ]
       }
     ]
@@ -137,16 +179,14 @@ Response: 200 OK • { "job_id": "job-5502", "progress": "42%", "active_nodes": 
     timestamp: Date.now() - 3600000,
     messages: [
       {
-        id: 'm-3',
+        id: 'm-2-1',
         role: 'user',
-        content: 'Can you formulate a high-level personal brand strategy for a Senior AI Consultant?'
+        content: 'How should I position my personal brand as a senior AI systems consultant?'
       },
       {
-        id: 'm-4',
+        id: 'm-2-2',
         role: 'assistant',
-        pipeline: ['Claude-3.5-Sonnet', 'Content Strategy', 'Brand Lead'],
-        sources: ['Executive Branding Guide', 'Market Positioning 2026'],
-        content: `### Your Personal Brand Strategy
+        content: `### Strategic Personal Brand Positioning
 
 To establish your positioning as a premier Senior AI Consultant, your brand must anchor itself at the intersection of business value and deep technical realism.
 
@@ -157,6 +197,9 @@ To establish your positioning as a premier Senior AI Consultant, your brand must
 
 #### 2. Content Strategy & Outposts
 Publish systematic post-mortems of failed enterprise AI implementations. Detail the architecture, the specific operational bottlenecks, and how they could be re-engineered.`,
+        sources: [
+          'Executive Brand Playbook 2026'
+        ],
         suggestions: [
           'Draft the LinkedIn headline',
           'Outline a 90-day content calendar',

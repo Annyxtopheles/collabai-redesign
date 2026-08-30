@@ -1,5 +1,9 @@
-﻿// DashboardView.js - Ivory off-white typography, working interactive model selector on homescreen
+﻿// DashboardView.js - Working Deep Search & Templates, Gemini-style Plus Menu, Modern Arrow Send Button
 let isDashboardModelPickerOpen = false;
+let isDashboardPlusMenuOpen = false;
+let dashboardComposerMode = 'chat'; // 'chat' | 'search' | 'template'
+let isTemplatesPopoverOpen = false;
+let deepSearchResults = [];
 
 function renderDashboardView(state) {
   const user = state.user || DEFAULT_USER;
@@ -9,11 +13,17 @@ function renderDashboardView(state) {
   const activeModelId = state.selectedModel || 'openai/gpt-oss-120b';
   const activeModel = AVAILABLE_MODELS.find(m => m.id === activeModelId) || AVAILABLE_MODELS[0];
 
+  const placeholderText = dashboardComposerMode === 'search'
+    ? 'Deep search across all workspace docs, past chats & agents...'
+    : dashboardComposerMode === 'template'
+    ? 'Choose or customize a prompt template...'
+    : 'Ask anything, mention @agent, or start a new conversation...';
+
   return `
     <div class="flex-1 flex flex-col h-full overflow-y-auto bg-app-canvas select-none">
       ${renderHeaderBreadcrumb('Overview')}
 
-      <div class="p-8 max-w-[1200px] mx-auto w-full flex flex-col gap-7">
+      <div class="p-8 max-w-[1200px] mx-auto w-full flex flex-col gap-7 animate-fade-in">
         
         <!-- Welcome Greeting -->
         <div class="flex flex-col gap-1">
@@ -21,8 +31,8 @@ function renderDashboardView(state) {
           <p class="text-[14px] text-app-textSecondary font-normal">You have 12 active automations running across ${projects.length} projects.</p>
         </div>
 
-        <!-- Global Chat Shortcut Composer (with interactive model selector) -->
-        <div class="w-full bg-app-surface border border-app-borderSubtle rounded-xl p-3.5 flex flex-col gap-3 shadow-lg relative">
+        <!-- Global Chat Shortcut Composer (with Gemini-style + menu, working Deep Search/Templates, modern Arrow button) -->
+        <div class="w-full bg-app-surface border border-app-borderSubtle rounded-2xl p-3.5 flex flex-col gap-3 shadow-xl relative">
           
           <!-- Dropdown Model Picker for Dashboard -->
           ${isDashboardModelPickerOpen ? `
@@ -42,33 +52,127 @@ function renderDashboardView(state) {
             </div>
           ` : ''}
 
+          <!-- Gemini-style Plus (+) Attachment & Tools Menu -->
+          ${isDashboardPlusMenuOpen ? `
+            <div class="absolute bottom-[105px] left-3.5 w-64 bg-app-surface border border-app-borderSubtle rounded-xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
+              <div class="px-2.5 py-1 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Tools & Attachments</div>
+              
+              <button onclick="triggerDashboardFileUpload(); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
+                <i data-lucide="upload" class="w-3.5 h-3.5 text-white"></i>
+                <span>Upload files (PDF, Code, CSV)</span>
+              </button>
+
+              <button onclick="appStore.setRoute('/knowledge-base'); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
+                <i data-lucide="database" class="w-3.5 h-3.5 text-white"></i>
+                <span>Attach from Knowledge Base</span>
+              </button>
+
+              <button onclick="setDashboardMode('search'); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
+                <i data-lucide="search" class="w-3.5 h-3.5 text-white"></i>
+                <span>Enable Deep Search Tool</span>
+              </button>
+
+              <button onclick="setDashboardMode('template'); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
+                <i data-lucide="layout-template" class="w-3.5 h-3.5 text-white"></i>
+                <span>Prompt Templates Library</span>
+              </button>
+
+              <button onclick="appStore.setRoute('/agents'); closeDashboardMenus()" class="flex items-center gap-2.5 p-2 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
+                <i data-lucide="bot" class="w-3.5 h-3.5 text-white"></i>
+                <span>Mention @Agent</span>
+              </button>
+            </div>
+          ` : ''}
+
+          <!-- Templates Popover Modal -->
+          ${isTemplatesPopoverOpen ? `
+            <div class="absolute bottom-[65px] left-3.5 right-3.5 bg-app-surface border border-app-borderSubtle rounded-2xl p-4 shadow-2xl z-50 flex flex-col gap-3 animate-fade-in">
+              <div class="flex items-center justify-between border-b border-app-borderSubtle pb-2">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="sparkles" class="w-4 h-4 text-white"></i>
+                  <span class="text-[13px] font-medium text-white">Prompt Templates Library</span>
+                </div>
+                <button onclick="isTemplatesPopoverOpen = false; renderApp()" class="text-app-textMuted hover:text-white text-xs">✕</button>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-64 overflow-y-auto pr-1">
+                ${DEFAULT_PROMPT_TEMPLATES.map(tmpl => `
+                  <div 
+                    onclick="applyPromptTemplate('${escapeHtml(tmpl.prompt)}')"
+                    class="p-3 bg-app-input hover:bg-app-hover border border-app-borderSubtle rounded-xl cursor-pointer transition-colors flex flex-col gap-1 text-[12px] group">
+                    <div class="flex items-center justify-between">
+                      <span class="font-medium text-white group-hover:text-white">${tmpl.title}</span>
+                      <span class="text-[10px] px-1.5 py-0.2 rounded bg-app-surface text-app-textMuted">${tmpl.category}</span>
+                    </div>
+                    <p class="text-[11.5px] text-app-textSecondary line-clamp-2">${tmpl.prompt}</p>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- Main Input Line -->
           <div class="flex items-center gap-2.5">
-            <button class="p-1.5 text-app-textMuted hover:text-white rounded-lg hover:bg-app-hover transition-colors">
-              <i data-lucide="paperclip" class="w-4 h-4"></i>
+            
+            <!-- Gemini-style Plus (+) Button -->
+            <button 
+              id="dashboard-plus-btn"
+              onclick="toggleDashboardPlusMenu(event)" 
+              class="w-8 h-8 rounded-full bg-app-input hover:bg-app-hover border border-app-borderSubtle text-app-textSecondary hover:text-white flex items-center justify-center transition-colors shrink-0" 
+              title="Add attachment or tool">
+              <i data-lucide="plus" class="w-4 h-4"></i>
             </button>
-            <button class="p-1.5 text-app-textMuted hover:text-white rounded-lg hover:bg-app-hover transition-colors">
-              <i data-lucide="wrench" class="w-4 h-4"></i>
-            </button>
+
+            <input 
+              type="file" 
+              id="dashboard-file-upload-input" 
+              class="hidden" 
+              onchange="handleDashboardFileSelected(this)" 
+            />
+
             <input 
               type="text" 
               id="dashboard-composer-input"
+              oninput="handleDashboardInput(this.value)"
               onkeydown="if(event.key==='Enter') handleDashboardSend()"
-              placeholder="Ask anything, mention @agent, or start a new conversation..." 
+              placeholder="${placeholderText}" 
               class="flex-1 bg-transparent text-white text-[14px] placeholder-app-textMuted focus:outline-none font-normal"
             />
-            <div class="flex items-center gap-2">
-              <span class="text-[10.5px] font-mono text-app-textMuted bg-app-input px-2 py-0.5 rounded border border-app-borderSubtle">⌘K</span>
+
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-[10.5px] font-mono text-app-textMuted bg-app-input px-2 py-0.5 rounded border border-app-borderSubtle hidden sm:inline-block">⌘K</span>
+              
+              <!-- Modern Arrow-Up Send Icon Button -->
               <button 
                 onclick="handleDashboardSend()"
-                class="btn-primary text-[13px] px-4 py-1.5 rounded-lg transition-all shadow-sm">
-                Send
+                class="w-8 h-8 rounded-full btn-primary flex items-center justify-center transition-all shadow-sm hover:scale-105"
+                title="Send message">
+                <i data-lucide="arrow-up" class="w-4 h-4 text-app-surface"></i>
               </button>
             </div>
           </div>
 
-          <!-- Sub-toolbar with Working Model Selector Dropdown & Filter Pills -->
+          <!-- Deep Search Results Live Popover (when search mode is active and query exists) -->
+          ${dashboardComposerMode === 'search' && deepSearchResults.length > 0 ? `
+            <div class="bg-app-input border border-app-borderSubtle rounded-xl p-2 flex flex-col gap-1 max-h-48 overflow-y-auto animate-fade-in text-[12.5px]">
+              <div class="px-2 py-1 text-[11px] text-app-textMuted uppercase font-medium">Search Results (${deepSearchResults.length})</div>
+              ${deepSearchResults.map(res => `
+                <div 
+                  onclick="appStore.setRoute('/conversations', '${res.id}')"
+                  class="flex items-center justify-between p-2 rounded-lg bg-app-surface hover:bg-app-hover cursor-pointer text-white transition-colors">
+                  <div class="flex items-center gap-2">
+                    <i data-lucide="message-square" class="w-3.5 h-3.5 text-app-textMuted"></i>
+                    <span class="truncate font-medium">${escapeHtml(res.title)}</span>
+                  </div>
+                  <span class="text-[11px] text-app-textMuted">${res.messages ? res.messages.length : 0} messages</span>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+
+          <!-- Sub-toolbar with Working Model Selector Dropdown & Functional Mode Buttons -->
           <div class="flex items-center justify-between pt-2 border-t border-app-borderSubtle text-[12px]">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
               <button 
                 type="button"
                 id="dashboard-model-picker-btn"
@@ -78,16 +182,30 @@ function renderDashboardView(state) {
                 <span class="text-[10px] text-app-textMuted">· ${activeModel.provider}</span>
                 <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-app-textMuted"></i>
               </button>
+
+              <!-- Functional Mode Selector (Chat / Deep Search / Templates) -->
               <div class="flex items-center gap-0.5 bg-app-input p-0.5 rounded-md border border-app-borderSubtle">
-                <button class="btn-primary px-2.5 py-0.5 rounded text-[11px] font-medium">Chat</button>
-                <button class="text-app-textMuted hover:text-white px-2 py-0.5 text-[11px] font-normal">Deep Search</button>
-                <button class="text-app-textMuted hover:text-white px-2 py-0.5 text-[11px] font-normal">Templates</button>
+                <button 
+                  onclick="setDashboardMode('chat')"
+                  class="px-2.5 py-0.5 rounded text-[11.5px] transition-colors ${dashboardComposerMode === 'chat' ? 'btn-primary font-medium' : 'text-app-textMuted hover:text-white'}">
+                  Chat
+                </button>
+                <button 
+                  onclick="setDashboardMode('search')"
+                  class="px-2.5 py-0.5 rounded text-[11.5px] transition-colors ${dashboardComposerMode === 'search' ? 'btn-primary font-medium' : 'text-app-textMuted hover:text-white'}">
+                  Deep Search
+                </button>
+                <button 
+                  onclick="setDashboardMode('template')"
+                  class="px-2.5 py-0.5 rounded text-[11.5px] transition-colors ${dashboardComposerMode === 'template' ? 'btn-primary font-medium' : 'text-app-textMuted hover:text-white'}">
+                  Templates
+                </button>
               </div>
             </div>
 
-            <button class="text-app-textMuted hover:text-white p-1">
-              <i data-lucide="mic" class="w-3.5 h-3.5"></i>
-            </button>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] text-app-textMuted hidden sm:inline-block">Groq Cloud 60fps</span>
+            </div>
           </div>
 
           <!-- Suggested Prompt Tags -->
@@ -186,9 +304,71 @@ function renderDashboardView(state) {
   `;
 }
 
+function setDashboardMode(mode) {
+  dashboardComposerMode = mode;
+  if (mode === 'template') {
+    isTemplatesPopoverOpen = true;
+  } else {
+    isTemplatesPopoverOpen = false;
+  }
+  renderApp();
+  setTimeout(() => {
+    const input = document.getElementById('dashboard-composer-input');
+    if (input) input.focus();
+  }, 100);
+}
+
+function applyPromptTemplate(promptText) {
+  isTemplatesPopoverOpen = false;
+  dashboardComposerMode = 'chat';
+  const input = document.getElementById('dashboard-composer-input');
+  if (input) {
+    input.value = promptText;
+  }
+  renderApp();
+  setTimeout(() => {
+    const inp = document.getElementById('dashboard-composer-input');
+    if (inp) {
+      inp.value = promptText;
+      inp.focus();
+    }
+  }, 100);
+}
+
+function handleDashboardInput(val) {
+  if (dashboardComposerMode === 'search') {
+    deepSearchResults = appStore.deepSearch(val);
+    renderApp();
+    setTimeout(() => {
+      const input = document.getElementById('dashboard-composer-input');
+      if (input) {
+        input.value = val;
+        input.focus();
+      }
+    }, 50);
+  }
+}
+
+function toggleDashboardPlusMenu(e) {
+  if (e) e.stopPropagation();
+  isDashboardPlusMenuOpen = !isDashboardPlusMenuOpen;
+  isDashboardModelPickerOpen = false;
+  isTemplatesPopoverOpen = false;
+  renderApp();
+}
+
 function toggleDashboardModelPicker(e) {
   if (e) e.stopPropagation();
   isDashboardModelPickerOpen = !isDashboardModelPickerOpen;
+  isDashboardPlusMenuOpen = false;
+  isTemplatesPopoverOpen = false;
+  renderApp();
+}
+
+function closeDashboardMenus() {
+  isDashboardPlusMenuOpen = false;
+  isDashboardModelPickerOpen = false;
+  isTemplatesPopoverOpen = false;
   renderApp();
 }
 
@@ -196,6 +376,23 @@ function selectDashboardModel(modelId) {
   isDashboardModelPickerOpen = false;
   appStore.setSelectedModel(modelId);
   showToast(`Switched model to ${modelId}`);
+}
+
+function triggerDashboardFileUpload() {
+  const input = document.getElementById('dashboard-file-upload-input');
+  if (input) input.click();
+}
+
+function handleDashboardFileSelected(input) {
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    showToast(`Attached "${file.name}" to context.`);
+    const composer = document.getElementById('dashboard-composer-input');
+    if (composer) {
+      composer.value = `[Attached: ${file.name}] ` + composer.value;
+      composer.focus();
+    }
+  }
 }
 
 function setDashboardPrompt(tag) {

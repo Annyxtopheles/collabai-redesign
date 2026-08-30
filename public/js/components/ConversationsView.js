@@ -1,6 +1,7 @@
-﻿// ConversationsView.js - Selectable text, flicker-free in-place sources, spacious suggestions, bad response feedback
+﻿// ConversationsView.js - Gemini-style Plus Menu, Modern Arrow Send Button, Clean Direct Greeting (no AI slop icon)
 let isStreamingActive = false;
 let isModelPickerOpen = false;
+let isChatPlusMenuOpen = false;
 
 function renderConversationsView(state) {
   const conv = state.conversations.find(c => c.id === state.activeConversationId) || state.conversations[0];
@@ -27,15 +28,12 @@ function renderConversationsView(state) {
       <!-- Message Stream Area (Selectable Open Canvas layout) -->
       <div class="flex-1 overflow-y-auto px-6 sm:px-12 md:px-20 lg:px-32 py-6 flex flex-col gap-8 select-text" id="chat-messages-container">
         
-        <!-- Empty Conversation State -->
+        <!-- Empty Conversation State (Direct, elegant, removed sparkles icon) -->
         ${messages.length === 0 ? `
           <div class="flex-1 flex flex-col items-center justify-center text-center max-w-lg mx-auto gap-3.5 my-auto select-none">
-            <div class="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white">
-              <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
-            </div>
-            <div class="flex flex-col gap-0.5">
-              <h2 class="text-[17px] font-normal text-white">How can I help you today?</h2>
-              <p class="text-[13px] text-app-textSecondary font-normal">Ask a question, review code, or design multi-agent workflows.</p>
+            <div class="flex flex-col gap-1">
+              <h2 class="text-[20px] font-normal text-white tracking-tight">How can I help you today?</h2>
+              <p class="text-[13.5px] text-app-textSecondary font-normal">Ask a question, review code, or design multi-agent workflows.</p>
             </div>
             <div class="flex items-center gap-2 pt-2 flex-wrap justify-center">
               <button 
@@ -60,7 +58,7 @@ function renderConversationsView(state) {
 
       </div>
 
-      <!-- Bottom Chat Composer Area with Working Model Selector -->
+      <!-- Bottom Chat Composer Area with Gemini-style Plus Menu & Modern Arrow Send Button -->
       <div class="p-4 sm:px-12 md:px-20 lg:px-32 max-w-4xl mx-auto w-full flex flex-col gap-1.5 relative z-20 select-none">
         
         <!-- Model Selector Dropdown Menu -->
@@ -81,13 +79,49 @@ function renderConversationsView(state) {
           </div>
         ` : ''}
 
+        <!-- Gemini-style Plus (+) Attachment & Tools Menu for Chat -->
+        ${isChatPlusMenuOpen ? `
+          <div class="absolute bottom-[135px] left-4 sm:left-12 md:left-20 lg:left-32 w-64 bg-app-surface border border-app-borderSubtle rounded-xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
+            <div class="px-2.5 py-1 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Tools & Attachments</div>
+            
+            <button onclick="triggerChatFileUpload(); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
+              <i data-lucide="upload" class="w-3.5 h-3.5 text-white"></i>
+              <span>Upload files (PDF, Code, CSV)</span>
+            </button>
+
+            <button onclick="appStore.setRoute('/knowledge-base'); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
+              <i data-lucide="database" class="w-3.5 h-3.5 text-white"></i>
+              <span>Attach from Knowledge Base</span>
+            </button>
+
+            <button onclick="appStore.setRoute('/agents'); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
+              <i data-lucide="bot" class="w-3.5 h-3.5 text-white"></i>
+              <span>Mention @Agent</span>
+            </button>
+          </div>
+        ` : ''}
+
         <!-- Composer Box -->
         <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-3 flex flex-col gap-2 shadow-xl focus-within:border-app-borderActive transition-colors">
           
           <div class="flex items-center gap-2.5">
-            <button class="p-1 text-app-textMuted hover:text-white transition-colors" title="Attach context file">
-              <i data-lucide="paperclip" class="w-4 h-4"></i>
+            
+            <!-- Gemini-style Plus (+) Button -->
+            <button 
+              id="chat-plus-btn"
+              onclick="toggleChatPlusMenu(event)"
+              class="w-7 h-7 rounded-full bg-app-input hover:bg-app-hover border border-app-borderSubtle text-app-textSecondary hover:text-white flex items-center justify-center transition-colors shrink-0" 
+              title="Add attachment or tool">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
             </button>
+
+            <input 
+              type="file" 
+              id="chat-file-upload-input" 
+              class="hidden" 
+              onchange="handleChatFileSelected(this)" 
+            />
+
             <textarea
               id="chat-textarea-input"
               rows="1"
@@ -96,11 +130,14 @@ function renderConversationsView(state) {
               onkeydown="handleChatKeydown(event)"
               class="flex-1 bg-transparent text-white text-[14px] font-normal placeholder-app-textMuted focus:outline-none resize-none max-h-32 select-text"
             ></textarea>
+
+            <!-- Modern Arrow-Up Send Icon Button -->
             <button 
               id="chat-send-button"
               onclick="handleChatSend()"
-              class="btn-primary text-[12.5px] px-4 py-1.5 rounded-lg transition-all shadow-sm">
-              Send
+              class="w-7 h-7 rounded-full btn-primary flex items-center justify-center transition-all shadow-sm hover:scale-105 shrink-0"
+              title="Send message">
+              <i data-lucide="arrow-up" class="w-3.5 h-3.5 text-app-surface"></i>
             </button>
           </div>
 
@@ -132,9 +169,40 @@ function renderConversationsView(state) {
   `;
 }
 
+function toggleChatPlusMenu(e) {
+  if (e) e.stopPropagation();
+  isChatPlusMenuOpen = !isChatPlusMenuOpen;
+  isModelPickerOpen = false;
+  renderApp();
+}
+
+function closeChatMenus() {
+  isChatPlusMenuOpen = false;
+  isModelPickerOpen = false;
+  renderApp();
+}
+
+function triggerChatFileUpload() {
+  const input = document.getElementById('chat-file-upload-input');
+  if (input) input.click();
+}
+
+function handleChatFileSelected(input) {
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    showToast(`Attached "${file.name}" to conversation.`);
+    const textarea = document.getElementById('chat-textarea-input');
+    if (textarea) {
+      textarea.value = `[Attached: ${file.name}] ` + textarea.value;
+      textarea.focus();
+    }
+  }
+}
+
 function toggleModelPicker(e) {
   if (e) e.stopPropagation();
   isModelPickerOpen = !isModelPickerOpen;
+  isChatPlusMenuOpen = false;
   renderApp();
 }
 

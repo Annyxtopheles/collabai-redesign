@@ -156,7 +156,7 @@ function showToast(message, type = 'success') {
   }, 2800);
 }
 
-// Global click handler to close model pickers if clicked outside
+// Global click handler to close open popups/menus if clicked outside
 document.addEventListener('click', (e) => {
   if (typeof isModelPickerOpen !== 'undefined' && isModelPickerOpen) {
     if (!e.target.closest('#chat-model-picker-btn') && !e.target.closest('.absolute')) {
@@ -167,6 +167,18 @@ document.addEventListener('click', (e) => {
   if (typeof isDashboardModelPickerOpen !== 'undefined' && isDashboardModelPickerOpen) {
     if (!e.target.closest('#dashboard-model-picker-btn') && !e.target.closest('.absolute')) {
       isDashboardModelPickerOpen = false;
+      renderApp();
+    }
+  }
+  if (typeof isDashboardPlusMenuOpen !== 'undefined' && isDashboardPlusMenuOpen) {
+    if (!e.target.closest('#dashboard-plus-btn') && !e.target.closest('.absolute')) {
+      isDashboardPlusMenuOpen = false;
+      renderApp();
+    }
+  }
+  if (typeof isChatPlusMenuOpen !== 'undefined' && isChatPlusMenuOpen) {
+    if (!e.target.closest('#chat-plus-btn') && !e.target.closest('.absolute')) {
+      isChatPlusMenuOpen = false;
       renderApp();
     }
   }
