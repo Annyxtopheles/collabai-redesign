@@ -1,4 +1,4 @@
-﻿// ConversationsView.js - Clean Minimalist Surfaces, Zero Muddy Drop Shadows, Directly Anchored
+﻿// ConversationsView.js - Clean Minimalist Surfaces, Transparent Background for Ambient Starfield
 let isStreamingActive = false;
 
 function renderConversationsView(state) {
@@ -9,10 +9,10 @@ function renderConversationsView(state) {
   const convTitle = conv ? (conv.title || 'New Conversation') : 'New Conversation';
 
   return `
-    <div class="flex-1 flex flex-col h-full overflow-hidden bg-app-canvas relative">
+    <div class="flex-1 flex flex-col h-full overflow-hidden bg-transparent relative z-10">
       
       <!-- Minimalist Chat Header -->
-      <header class="h-[48px] border-b border-app-borderSubtle px-6 flex items-center justify-between shrink-0 bg-app-canvas select-none z-10">
+      <header class="h-[48px] border-b border-app-borderSubtle px-6 flex items-center justify-between shrink-0 bg-transparent select-none z-10">
         <div class="flex items-center gap-2 min-w-0">
           <h1 class="text-[14px] font-medium text-app-textPrimary truncate">${escapeHtml(convTitle)}</h1>
         </div>
@@ -60,7 +60,7 @@ function renderConversationsView(state) {
       <div class="p-4 sm:px-12 md:px-20 lg:px-32 max-w-4xl mx-auto w-full flex flex-col gap-1.5 relative z-20 select-none">
 
         <!-- Composer Box (Clean, no muddy drop-shadow) -->
-        <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-3 flex flex-col gap-2 focus-within:border-app-borderActive transition-colors relative">
+        <div class="bg-app-surface/90 backdrop-blur-md border border-app-borderSubtle rounded-2xl p-3 flex flex-col gap-2 focus-within:border-app-borderActive transition-colors relative">
           
           <div class="flex items-center gap-2.5">
             

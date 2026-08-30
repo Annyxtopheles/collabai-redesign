@@ -62,7 +62,7 @@ function renderApp() {
 
   root.innerHTML = `
     ${renderSidebar(state)}
-    <div class="flex-1 flex flex-col h-full min-w-0 overflow-hidden content-area bg-app-canvas">
+    <div class="flex-1 flex flex-col h-full min-w-0 overflow-hidden content-area bg-transparent relative z-10">
       ${viewHtml}
     </div>
   `;

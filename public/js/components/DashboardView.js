@@ -1,4 +1,4 @@
-﻿// DashboardView.js - Clean Minimalist Surfaces, Zero Muddy Drop Shadows, Direct Anchoring
+﻿// DashboardView.js - Clean Minimalist Surfaces, Transparent Background for Ambient Starfield
 let dashboardComposerMode = 'chat'; // 'chat' | 'search'
 
 function renderDashboardView(state) {
@@ -14,7 +14,7 @@ function renderDashboardView(state) {
     : 'Ask anything, mention @agent, or start a new conversation...';
 
   return `
-    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-app-canvas select-none">
+    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-transparent select-none relative z-10">
       ${renderHeaderBreadcrumb('Overview')}
 
       <div class="p-8 max-w-[1200px] mx-auto w-full flex flex-col gap-7 animate-fade-in">
@@ -25,8 +25,8 @@ function renderDashboardView(state) {
           <p class="text-[14px] text-app-textSecondary font-normal">You have 12 active automations running across ${projects.length} projects.</p>
         </div>
 
-        <!-- Global Chat Shortcut Composer (Clean, no muddy drop-shadow) -->
-        <div class="w-full bg-app-surface border border-app-borderSubtle rounded-2xl p-3.5 flex flex-col gap-3 relative">
+        <!-- Global Chat Shortcut Composer -->
+        <div class="w-full bg-app-surface/90 backdrop-blur-md border border-app-borderSubtle rounded-2xl p-3.5 flex flex-col gap-3 relative">
 
           <!-- Main Input Line -->
           <div class="flex items-center gap-2.5">
@@ -175,19 +175,19 @@ function renderDashboardView(state) {
 
         <!-- 4 Stat Cards Row -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-          <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-4 flex flex-col gap-0.5">
+          <div class="bg-app-surface/80 backdrop-blur-sm border border-app-borderSubtle rounded-2xl p-4 flex flex-col gap-0.5">
             <span class="text-[12.5px] text-app-textSecondary font-normal">Total Conversations</span>
             <span class="text-[24px] font-semibold text-app-textPrimary tracking-tight">${conversations.length > 5 ? 659 : conversations.length}</span>
           </div>
-          <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-4 flex flex-col gap-0.5">
+          <div class="bg-app-surface/80 backdrop-blur-sm border border-app-borderSubtle rounded-2xl p-4 flex flex-col gap-0.5">
             <span class="text-[12.5px] text-app-textSecondary font-normal">Active Agents</span>
             <span class="text-[24px] font-semibold text-app-textPrimary tracking-tight">${agents.length > 5 ? 11 : agents.length}</span>
           </div>
-          <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-4 flex flex-col gap-0.5">
+          <div class="bg-app-surface/80 backdrop-blur-sm border border-app-borderSubtle rounded-2xl p-4 flex flex-col gap-0.5">
             <span class="text-[12.5px] text-app-textSecondary font-normal">Projects</span>
             <span class="text-[24px] font-semibold text-app-textPrimary tracking-tight">${projects.length}</span>
           </div>
-          <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-4 flex flex-col gap-0.5">
+          <div class="bg-app-surface/80 backdrop-blur-sm border border-app-borderSubtle rounded-2xl p-4 flex flex-col gap-0.5">
             <span class="text-[12.5px] text-app-textSecondary font-normal">Usage This Month</span>
             <span class="text-[24px] font-semibold text-app-textPrimary tracking-tight">659</span>
           </div>
@@ -197,7 +197,7 @@ function renderDashboardView(state) {
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
           
           <!-- Left: Most Accessed Agents List with Theme-Aware Monochrome Icons -->
-          <div class="lg:col-span-2 bg-app-surface border border-app-borderSubtle rounded-2xl p-5 flex flex-col gap-3.5">
+          <div class="lg:col-span-2 bg-app-surface/80 backdrop-blur-sm border border-app-borderSubtle rounded-2xl p-5 flex flex-col gap-3.5">
             <h2 class="text-[15px] font-semibold text-app-textPrimary">Most Accessed Agents</h2>
             <div class="flex flex-col divide-y divide-app-borderSubtle">
               ${agents.slice(0, 5).map(agent => `
@@ -220,7 +220,7 @@ function renderDashboardView(state) {
           <!-- Right: Quick Actions & Recent Activity -->
           <div class="flex flex-col gap-4">
             
-            <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-5 flex flex-col gap-2.5">
+            <div class="bg-app-surface/80 backdrop-blur-sm border border-app-borderSubtle rounded-2xl p-5 flex flex-col gap-2.5">
               <h2 class="text-[15px] font-semibold text-app-textPrimary mb-0.5">Quick Actions</h2>
               <button onclick="appStore.createConversation('New Chat', '')" class="w-full btn-primary text-[13px] py-2 rounded-xl transition-all">
                 Start New Chat
@@ -233,7 +233,7 @@ function renderDashboardView(state) {
               </button>
             </div>
 
-            <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-5 flex flex-col gap-2.5">
+            <div class="bg-app-surface/80 backdrop-blur-sm border border-app-borderSubtle rounded-2xl p-5 flex flex-col gap-2.5">
               <h2 class="text-[15px] font-semibold text-app-textPrimary mb-0.5">Recent Activity</h2>
               <div class="flex flex-col gap-2.5 text-[12.5px]">
                 <div class="flex flex-col">

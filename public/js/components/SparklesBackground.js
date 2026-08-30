@@ -1,4 +1,4 @@
-﻿// SparklesBackground.js - Ultra-Slow, Calm Ambient Starfield for Dark Mode
+﻿// SparklesBackground.js - Aceternity-Style Ambient Starfield & Twinkling Sparkles
 class AmbientStarfield {
   constructor() {
     this.canvas = null;
@@ -6,7 +6,6 @@ class AmbientStarfield {
     this.stars = [];
     this.animationFrameId = null;
     this.isRunning = false;
-    this.density = 45; // Sparse, calm and elegant
   }
 
   init() {
@@ -14,7 +13,7 @@ class AmbientStarfield {
     if (!canvas) {
       canvas = document.createElement('canvas');
       canvas.id = 'ambient-sparkles-canvas';
-      canvas.className = 'fixed inset-0 pointer-events-none z-0 transition-opacity duration-1000';
+      canvas.className = 'fixed inset-0 pointer-events-none z-[1] transition-opacity duration-700';
       canvas.style.opacity = '0';
       document.body.prepend(canvas);
     }
@@ -42,19 +41,19 @@ class AmbientStarfield {
 
   createStars() {
     this.stars = [];
-    const count = Math.floor((this.width * this.height) / 22000); // Responsive sparse density
-    const numStars = Math.max(30, Math.min(count, 70));
+    // Calculate density based on screen size (approx 120-160 sparkles on 1080p desktop)
+    const numStars = Math.max(70, Math.min(Math.floor((this.width * this.height) / 9000), 180));
 
     for (let i = 0; i < numStars; i++) {
       this.stars.push({
         x: Math.random() * this.width,
         y: Math.random() * this.height,
-        size: Math.random() * 1.2 + 0.6, // 0.6px to 1.8px tiny stars
-        baseAlpha: Math.random() * 0.4 + 0.15, // 0.15 to 0.55 opacity
-        twinkleSpeed: Math.random() * 0.008 + 0.003, // Very slow calm twinkle
+        size: Math.random() * 1.6 + 0.8, // 0.8px to 2.4px crisp sparkles
+        baseAlpha: Math.random() * 0.5 + 0.3, // 0.3 to 0.8 visibility
+        twinkleSpeed: Math.random() * 0.005 + 0.002, // Ultra slow, relaxed twinkle
         twinkleOffset: Math.random() * Math.PI * 2,
-        vx: (Math.random() - 0.5) * 0.06, // Ultra-slow drift
-        vy: -(Math.random() * 0.08 + 0.02) // Gentle upward float
+        vx: (Math.random() - 0.5) * 0.08, // Slow gentle drift
+        vy: -(Math.random() * 0.12 + 0.03) // Upward drift
       });
     }
   }
@@ -76,7 +75,7 @@ class AmbientStarfield {
           if (!document.documentElement.classList.contains('dark') && this.canvas) {
             this.canvas.style.display = 'none';
           }
-        }, 500);
+        }, 400);
       }
       this.stop();
     }
@@ -85,31 +84,29 @@ class AmbientStarfield {
   start() {
     if (this.isRunning) return;
     this.isRunning = true;
-    let lastTime = performance.now();
 
     const render = (time) => {
       if (!this.isRunning) return;
-      const dt = time - lastTime;
-      lastTime = time;
 
       this.ctx.clearRect(0, 0, this.width, this.height);
 
       for (let i = 0; i < this.stars.length; i++) {
         const star = this.stars[i];
 
-        // Move star ultra-slowly
+        // Drift slowly
         star.x += star.vx;
         star.y += star.vy;
 
-        // Wrap around edges
+        // Wrap around screen boundaries
         if (star.x < 0) star.x = this.width;
         if (star.x > this.width) star.x = 0;
         if (star.y < 0) star.y = this.height;
         if (star.y > this.height) star.y = 0;
 
-        // Gentle smooth sine wave twinkle
-        const alpha = Math.max(0.08, star.baseAlpha + Math.sin(time * star.twinkleSpeed + star.twinkleOffset) * 0.35);
+        // Smooth breathing twinkle
+        const alpha = Math.max(0.12, Math.min(1.0, star.baseAlpha + Math.sin(time * star.twinkleSpeed + star.twinkleOffset) * 0.4));
 
+        // Draw glowing circular star particle
         this.ctx.fillStyle = `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
         this.ctx.beginPath();
         this.ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
