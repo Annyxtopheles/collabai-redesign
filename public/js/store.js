@@ -12,7 +12,9 @@ class CollabStore {
         const parsed = JSON.parse(saved);
         return {
           ...parsed,
-          sidebarWidth: parsed.sidebarWidth || 230
+          sidebarWidth: parsed.sidebarWidth || 260,
+          sidebarCollapsed: parsed.sidebarCollapsed || false,
+          selectedModel: parsed.selectedModel || 'openai/gpt-oss-120b'
         };
       } catch (e) {
         console.error('Failed to parse saved state, using default', e);
@@ -24,12 +26,13 @@ class CollabStore {
       currentRoute: '/dashboard',
       activeConversationId: 'conv-1',
       sidebarCollapsed: false,
-      sidebarWidth: 230,
+      sidebarWidth: 260,
+      searchQuery: '',
       agents: DEFAULT_AGENTS,
       conversations: DEFAULT_CONVERSATIONS,
       projects: DEFAULT_PROJECTS,
       folders: DEFAULT_FOLDERS,
-      selectedModel: 'claude-sonnet-4-5',
+      selectedModel: 'openai/gpt-oss-120b',
       agentFilter: 'All',
       bugs: [
         {
@@ -75,17 +78,21 @@ class CollabStore {
   }
 
   setSidebarWidth(width) {
-    if (width < 140) {
+    if (width < 150) {
       this.state.sidebarCollapsed = true;
     } else {
       this.state.sidebarCollapsed = false;
-      this.state.sidebarWidth = Math.min(Math.max(width, 180), 380);
+      this.state.sidebarWidth = Math.min(Math.max(width, 200), 400);
     }
     this.save();
   }
 
-  setSelectedModel(model) {
-    this.state.selectedModel = model;
+  setSelectedModel(modelId) {
+    this.state.selectedModel = modelId;
+    const conv = this.state.conversations.find(c => c.id === this.state.activeConversationId);
+    if (conv) {
+      conv.model = modelId;
+    }
     this.save();
   }
 
@@ -94,9 +101,21 @@ class CollabStore {
     this.save();
   }
 
-  // Deduplicate New Chat: reuse existing empty chat if available
+  // Deep Search across thread titles AND internal message contents
+  deepSearch(query) {
+    if (!query || !query.trim()) {
+      return this.state.conversations;
+    }
+    const q = query.toLowerCase().trim();
+    return this.state.conversations.filter(conv => {
+      const matchTitle = (conv.title || '').toLowerCase().includes(q);
+      const matchMessages = (conv.messages || []).some(m => (m.content || '').toLowerCase().includes(q));
+      return matchTitle || matchMessages;
+    });
+  }
+
   createConversation(title = 'New Conversation', initialMessage = '', agentId = 'aster-architect') {
-    // If no initial message, check if an empty conversation already exists
+    // If no initial message, reuse existing empty conversation
     if (!initialMessage) {
       const existingEmpty = this.state.conversations.find(c => (!c.messages || c.messages.length === 0));
       if (existingEmpty) {
@@ -110,7 +129,7 @@ class CollabStore {
     const newId = 'conv-' + Date.now();
     const newConv = {
       id: newId,
-      title: title.slice(0, 36) + (title.length > 36 ? '...' : ''),
+      title: title.slice(0, 42) + (title.length > 42 ? '...' : ''),
       model: this.state.selectedModel,
       agentId: agentId,
       timestamp: Date.now(),
@@ -132,7 +151,7 @@ class CollabStore {
       conv.messages.push(message);
       conv.timestamp = Date.now();
       if (conv.messages.length === 1 && message.role === 'user') {
-        conv.title = message.content.slice(0, 34) + (message.content.length > 34 ? '...' : '');
+        conv.title = message.content.slice(0, 36) + (message.content.length > 36 ? '...' : '');
       }
       this.save();
     }

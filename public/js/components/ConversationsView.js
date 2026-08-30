@@ -1,182 +1,221 @@
-﻿// ConversationsView.js - Clean header with conversation title only, no 3 dots / api key button in header
+﻿// ConversationsView.js - Single panel, open AI responses (Claude-style), interactive model selector, real-time streaming
 let isStreamingActive = false;
+let isModelPickerOpen = false;
+let thinkingStartTime = 0;
+let thinkingInterval = null;
 
 function renderConversationsView(state) {
   const conv = state.conversations.find(c => c.id === state.activeConversationId) || state.conversations[0];
   const messages = conv ? (conv.messages || []) : [];
-  const model = conv ? (conv.model || 'claude-sonnet-4-5') : 'claude-sonnet-4-5';
+  const activeModelId = state.selectedModel || 'openai/gpt-oss-120b';
+  const activeModel = AVAILABLE_MODELS.find(m => m.id === activeModelId) || AVAILABLE_MODELS[0];
   const convTitle = conv ? (conv.title || 'New Conversation') : 'New Conversation';
 
   return `
-    <div class="flex-1 flex h-full overflow-hidden bg-app-canvas">
+    <div class="flex-1 flex flex-col h-full overflow-hidden bg-app-canvas relative select-none">
       
-      <!-- Secondary Conversation Drawer -->
-      ${renderConversationDrawer(state)}
+      <!-- Minimalist Chat Header -->
+      <header class="h-[48px] border-b border-app-borderSubtle px-6 flex items-center justify-between shrink-0 bg-app-canvas select-none z-10">
+        <div class="flex items-center gap-2 min-w-0">
+          <h1 class="text-[14px] font-normal text-white truncate">${convTitle}</h1>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="appStore.createConversation('New Chat', '')" title="New Chat" class="p-1.5 text-app-textSecondary hover:text-white rounded-lg hover:bg-app-hover transition-colors">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </header>
 
-      <!-- Main Chat Area -->
-      <main class="flex-1 flex flex-col h-full min-w-0 bg-app-canvas relative">
+      <!-- Message Stream Area (Open Canvas layout like Claude) -->
+      <div class="flex-1 overflow-y-auto px-6 sm:px-12 md:px-20 lg:px-32 py-6 flex flex-col gap-7" id="chat-messages-container">
         
-        <!-- Clean Minimal Chat Header (Conversation name only on top-left) -->
-        <header class="h-[48px] border-b border-app-borderSubtle px-6 flex items-center justify-between shrink-0 bg-app-canvas select-none">
-          <div class="flex items-center gap-2 min-w-0">
-            <h1 class="text-[14px] font-normal text-white truncate">${convTitle}</h1>
+        <!-- Empty Conversation State -->
+        ${messages.length === 0 ? `
+          <div class="flex-1 flex flex-col items-center justify-center text-center max-w-lg mx-auto gap-3.5 my-auto">
+            <div class="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white">
+              <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <h2 class="text-[17px] font-normal text-white">How can I help you today?</h2>
+              <p class="text-[13px] text-app-textSecondary font-normal">Ask a question, analyze code, or orchestrate multi-agent pipelines.</p>
+            </div>
+            <div class="flex items-center gap-2 pt-2 flex-wrap justify-center">
+              <button 
+                onclick="sendChatSuggestion('Draft a high-speed async event architecture')"
+                class="text-[12.5px] bg-app-surface hover:bg-app-hover text-white font-normal px-3.5 py-1.5 rounded-lg border border-app-borderSubtle transition-all">
+                "Draft async architecture"
+              </button>
+              <button 
+                onclick="sendChatSuggestion('Review my resume for Staff AI Engineer')"
+                class="text-[12.5px] bg-app-surface hover:bg-app-hover text-white font-normal px-3.5 py-1.5 rounded-lg border border-app-borderSubtle transition-all">
+                "Review Tech Resume"
+              </button>
+            </div>
           </div>
-          <!-- Completely clean right side, no 3-dots, no extra clutter -->
-          <div></div>
-        </header>
+        ` : ''}
 
-        <!-- Message Stream Area -->
-        <div class="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5" id="chat-messages-container">
+        <!-- Render Past Messages (User in card bubble, AI OPEN on canvas) -->
+        ${messages.map(msg => renderChatMessageBubble(msg)).join('')}
+
+        <!-- Live Streaming Open Container -->
+        <div id="live-streaming-bubble" class="hidden flex-col gap-3 w-full"></div>
+
+      </div>
+
+      <!-- Bottom Chat Composer Area with Working Model Selector -->
+      <div class="p-4 sm:px-12 md:px-20 lg:px-32 max-w-4xl mx-auto w-full flex flex-col gap-1.5 relative z-20">
+        
+        <!-- Model Selector Dropdown Menu (Opened when model button is clicked) -->
+        ${isModelPickerOpen ? `
+          <div class="absolute bottom-[135px] left-4 sm:left-12 md:left-20 lg:left-32 w-72 bg-app-surface border border-app-borderSubtle rounded-xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
+            <div class="px-2.5 py-1.5 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Select Model Provider</div>
+            ${AVAILABLE_MODELS.map(m => `
+              <div 
+                onclick="selectChatModel('${m.id}')"
+                class="flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${m.id === activeModelId ? 'bg-white/[0.08] text-white' : 'text-app-textSecondary hover:bg-app-hover hover:text-white'}">
+                <div class="flex flex-col">
+                  <span class="font-normal text-white">${m.name}</span>
+                  <span class="text-[11px] text-app-textMuted">${m.provider}</span>
+                </div>
+                <span class="text-[10.5px] px-1.5 py-0.5 rounded bg-app-input border border-app-borderSubtle text-app-textMuted">${m.badge}</span>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        <!-- Composer Box -->
+        <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-3 flex flex-col gap-2 shadow-xl focus-within:border-app-borderActive transition-colors">
           
-          <!-- State 1: Empty Conversation State -->
-          ${messages.length === 0 ? `
-            <div class="flex-1 flex flex-col items-center justify-center text-center max-w-lg mx-auto gap-3.5 my-auto">
-              <div class="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white">
-                <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
-              </div>
-              <div class="flex flex-col gap-0.5">
-                <h2 class="text-[17px] font-normal text-white">Start a conversation</h2>
-                <p class="text-[13px] text-app-textSecondary font-normal">Ask a question or start with a suggested prompt below.</p>
-              </div>
-              <button 
-                onclick="sendChatSuggestion('Hello, Resume Man')"
-                class="mt-1 text-[12.5px] bg-app-surface hover:bg-app-hover text-white font-normal px-3.5 py-1.5 rounded-lg border border-app-borderSubtle transition-all">
-                "Hello, Resume Man"
-              </button>
-            </div>
-          ` : ''}
-
-          <!-- Render All Past Messages in Thread -->
-          ${messages.map(msg => renderChatMessageBubble(msg)).join('')}
-
-          <!-- Live Streaming Message Container with clean animation -->
-          <div id="live-streaming-bubble" class="hidden flex-col gap-3 w-full max-w-3xl panel-transition"></div>
-
-        </div>
-
-        <!-- Chat Bottom Composer Bar (Screenshot 14) -->
-        <div class="p-5 max-w-3xl mx-auto w-full flex flex-col gap-1.5">
-          <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-2.5 flex flex-col gap-2 shadow-xl focus-within:border-app-borderActive transition-colors">
-            
-            <div class="flex items-center gap-2.5">
-              <button class="p-1 text-app-textMuted hover:text-white transition-colors" title="Attach file">
-                <i data-lucide="paperclip" class="w-4 h-4"></i>
-              </button>
-              <button class="p-1 text-app-textMuted hover:text-white transition-colors" title="Tools">
-                <i data-lucide="wrench" class="w-4 h-4"></i>
-              </button>
-              <textarea
-                id="chat-textarea-input"
-                rows="1"
-                placeholder="Enter a prompt..."
-                oninput="autoGrowTextarea(this)"
-                onkeydown="handleChatKeydown(event)"
-                class="flex-1 bg-transparent text-white text-[13.5px] font-normal placeholder-app-textMuted focus:outline-none resize-none max-h-28"
-              ></textarea>
-              <button 
-                id="chat-send-button"
-                onclick="handleChatSend()"
-                class="bg-app-accent hover:bg-app-accentHover text-white font-medium text-[12.5px] px-3.5 py-1.5 rounded-lg transition-colors shadow-sm">
-                Send
-              </button>
-            </div>
-
-            <!-- Model Selector & Modes in Composer -->
-            <div class="flex items-center justify-between pt-1.5 border-t border-app-borderSubtle text-[11.5px]">
-              <div class="flex items-center gap-2">
-                <div class="flex items-center gap-1.5 bg-app-input px-2 py-0.5 rounded border border-app-borderSubtle text-app-textSecondary cursor-pointer">
-                  <span class="font-normal">${model} · Anthropic</span>
-                  <i data-lucide="chevron-down" class="w-3 h-3"></i>
-                </div>
-                <div class="flex items-center gap-0.5 bg-app-input p-0.5 rounded border border-app-borderSubtle">
-                  <button class="bg-app-accent text-white px-2 py-0.5 rounded text-[11px] font-medium">Chat</button>
-                  <button class="text-app-textMuted hover:text-white px-2 py-0.5 text-[11px] font-normal">Deep Search</button>
-                  <button class="text-app-textMuted hover:text-white px-2 py-0.5 text-[11px] font-normal">Templates</button>
-                </div>
-              </div>
-
-              <button class="text-app-textMuted hover:text-white p-1">
-                <i data-lucide="mic" class="w-3.5 h-3.5"></i>
-              </button>
-            </div>
-
+          <div class="flex items-center gap-2.5">
+            <button class="p-1 text-app-textMuted hover:text-white transition-colors" title="Attach context file">
+              <i data-lucide="paperclip" class="w-4 h-4"></i>
+            </button>
+            <textarea
+              id="chat-textarea-input"
+              rows="1"
+              placeholder="Message CollabAI..."
+              oninput="autoGrowTextarea(this)"
+              onkeydown="handleChatKeydown(event)"
+              class="flex-1 bg-transparent text-white text-[14px] font-normal placeholder-app-textMuted focus:outline-none resize-none max-h-32"
+            ></textarea>
+            <button 
+              id="chat-send-button"
+              onclick="handleChatSend()"
+              class="bg-app-accent hover:bg-app-accentHover text-white font-medium text-[12.5px] px-3.5 py-1.5 rounded-lg transition-colors shadow-sm">
+              Send
+            </button>
           </div>
 
-          <span class="text-[11px] text-center text-app-textMuted font-normal">AI can make mistakes. Verify important information.</span>
+          <!-- Bottom Toolbar with Working Model Selector Dropdown Trigger -->
+          <div class="flex items-center justify-between pt-1.5 border-t border-app-borderSubtle text-[12px]">
+            <div class="flex items-center gap-2">
+              <button 
+                type="button"
+                onclick="toggleModelPicker(event)"
+                class="flex items-center gap-1.5 bg-app-input hover:bg-app-hover px-2.5 py-1 rounded-md border border-app-borderSubtle text-app-textSecondary hover:text-white cursor-pointer transition-colors">
+                <span class="font-normal text-white">${activeModel.name}</span>
+                <span class="text-[10px] text-app-textMuted">· ${activeModel.provider}</span>
+                <i data-lucide="chevron-down" class="w-3 h-3 text-app-textMuted"></i>
+              </button>
+            </div>
+
+            <div class="flex items-center gap-1 text-app-textMuted text-[11px]">
+              <span>Powered by Groq Cloud</span>
+            </div>
+          </div>
+
         </div>
 
-      </main>
+        <span class="text-[11px] text-center text-app-textMuted font-normal">CollabAI orchestrates multi-agent pipelines. Check important facts.</span>
+      </div>
+
     </div>
   `;
 }
 
+function toggleModelPicker(e) {
+  if (e) e.stopPropagation();
+  isModelPickerOpen = !isModelPickerOpen;
+  renderApp();
+}
+
+function selectChatModel(modelId) {
+  isModelPickerOpen = false;
+  appStore.setSelectedModel(modelId);
+  showToast(`Switched model to ${modelId}`);
+}
+
 function renderChatMessageBubble(msg) {
   if (msg.role === 'user') {
+    // User message in a clean rounded dark bubble card
     return `
       <div class="flex justify-end w-full">
-        <div class="max-w-[70%] bg-app-surface border border-app-borderSubtle text-white rounded-xl px-4 py-2.5 text-[13.5px] font-normal leading-relaxed">
+        <div class="max-w-[80%] bg-app-surface border border-app-borderSubtle text-white rounded-2xl px-5 py-3 text-[14px] font-normal leading-relaxed shadow-sm">
           ${escapeHtml(msg.content)}
         </div>
       </div>
     `;
   }
 
+  // AI Assistant message: OPEN on canvas (no background card box like in Claude screenshot)
   const parsedMarkdown = marked.parse(msg.content || '');
 
   return `
-    <div class="flex flex-col gap-2.5 w-full max-w-3xl">
+    <div class="flex flex-col gap-3 w-full animate-fade-in">
       
-      <!-- Multi-Agent Pipeline Visualization -->
+      <!-- Multi-Agent Pipeline Visualization or Thought indicator -->
       ${msg.pipeline && msg.pipeline.length > 0 ? `
-        <div class="flex items-center gap-2 bg-app-surface border border-app-borderSubtle rounded-lg px-3 py-1.5 w-fit text-[12px] font-normal">
-          <div class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span class="text-white font-normal">${msg.pipeline[0]}</span>
+        <div class="flex items-center gap-2 bg-transparent text-[12px] text-app-textMuted py-0.5">
+          <div class="flex items-center gap-1.5 text-app-textSecondary">
+            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span class="font-normal text-white">${msg.pipeline[0]}</span>
           </div>
           <span class="text-app-textMuted text-xs">➔</span>
-          <div class="flex items-center gap-1.5">
-            <i data-lucide="folder" class="w-3 h-3 text-app-textSecondary"></i>
-            <span class="text-white font-normal">${msg.pipeline[1] || 'Knowledge Base'}</span>
+          <div class="flex items-center gap-1.5 text-app-textSecondary">
+            <span class="font-normal text-white">${msg.pipeline[1] || 'Knowledge Base'}</span>
           </div>
           <span class="text-app-textMuted text-xs">➔</span>
-          <div class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-purple-400"></span>
-            <span class="text-white font-normal">${msg.pipeline[2] || 'Reasoning Advisor'}</span>
-            <span class="w-1.5 h-1.5 rounded-full bg-app-accent animate-pulse"></span>
+          <div class="flex items-center gap-1.5 text-app-textSecondary">
+            <span class="font-normal text-white">${msg.pipeline[2] || 'Reasoning Engine'}</span>
           </div>
         </div>
       ` : ''}
 
-      <!-- Response Content Box -->
-      <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-5 text-[13.5px] text-app-textSecondary prose-custom">
+      <!-- Open AI Content Area -->
+      <div class="prose-open">
         ${parsedMarkdown}
       </div>
 
       <!-- Sources Row -->
       ${msg.sources && msg.sources.length > 0 ? `
-        <div class="flex items-center gap-1.5 text-[11.5px] text-app-textMuted pt-0.5 flex-wrap">
-          <span class="font-medium uppercase tracking-wider text-[10px]">SOURCES</span>
+        <div class="flex items-center gap-1.5 text-[11.5px] text-app-textMuted pt-1 flex-wrap">
+          <span class="font-medium uppercase tracking-wider text-[10px]">SOURCES:</span>
           ${msg.sources.map(src => `
             <div class="flex items-center gap-1 bg-app-input border border-app-borderSubtle px-2 py-0.5 rounded text-app-textSecondary hover:text-white cursor-pointer transition-colors font-normal">
-              <i data-lucide="folder" class="w-3 h-3 text-app-textMuted"></i>
+              <i data-lucide="file-text" class="w-3 h-3 text-app-textMuted"></i>
               <span>${src}</span>
             </div>
           `).join('')}
         </div>
       ` : ''}
 
-      <!-- Follow-up Suggestion Action Chips -->
-      ${msg.suggestions && msg.suggestions.length > 0 ? `
-        <div class="flex items-center gap-1.5 pt-1 flex-wrap">
-          ${msg.suggestions.map(sug => `
+      <!-- Action buttons & Suggestion Chips -->
+      <div class="flex items-center justify-between pt-2 border-t border-app-borderSubtle/40 text-[12px] text-app-textMuted">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          ${(msg.suggestions || []).map(sug => `
             <button 
               onclick="sendChatSuggestion('${escapeHtml(sug)}')"
-              class="text-[12px] bg-app-surface hover:bg-app-hover border border-app-borderSubtle text-app-textSecondary hover:text-white px-3 py-1 rounded-full transition-colors font-normal">
+              class="text-[11.5px] bg-app-surface hover:bg-app-hover border border-app-borderSubtle text-app-textSecondary hover:text-white px-3 py-1 rounded-full transition-colors font-normal">
               ${sug}
             </button>
           `).join('')}
         </div>
-      ` : ''}
+
+        <div class="flex items-center gap-2">
+          <button onclick="navigator.clipboard.writeText('${escapeHtml(msg.content)}'); showToast('Copied to clipboard')" class="p-1 hover:text-white" title="Copy"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+          <button class="p-1 hover:text-white" title="Good response"><i data-lucide="thumbs-up" class="w-3.5 h-3.5"></i></button>
+        </div>
+      </div>
 
     </div>
   `;
@@ -225,25 +264,37 @@ function triggerConversationStreaming(convId, userPrompt) {
 
   if (!container || !liveBubble) return;
 
+  thinkingStartTime = Date.now();
   liveBubble.classList.remove('hidden');
+  
+  // Intuitive Loading & Thinking State with Live Timer (Screenshot Claude reference)
   liveBubble.innerHTML = `
-    <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-5 flex flex-col gap-2.5">
-      <div class="flex items-center gap-2 text-[13px] font-normal text-app-textSecondary">
-        <span>Reasoning Advisor is thinking...</span>
+    <div class="flex flex-col gap-2 text-[12.5px] text-app-textMuted font-normal animate-fade-in">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-app-accent animate-ping"></span>
+        <span id="thinking-timer-label">Reasoning and orchestrating pipeline... (0.8s)</span>
       </div>
-      <div class="w-3/4 h-2 bg-app-input rounded skeleton-shimmer"></div>
       <div class="w-1/2 h-2 bg-app-input rounded skeleton-shimmer"></div>
     </div>
   `;
   container.scrollTop = container.scrollHeight;
 
-  const apiKey = localStorage.getItem('collab_gemini_key') || localStorage.getItem('collab_groq_key') || '';
+  thinkingInterval = setInterval(() => {
+    const elapsed = ((Date.now() - thinkingStartTime) / 1000).toFixed(1);
+    const label = document.getElementById('thinking-timer-label');
+    if (label) {
+      label.innerText = `Reasoning and orchestrating pipeline... (${elapsed}s)`;
+    }
+  }, 200);
+
+  const apiKey = localStorage.getItem('collab_groq_key') || '';
 
   fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message: userPrompt, apiKey: apiKey })
   }).then(async response => {
+    clearInterval(thinkingInterval);
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     
@@ -285,26 +336,24 @@ function triggerConversationStreaming(convId, userPrompt) {
             const tData = JSON.parse(eventData);
             accumulatedContent += tData.token || '';
             
+            // Render open streaming response directly on canvas (no background card)
             liveBubble.innerHTML = `
-              <div class="flex items-center gap-2 bg-app-surface border border-app-borderSubtle rounded-lg px-3 py-1.5 w-fit text-[12px] font-normal">
+              <div class="flex items-center gap-2 text-[12px] text-app-textMuted py-0.5">
                 <div class="flex items-center gap-1.5">
-                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                  <span class="text-white font-normal">${pipeline[0]}</span>
+                  <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400"></i>
+                  <span class="font-normal text-white">${pipeline[0]}</span>
                 </div>
                 <span class="text-app-textMuted text-xs">➔</span>
                 <div class="flex items-center gap-1.5">
-                  <i data-lucide="folder" class="w-3 h-3 text-app-textSecondary"></i>
-                  <span class="text-white font-normal">${pipeline[1] || 'Knowledge Base'}</span>
+                  <span class="font-normal text-white">${pipeline[1] || 'Knowledge Base'}</span>
                 </div>
                 <span class="text-app-textMuted text-xs">➔</span>
                 <div class="flex items-center gap-1.5">
-                  <span class="w-2 h-2 rounded-full bg-purple-400"></span>
-                  <span class="text-white font-normal">${pipeline[2] || 'Reasoning Advisor'}</span>
-                  <span class="w-1.5 h-1.5 rounded-full bg-app-accent animate-pulse"></span>
+                  <span class="font-normal text-white">${pipeline[2] || 'Reasoning Engine'}</span>
                 </div>
               </div>
 
-              <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-5 text-[13.5px] text-app-textSecondary prose-custom">
+              <div class="prose-open">
                 ${marked.parse(accumulatedContent)}
               </div>
             `;
@@ -331,6 +380,7 @@ function triggerConversationStreaming(convId, userPrompt) {
     appStore.addMessage(convId, assistantMsg);
 
   }).catch(err => {
+    clearInterval(thinkingInterval);
     isStreamingActive = false;
     liveBubble.classList.add('hidden');
     showToast('AI response error: ' + err.message, 'error');

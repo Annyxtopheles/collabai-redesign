@@ -1,90 +1,87 @@
-// Initial Seed Data & Types
+﻿// Default types, seeded data and available models
+const AVAILABLE_MODELS = [
+  { id: 'openai/gpt-oss-120b', name: 'GPT-OSS 120B', provider: 'Groq Cloud', badge: 'Ultra-fast', desc: 'Flagship open weights model, fast reasoning & coding' },
+  { id: 'qwen/qwen3.6-27b', name: 'Qwen 3.6 27B', provider: 'Groq Cloud', badge: 'Fast', desc: 'Exceptional general intelligence & math reasoning' },
+  { id: 'openai/gpt-oss-20b', name: 'GPT-OSS 20B', provider: 'Groq Cloud', badge: 'Lightweight', desc: 'Sub-100ms ultra low latency responses' },
+  { id: 'claude-sonnet-4-5', name: 'Claude 3.5 Sonnet', provider: 'Anthropic', badge: '200k', desc: 'Anthropic flagship creative & nuanced partner' },
+  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', provider: 'Google', badge: 'Multimodal', desc: 'Next-gen Google multimodal reasoning engine' },
+  { id: 'gpt-4.1', name: 'GPT-4.1 Turbo', provider: 'OpenAI', badge: '128k', desc: 'High capability standard for complex instructions' }
+];
+
 const DEFAULT_USER = {
+  id: 'usr-1',
   name: 'Sadman Zaman Khan',
-  shortName: 'Sadman Zan',
-  email: 'sadman@collabai.dev',
+  shortName: 'Sadman',
   role: 'user',
-  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces'
+  email: 'sadman@collabai.dev',
+  avatarUrl: null
 };
 
 const DEFAULT_AGENTS = [
   {
-    id: 'resume-agent',
-    name: 'Resume Review Agent',
-    model: 'GPT-4.1',
-    modelProvider: 'GPT-4.1',
-    description: 'Expert resume analysis and feedback system optimized for tech roles.',
-    tags: ['File Search', 'Analysis'],
-    color: '#EF4444',
-    icon: 'file-text',
-    createdDate: 'Jan 12',
-    chatCount: 142,
-    lastAccessed: '2m ago'
-  },
-  {
-    id: 'meridian-notes',
-    name: 'Meridian Notes',
-    model: 'OPENAI',
-    modelProvider: 'OpenAI',
-    description: 'Intelligent meeting note taker and summarizer for cross-functional teams.',
-    tags: ['Voice', 'Text'],
-    color: '#3B82F6',
-    icon: 'mic',
-    createdDate: 'Jan 12',
-    chatCount: 45,
-    lastAccessed: 'Yesterday'
-  },
-  {
-    id: 'prompt-retriever',
-    name: 'Prompt Retriever',
-    model: 'GPT-4.1',
-    modelProvider: 'GPT-4.1',
-    description: 'Specialized prompt engineering tool for high-density logic retrieval.',
-    tags: ['Retrieval', 'Logic'],
-    color: '#F59E0B',
-    icon: 'terminal',
-    createdDate: 'Jan 12',
-    chatCount: 21,
-    lastAccessed: '2 days ago'
-  },
-  {
     id: 'aster-architect',
     name: 'Aster Architect',
-    model: 'OPENAI',
-    modelProvider: 'OpenAI',
-    description: 'Generates high-level system designs and architectural diagrams.',
-    tags: ['Diagrams', 'Logic'],
-    color: '#10B981',
-    icon: 'network',
-    createdDate: 'Jan 12',
-    chatCount: 76,
-    lastAccessed: '5h ago'
+    description: 'Specializes in asynchronous event pipelines, edge routers, and fault-tolerant system layouts.',
+    model: 'GPT-OSS 120B',
+    modelProvider: 'Groq',
+    tags: ['Architecture', 'Pipelines', 'Async'],
+    color: '#ffffff',
+    icon: 'cpu',
+    chatCount: 42,
+    lastAccessed: '2m ago',
+    createdDate: 'Jan 10'
   },
   {
-    id: 'reasoning-advisor',
-    name: 'Reasoning Advisor',
-    model: 'GPT-4.1',
-    modelProvider: 'GPT-4.1',
-    description: 'Philosophical reasoning and structured psychological analysis.',
-    tags: ['Reasoning', 'Ethics'],
-    color: '#8B5CF6',
-    icon: 'brain-circuit',
-    createdDate: 'Jan 12',
-    chatCount: 45,
-    lastAccessed: 'Yesterday'
+    id: 'resume-agent',
+    name: 'Resume Review Agent',
+    description: 'Staff-level technical resume and portfolio optimizer aligning with FAANG ATS rubrics.',
+    model: 'Claude 3.5 Sonnet',
+    modelProvider: 'Anthropic',
+    tags: ['Career', 'ATS', 'Executive'],
+    color: '#ffffff',
+    icon: 'file-text',
+    chatCount: 88,
+    lastAccessed: '1h ago',
+    createdDate: 'Jan 08'
   },
   {
     id: 'color-palette',
     name: 'Color Palette Generator',
-    model: 'OPENAI',
-    modelProvider: 'OpenAI',
-    description: 'Generates semantic color tokens based on UI/UX context.',
-    tags: ['Design', 'Image Gen'],
-    color: '#EC4899',
+    description: 'Generates accessible, high-contrast semantic design tokens with WCAG AAA compliance.',
+    model: 'GPT-OSS 120B',
+    modelProvider: 'Groq',
+    tags: ['Design', 'Tokens', 'WCAG'],
+    color: '#ffffff',
     icon: 'palette',
-    createdDate: 'Jan 12',
-    chatCount: 89,
-    lastAccessed: '1h ago'
+    chatCount: 19,
+    lastAccessed: '3h ago',
+    createdDate: 'Jan 14'
+  },
+  {
+    id: 'brand-lead',
+    name: 'Personal Brand Strategist',
+    description: 'Builds authority frameworks, content cadences, and speaking outreach strategies.',
+    model: 'Claude 3.5 Sonnet',
+    modelProvider: 'Anthropic',
+    tags: ['Branding', 'Leadership', 'Content'],
+    color: '#ffffff',
+    icon: 'sparkles',
+    chatCount: 31,
+    lastAccessed: '5h ago',
+    createdDate: 'Jan 18'
+  },
+  {
+    id: 'reasoning-advisor',
+    name: 'Reasoning Advisor',
+    description: 'Multi-step logic auditor, trade-off evaluator, and decision tree simulator.',
+    model: 'Qwen 3.6 27B',
+    modelProvider: 'Groq',
+    tags: ['Logic', 'Decision Trees', 'RFC'],
+    color: '#ffffff',
+    icon: 'bot',
+    chatCount: 64,
+    lastAccessed: '1d ago',
+    createdDate: 'Jan 12'
   }
 ];
 
@@ -92,17 +89,17 @@ const DEFAULT_CONVERSATIONS = [
   {
     id: 'conv-1',
     title: 'Drafting the architecture for Aster...',
-    model: 'claude-sonnet-4-5',
+    model: 'GPT-OSS 120B',
     agentId: 'aster-architect',
-    timestamp: Date.now() - 1000 * 60 * 2, // 2m
+    timestamp: Date.now() - 120000,
     messages: [
       {
-        id: 'm1',
+        id: 'm-1',
         role: 'user',
-        content: 'Can you draft a detailed system architecture for the Aster workflow processor?'
+        content: 'Can you draft a detailed system architecture for the Aster workflow processor with async event handling?'
       },
       {
-        id: 'm2',
+        id: 'm-2',
         role: 'assistant',
         pipeline: ['Aster Architect', 'Knowledge Base', 'Reasoning Advisor'],
         sources: ['Aster Architecture Docs', 'API Schema Reference'],
@@ -135,20 +132,20 @@ Response: 200 OK • { "job_id": "job-5502", "progress": "42%", "active_nodes": 
   {
     id: 'conv-2',
     title: 'Your Personal Brand Strategy',
-    model: 'claude-sonnet-4-5',
-    agentId: 'color-palette',
-    timestamp: Date.now() - 1000 * 60 * 60, // 1h
+    model: 'Claude 3.5 Sonnet',
+    agentId: 'brand-lead',
+    timestamp: Date.now() - 3600000,
     messages: [
       {
-        id: 'm2-1',
+        id: 'm-3',
         role: 'user',
-        content: 'Can you formulate a high-level personal brand strategy for my transition to a Senior AI Consultant role? Highlight specific focus points.'
+        content: 'Can you formulate a high-level personal brand strategy for a Senior AI Consultant?'
       },
       {
-        id: 'm2-2',
+        id: 'm-4',
         role: 'assistant',
-        pipeline: ['Brand Strategist', 'Market Intelligence', 'Content Critic'],
-        sources: ['Executive Branding Framework v3', 'Tech Leadership Index'],
+        pipeline: ['Claude-3.5-Sonnet', 'Content Strategy', 'Brand Lead'],
+        sources: ['Executive Branding Guide', 'Market Positioning 2026'],
         content: `### Your Personal Brand Strategy
 
 To establish your positioning as a premier Senior AI Consultant, your brand must anchor itself at the intersection of business value and deep technical realism.
@@ -170,34 +167,18 @@ Publish systematic post-mortems of failed enterprise AI implementations. Detail 
   },
   {
     id: 'conv-3',
-    title: 'Reviewing my tech resume for Goog...',
-    model: 'gpt-5-mini',
+    title: 'Reviewing my tech resume for Google Staff Role',
+    model: 'GPT-OSS 120B',
     agentId: 'resume-agent',
-    timestamp: Date.now() - 1000 * 60 * 60 * 3, // 3h
+    timestamp: Date.now() - 3600000 * 5,
     messages: []
   },
   {
     id: 'conv-4',
-    title: 'Generating primary color palette...',
-    model: 'gpt-5-mini',
+    title: 'Design a tech-themed color palette with WCAG AAA',
+    model: 'GPT-OSS 120B',
     agentId: 'color-palette',
-    timestamp: Date.now() - 1000 * 60 * 60 * 5, // 5h
-    messages: []
-  },
-  {
-    id: 'conv-5',
-    title: 'System design for scalable API...',
-    model: 'claude-sonnet-4-5',
-    agentId: 'aster-architect',
-    timestamp: Date.now() - 1000 * 60 * 60 * 48, // 2d
-    messages: []
-  },
-  {
-    id: 'conv-6',
-    title: 'User research summary...',
-    model: 'gpt-4.1',
-    agentId: 'reasoning-advisor',
-    timestamp: Date.now() - 1000 * 60 * 60 * 24 * 7, // 1w
+    timestamp: Date.now() - 3600000 * 48,
     messages: []
   }
 ];
@@ -207,30 +188,30 @@ const DEFAULT_PROJECTS = [
     id: 'proj-1',
     name: 'Project X-2',
     icon: 'box',
-    color: '#8B5CF6',
-    itemCount: 0,
-    threadCount: 38,
+    color: '#ffffff',
+    itemCount: 4,
+    threadCount: 30,
     instructionCount: 1,
-    modifiedDate: '11/2/2025'
+    modifiedDate: '2/10/2026'
   },
   {
     id: 'proj-2',
     name: 'Project K-1',
-    icon: 'layers',
-    color: '#06B6D4',
-    itemCount: 0,
-    threadCount: 32,
+    icon: 'box',
+    color: '#ffffff',
+    itemCount: 2,
+    threadCount: 12,
     instructionCount: 1,
-    modifiedDate: '9/11/2025'
+    modifiedDate: '2/08/2026'
   }
 ];
 
 const DEFAULT_FOLDERS = [
-  { id: 'f-1', name: 'Sadman_Khan_Aster_Architect', items: 1, size: '0.24 MB', modified: 'Jan 30' },
-  { id: 'f-2', name: 'Sadman_Khan_Color_Palette', items: 6, size: '48.94 MB', modified: 'Jan 30' },
-  { id: 'f-3', name: 'Sadman_Khan_Dr_Empathy', items: 10, size: '117.36 MB', modified: 'Jan 30' },
-  { id: 'f-4', name: 'Sadman_Khan_Reasoning_Advisor', items: 18, size: '930.41 MB', modified: 'Jan 30' },
-  { id: 'f-5', name: 'Aster Architect', items: 1, size: '0.22 MB', modified: 'Jan 21' },
-  { id: 'f-6', name: 'Reasoning Advisor', items: 12, size: '89.97 MB', modified: 'Jan 20' },
-  { id: 'f-7', name: 'Color Palette Generator', items: 6, size: '46.35 MB', modified: 'Jan 19' }
+  { id: 'f-1', name: 'Knowledge Files', items: 3, size: '4.2 MB', modified: 'Feb 10, 2026' },
+  { id: 'f-2', name: 'System Architecture Specs', items: 12, size: '18.5 MB', modified: 'Feb 08, 2026' },
+  { id: 'f-3', name: 'Brand Guidelines', items: 5, size: '8.1 MB', modified: 'Jan 28, 2026' },
+  { id: 'f-4', name: 'User Research & Personas', items: 8, size: '12.4 MB', modified: 'Jan 22, 2026' },
+  { id: 'f-5', name: 'Agent Prompt Templates', items: 14, size: '2.8 MB', modified: 'Jan 15, 2026' },
+  { id: 'f-6', name: 'Meeting Transcripts', items: 6, size: '6.7 MB', modified: 'Jan 10, 2026' },
+  { id: 'f-7', name: 'Code Snippets & RFCs', items: 22, size: '34.0 MB', modified: 'Jan 05, 2026' }
 ];
