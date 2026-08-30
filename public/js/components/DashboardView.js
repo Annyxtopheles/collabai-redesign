@@ -1,4 +1,4 @@
-﻿// DashboardView.js - Solid Opaque Card Surfaces, Clean Background Ambient Stars
+﻿// DashboardView.js - High Z-Index Layering for Dropdowns Over Cards
 let dashboardComposerMode = 'chat'; // 'chat' | 'search'
 
 function renderDashboardView(state) {
@@ -25,14 +25,14 @@ function renderDashboardView(state) {
           <p class="text-[14px] text-app-textSecondary font-normal">You have 12 active automations running across ${projects.length} projects.</p>
         </div>
 
-        <!-- Global Chat Shortcut Composer (Solid Surface) -->
-        <div class="w-full bg-app-surface border border-app-borderSubtle rounded-2xl p-3.5 flex flex-col gap-3 relative z-10">
+        <!-- Global Chat Shortcut Composer (High z-index z-30 so dropdowns float ON TOP of cards below) -->
+        <div class="w-full bg-app-surface border border-app-borderSubtle rounded-2xl p-3.5 flex flex-col gap-3 relative z-30">
 
           <!-- Main Input Line -->
           <div class="flex items-center gap-2.5">
             
             <!-- Gemini-style Plus (+) Button with Directly Anchored Dropdown -->
-            <div class="relative shrink-0">
+            <div class="relative shrink-0 z-50">
               <button 
                 id="dashboard-plus-btn"
                 onclick="toggleDashboardPlusMenu(event)" 
@@ -41,7 +41,7 @@ function renderDashboardView(state) {
                 <i data-lucide="plus" class="w-4 h-4"></i>
               </button>
 
-              <!-- Directly Anchored Plus Dropdown (Opens Downwards) -->
+              <!-- Directly Anchored Plus Dropdown (Opens Downwards with high z-50) -->
               <div id="dashboard-plus-dropdown-menu" class="hidden absolute top-full left-0 mt-2 w-64 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
                 <div class="px-2.5 py-1 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Tools & Attachments</div>
                 
@@ -105,11 +105,11 @@ function renderDashboardView(state) {
           <div id="dashboard-search-results-panel" class="hidden bg-app-input border border-app-borderSubtle rounded-2xl p-2 flex flex-col gap-1 max-h-48 overflow-y-auto animate-fade-in text-[12.5px]"></div>
 
           <!-- Sub-toolbar with Model Selector & In-Place Filter Mode Buttons -->
-          <div class="flex items-center justify-between pt-2 border-t border-app-borderSubtle text-[12px]">
+          <div class="flex items-center justify-between pt-2 border-t border-app-borderSubtle text-[12px] relative z-40">
             <div class="flex items-center gap-2 flex-wrap">
               
               <!-- Model Picker Button with Directly Anchored Dropdown (Opens Downwards) -->
-              <div class="relative">
+              <div class="relative z-50">
                 <button 
                   type="button"
                   id="dashboard-model-picker-btn"
@@ -120,7 +120,7 @@ function renderDashboardView(state) {
                   <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-app-textMuted"></i>
                 </button>
 
-                <!-- Directly Anchored Model Selector Dropdown -->
+                <!-- Directly Anchored Model Selector Dropdown with high z-50 -->
                 <div id="dashboard-model-dropdown-menu" class="hidden absolute top-full left-0 mt-1.5 w-72 bg-app-surface border border-app-borderSubtle rounded-2xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
                   <div class="px-2.5 py-1.5 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Select Model Provider</div>
                   ${AVAILABLE_MODELS.map(m => `
@@ -173,7 +173,7 @@ function renderDashboardView(state) {
           </div>
         </div>
 
-        <!-- 4 Stat Cards Row (Solid Surfaces) -->
+        <!-- 4 Stat Cards Row (Lower z-index z-10) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 relative z-10">
           <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-4 flex flex-col gap-0.5">
             <span class="text-[12.5px] text-app-textSecondary font-normal">Total Conversations</span>
@@ -193,7 +193,7 @@ function renderDashboardView(state) {
           </div>
         </div>
 
-        <!-- Two Column Content Area (Solid Surfaces) -->
+        <!-- Two Column Content Area (Lower z-index z-10) -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 relative z-10">
           
           <!-- Left: Most Accessed Agents List with Solid Opaque Background -->
