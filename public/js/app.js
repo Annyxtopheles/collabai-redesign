@@ -156,31 +156,23 @@ function showToast(message, type = 'success') {
   }, 2800);
 }
 
-// Global click handler to close open popups/menus if clicked outside
+// Global click handler to close open in-place popups without re-rendering the whole page
 document.addEventListener('click', (e) => {
-  if (typeof isModelPickerOpen !== 'undefined' && isModelPickerOpen) {
-    if (!e.target.closest('#chat-model-picker-btn') && !e.target.closest('.absolute')) {
-      isModelPickerOpen = false;
-      renderApp();
-    }
+  if (!e.target.closest('#chat-model-picker-btn') && !e.target.closest('#chat-model-dropdown-menu')) {
+    const chatModelMenu = document.getElementById('chat-model-dropdown-menu');
+    if (chatModelMenu) chatModelMenu.classList.add('hidden');
   }
-  if (typeof isDashboardModelPickerOpen !== 'undefined' && isDashboardModelPickerOpen) {
-    if (!e.target.closest('#dashboard-model-picker-btn') && !e.target.closest('.absolute')) {
-      isDashboardModelPickerOpen = false;
-      renderApp();
-    }
+  if (!e.target.closest('#chat-plus-btn') && !e.target.closest('#chat-plus-dropdown-menu')) {
+    const chatPlusMenu = document.getElementById('chat-plus-dropdown-menu');
+    if (chatPlusMenu) chatPlusMenu.classList.add('hidden');
   }
-  if (typeof isDashboardPlusMenuOpen !== 'undefined' && isDashboardPlusMenuOpen) {
-    if (!e.target.closest('#dashboard-plus-btn') && !e.target.closest('.absolute')) {
-      isDashboardPlusMenuOpen = false;
-      renderApp();
-    }
+  if (!e.target.closest('#dashboard-model-picker-btn') && !e.target.closest('#dashboard-model-dropdown-menu')) {
+    const dashModelMenu = document.getElementById('dashboard-model-dropdown-menu');
+    if (dashModelMenu) dashModelMenu.classList.add('hidden');
   }
-  if (typeof isChatPlusMenuOpen !== 'undefined' && isChatPlusMenuOpen) {
-    if (!e.target.closest('#chat-plus-btn') && !e.target.closest('.absolute')) {
-      isChatPlusMenuOpen = false;
-      renderApp();
-    }
+  if (!e.target.closest('#dashboard-plus-btn') && !e.target.closest('#dashboard-plus-dropdown-menu')) {
+    const dashPlusMenu = document.getElementById('dashboard-plus-dropdown-menu');
+    if (dashPlusMenu) dashPlusMenu.classList.add('hidden');
   }
 });
 

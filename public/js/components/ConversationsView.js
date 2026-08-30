@@ -1,7 +1,5 @@
-﻿// ConversationsView.js - Gemini-style Plus Menu, Modern Arrow Send Button, Clean Direct Greeting (no AI slop icon)
+﻿// ConversationsView.js - Zero-Flicker In-Place Model & Plus Menus, Modern Arrow Button, Selectable Open Canvas
 let isStreamingActive = false;
-let isModelPickerOpen = false;
-let isChatPlusMenuOpen = false;
 
 function renderConversationsView(state) {
   const conv = state.conversations.find(c => c.id === state.activeConversationId) || state.conversations[0];
@@ -58,48 +56,44 @@ function renderConversationsView(state) {
 
       </div>
 
-      <!-- Bottom Chat Composer Area with Gemini-style Plus Menu & Modern Arrow Send Button -->
+      <!-- Bottom Chat Composer Area with Zero-Flicker In-Place Dropdowns -->
       <div class="p-4 sm:px-12 md:px-20 lg:px-32 max-w-4xl mx-auto w-full flex flex-col gap-1.5 relative z-20 select-none">
         
-        <!-- Model Selector Dropdown Menu -->
-        ${isModelPickerOpen ? `
-          <div class="absolute bottom-[135px] left-4 sm:left-12 md:left-20 lg:left-32 w-72 bg-app-surface border border-app-borderSubtle rounded-xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
-            <div class="px-2.5 py-1.5 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Select Model Provider</div>
-            ${AVAILABLE_MODELS.map(m => `
-              <div 
-                onclick="selectChatModel('${m.id}')"
-                class="flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${m.id === activeModelId ? 'bg-white/[0.08] text-white' : 'text-app-textSecondary hover:bg-app-hover hover:text-white'}">
-                <div class="flex flex-col">
-                  <span class="font-normal text-white">${m.name}</span>
-                  <span class="text-[11px] text-app-textMuted">${m.provider}</span>
-                </div>
-                <span class="text-[10.5px] px-1.5 py-0.5 rounded bg-app-input border border-app-borderSubtle text-app-textMuted">${m.badge}</span>
+        <!-- Zero-Flicker In-Place Model Selector Dropdown -->
+        <div id="chat-model-dropdown-menu" class="hidden absolute bottom-[135px] left-4 sm:left-12 md:left-20 lg:left-32 w-72 bg-app-surface border border-app-borderSubtle rounded-xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
+          <div class="px-2.5 py-1.5 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Select Model Provider</div>
+          ${AVAILABLE_MODELS.map(m => `
+            <div 
+              onclick="selectChatModel('${m.id}')"
+              class="flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${m.id === activeModelId ? 'bg-white/[0.08] text-white' : 'text-app-textSecondary hover:bg-app-hover hover:text-white'}">
+              <div class="flex flex-col">
+                <span class="font-normal text-white">${m.name}</span>
+                <span class="text-[11px] text-app-textMuted">${m.provider}</span>
               </div>
-            `).join('')}
-          </div>
-        ` : ''}
+              <span class="text-[10.5px] px-1.5 py-0.5 rounded bg-app-input border border-app-borderSubtle text-app-textMuted">${m.badge}</span>
+            </div>
+          `).join('')}
+        </div>
 
-        <!-- Gemini-style Plus (+) Attachment & Tools Menu for Chat -->
-        ${isChatPlusMenuOpen ? `
-          <div class="absolute bottom-[135px] left-4 sm:left-12 md:left-20 lg:left-32 w-64 bg-app-surface border border-app-borderSubtle rounded-xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
-            <div class="px-2.5 py-1 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Tools & Attachments</div>
-            
-            <button onclick="triggerChatFileUpload(); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
-              <i data-lucide="upload" class="w-3.5 h-3.5 text-white"></i>
-              <span>Upload files (PDF, Code, CSV)</span>
-            </button>
+        <!-- Zero-Flicker In-Place Plus (+) Attachment & Tools Menu -->
+        <div id="chat-plus-dropdown-menu" class="hidden absolute bottom-[135px] left-4 sm:left-12 md:left-20 lg:left-32 w-64 bg-app-surface border border-app-borderSubtle rounded-xl p-1.5 shadow-2xl z-50 flex flex-col gap-0.5 animate-fade-in text-[12.5px]">
+          <div class="px-2.5 py-1 text-[11px] font-medium text-app-textMuted uppercase tracking-wider border-b border-app-borderSubtle">Tools & Attachments</div>
+          
+          <button onclick="triggerChatFileUpload(); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
+            <i data-lucide="upload" class="w-3.5 h-3.5 text-white"></i>
+            <span>Upload files (PDF, Code, CSV)</span>
+          </button>
 
-            <button onclick="appStore.setRoute('/knowledge-base'); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
-              <i data-lucide="database" class="w-3.5 h-3.5 text-white"></i>
-              <span>Attach from Knowledge Base</span>
-            </button>
+          <button onclick="appStore.setRoute('/knowledge-base'); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
+            <i data-lucide="database" class="w-3.5 h-3.5 text-white"></i>
+            <span>Attach from Knowledge Base</span>
+          </button>
 
-            <button onclick="appStore.setRoute('/agents'); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
-              <i data-lucide="bot" class="w-3.5 h-3.5 text-white"></i>
-              <span>Mention @Agent</span>
-            </button>
-          </div>
-        ` : ''}
+          <button onclick="appStore.setRoute('/agents'); closeChatMenus()" class="flex items-center gap-2.5 p-2 rounded-lg text-app-textSecondary hover:text-white hover:bg-app-hover text-left transition-colors font-normal">
+            <i data-lucide="bot" class="w-3.5 h-3.5 text-white"></i>
+            <span>Mention @Agent</span>
+          </button>
+        </div>
 
         <!-- Composer Box -->
         <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-3 flex flex-col gap-2 shadow-xl focus-within:border-app-borderActive transition-colors">
@@ -141,7 +135,7 @@ function renderConversationsView(state) {
             </button>
           </div>
 
-          <!-- Bottom Toolbar with Model Selector Trigger -->
+          <!-- Bottom Toolbar with Zero-Flicker Model Selector Trigger -->
           <div class="flex items-center justify-between pt-1.5 border-t border-app-borderSubtle text-[12px]">
             <div class="flex items-center gap-2">
               <button 
@@ -149,8 +143,8 @@ function renderConversationsView(state) {
                 id="chat-model-picker-btn"
                 onclick="toggleModelPicker(event)"
                 class="flex items-center gap-1.5 bg-app-input hover:bg-app-hover px-2.5 py-1 rounded-md border border-app-borderSubtle text-app-textSecondary hover:text-white cursor-pointer transition-colors">
-                <span class="font-normal text-white">${activeModel.name}</span>
-                <span class="text-[10px] text-app-textMuted">· ${activeModel.provider}</span>
+                <span id="chat-active-model-name" class="font-normal text-white">${activeModel.name}</span>
+                <span id="chat-active-model-provider" class="text-[10px] text-app-textMuted">· ${activeModel.provider}</span>
                 <i data-lucide="chevron-down" class="w-3 h-3 text-app-textMuted"></i>
               </button>
             </div>
@@ -169,17 +163,48 @@ function renderConversationsView(state) {
   `;
 }
 
+// In-place dropdown toggles without full-page re-rendering
+function toggleModelPicker(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('chat-model-dropdown-menu');
+  const plusMenu = document.getElementById('chat-plus-dropdown-menu');
+  if (plusMenu) plusMenu.classList.add('hidden');
+  if (menu) menu.classList.toggle('hidden');
+  lucide.createIcons();
+}
+
 function toggleChatPlusMenu(e) {
   if (e) e.stopPropagation();
-  isChatPlusMenuOpen = !isChatPlusMenuOpen;
-  isModelPickerOpen = false;
-  renderApp();
+  const plusMenu = document.getElementById('chat-plus-dropdown-menu');
+  const modelMenu = document.getElementById('chat-model-dropdown-menu');
+  if (modelMenu) modelMenu.classList.add('hidden');
+  if (plusMenu) plusMenu.classList.toggle('hidden');
+  lucide.createIcons();
 }
 
 function closeChatMenus() {
-  isChatPlusMenuOpen = false;
-  isModelPickerOpen = false;
-  renderApp();
+  const modelMenu = document.getElementById('chat-model-dropdown-menu');
+  const plusMenu = document.getElementById('chat-plus-dropdown-menu');
+  if (modelMenu) modelMenu.classList.add('hidden');
+  if (plusMenu) plusMenu.classList.add('hidden');
+}
+
+// In-place model selection with zero flicker
+function selectChatModel(modelId) {
+  closeChatMenus();
+  appStore.state.selectedModel = modelId;
+  const conv = appStore.state.conversations.find(c => c.id === appStore.state.activeConversationId);
+  if (conv) conv.model = modelId;
+  localStorage.setItem('collab_ai_state', JSON.stringify(appStore.state));
+
+  const model = AVAILABLE_MODELS.find(m => m.id === modelId);
+  if (model) {
+    const nameEl = document.getElementById('chat-active-model-name');
+    const provEl = document.getElementById('chat-active-model-provider');
+    if (nameEl) nameEl.innerText = model.name;
+    if (provEl) provEl.innerText = '· ' + model.provider;
+  }
+  showToast(`Switched model to ${modelId}`);
 }
 
 function triggerChatFileUpload() {
@@ -197,19 +222,6 @@ function handleChatFileSelected(input) {
       textarea.focus();
     }
   }
-}
-
-function toggleModelPicker(e) {
-  if (e) e.stopPropagation();
-  isModelPickerOpen = !isModelPickerOpen;
-  isChatPlusMenuOpen = false;
-  renderApp();
-}
-
-function selectChatModel(modelId) {
-  isModelPickerOpen = false;
-  appStore.setSelectedModel(modelId);
-  showToast(`Switched model to ${modelId}`);
 }
 
 // In-place smooth toggle for sources without full-screen flicker
