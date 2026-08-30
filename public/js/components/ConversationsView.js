@@ -1,4 +1,4 @@
-﻿// ConversationsView.js - Zero-Flicker In-Place Dropdowns, Directly Anchored, Full Theme Support
+﻿// ConversationsView.js - Clean Minimalist Surfaces, Zero Muddy Drop Shadows, Directly Anchored
 let isStreamingActive = false;
 
 function renderConversationsView(state) {
@@ -59,8 +59,8 @@ function renderConversationsView(state) {
       <!-- Bottom Chat Composer Area -->
       <div class="p-4 sm:px-12 md:px-20 lg:px-32 max-w-4xl mx-auto w-full flex flex-col gap-1.5 relative z-20 select-none">
 
-        <!-- Composer Box -->
-        <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-3 flex flex-col gap-2 shadow-xl focus-within:border-app-borderActive transition-colors relative">
+        <!-- Composer Box (Clean, no muddy drop-shadow) -->
+        <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-3 flex flex-col gap-2 focus-within:border-app-borderActive transition-colors relative">
           
           <div class="flex items-center gap-2.5">
             
@@ -115,7 +115,7 @@ function renderConversationsView(state) {
             <button 
               id="chat-send-button"
               onclick="handleChatSend()"
-              class="w-7 h-7 rounded-full btn-primary flex items-center justify-center transition-all shadow-sm hover:scale-105 shrink-0"
+              class="w-7 h-7 rounded-full btn-primary flex items-center justify-center transition-all hover:scale-105 shrink-0"
               title="Send message">
               <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
             </button>
@@ -132,7 +132,7 @@ function renderConversationsView(state) {
                   class="flex items-center gap-1.5 bg-app-input hover:bg-app-hover px-2.5 py-1 rounded-md border border-app-borderSubtle text-app-textSecondary hover:text-app-textPrimary cursor-pointer transition-colors">
                   <span id="chat-active-model-name" class="font-normal text-app-textPrimary">${activeModel.name}</span>
                   <span id="chat-active-model-provider" class="text-[10px] text-app-textMuted">· ${activeModel.provider}</span>
-                  <i data-lucide="chevron-down" class="w-3 h-3 text-app-textMuted"></i>
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-app-textMuted"></i>
                 </button>
 
                 <!-- Directly Anchored Model Selector Dropdown (Opens Upwards in Chat) -->
@@ -254,7 +254,7 @@ function renderChatMessageBubble(msg) {
   if (msg.role === 'user') {
     return `
       <div class="flex justify-end w-full">
-        <div class="max-w-[80%] bg-app-surface border border-app-borderSubtle text-app-textPrimary rounded-2xl px-5 py-3 text-[14px] font-normal leading-relaxed shadow-sm user-msg-bubble">
+        <div class="max-w-[80%] bg-app-surface border border-app-borderSubtle text-app-textPrimary rounded-2xl px-5 py-3 text-[14px] font-normal leading-relaxed user-msg-bubble">
           ${escapeHtml(msg.content)}
         </div>
       </div>
@@ -306,7 +306,7 @@ function renderChatMessageBubble(msg) {
             ${msg.suggestions.map(sug => `
               <button 
                 onclick="sendChatSuggestion('${escapeHtml(sug)}')"
-                class="text-[12.5px] bg-app-surface hover:bg-app-elevated border border-app-borderSubtle text-app-textPrimary font-normal px-4 py-1.5 rounded-xl transition-all shadow-sm hover:border-app-borderMed">
+                class="text-[12.5px] bg-app-surface hover:bg-app-elevated border border-app-borderSubtle text-app-textPrimary font-normal px-4 py-1.5 rounded-xl transition-all hover:border-app-borderMed">
                 ${sug}
               </button>
             `).join('')}
