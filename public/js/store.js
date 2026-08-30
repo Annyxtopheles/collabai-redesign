@@ -1,4 +1,4 @@
-﻿// Persistent Reactive State Store with Theme Support
+﻿// Persistent Reactive State Store with Multi-Theme Support (Dark, Light, Pink)
 class CollabStore {
   constructor() {
     this.subscribers = [];
@@ -59,7 +59,7 @@ class CollabStore {
   }
 
   applyTheme(theme) {
-    document.documentElement.classList.remove('dark', 'light');
+    document.documentElement.classList.remove('dark', 'light', 'pink');
     document.documentElement.classList.add(theme);
     localStorage.setItem('collab_theme', theme);
   }
@@ -71,7 +71,10 @@ class CollabStore {
   }
 
   toggleTheme() {
-    const nextTheme = this.state.theme === 'dark' ? 'light' : 'dark';
+    let nextTheme = 'dark';
+    if (this.state.theme === 'dark') nextTheme = 'light';
+    else if (this.state.theme === 'light') nextTheme = 'pink';
+    else nextTheme = 'dark';
     this.setTheme(nextTheme);
     return nextTheme;
   }

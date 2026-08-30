@@ -24,6 +24,8 @@
   --badge-border: rgba(255, 255, 255, 0.08);
   --icon-invert: 0;
   --shadow-color: rgba(0, 0, 0, 0.5);
+  --btn-border: 1px solid transparent;
+  --btn-shadow: none;
 }
 
 html.light {
@@ -51,6 +53,39 @@ html.light {
   --badge-border: rgba(0, 0, 0, 0.08);
   --icon-invert: 1;
   --shadow-color: rgba(0, 0, 0, 0.06);
+  --btn-border: 1px solid transparent;
+  --btn-shadow: none;
+}
+
+html.pink {
+  /* Warm Cream & Bubblegum Pink Wireframe Theme (Exact match to reference images) */
+  --bg-canvas: #FAF6F0;
+  --bg-sidebar: #F4EFE6;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFBF5;
+  --bg-input: #FFFFFF;
+  --bg-hover: #F0E8DC;
+  --bg-hover-subtle: rgba(255, 93, 162, 0.12);
+  --border-subtle: #E8DECF;
+  --border-med: #1A1A1A;
+  --border-active: #FF5DA2;
+  --text-primary: #111111;
+  --text-secondary: #524B43;
+  --text-muted: #968A7D;
+  
+  /* Cartoonish Wireframe Neo-Brutalist Pink Styling */
+  --btn-primary-bg: #FF5DA2;
+  --btn-primary-text: #000000;
+  --btn-primary-hover: #FF4092;
+  --code-bg: #FFF5F9;
+  --code-text: #D81B60;
+  --inline-code-bg: #FFEBF3;
+  --badge-bg: #FFEBF3;
+  --badge-border: #FFBFDB;
+  --icon-invert: 0;
+  --shadow-color: rgba(0, 0, 0, 0.12);
+  --btn-border: 2px solid #000000;
+  --btn-shadow: 3px 3px 0px #000000;
 }
 
 @layer base {
@@ -233,6 +268,47 @@ html.light {
 }
 .btn-primary:hover {
   background-color: var(--btn-primary-hover);
+}
+
+/* Cartoonish Wireframe Neo-Brutalist Button Styling for Pink Theme */
+html.pink .btn-primary {
+  background-color: #FF5DA2 !important;
+  color: #000000 !important;
+  font-weight: 600 !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 3px 3px 0px #000000 !important;
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.1s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s ease !important;
+}
+
+html.pink .btn-primary:hover {
+  background-color: #FF4092 !important;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #000000 !important;
+}
+
+html.pink .btn-primary:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #000000 !important;
+}
+
+/* Cartoonish Wireframe Buttons & Badges for Pink Theme */
+html.pink .wireframe-btn {
+  border: 2px solid #000000 !important;
+  box-shadow: 2.5px 2.5px 0px #000000 !important;
+  font-weight: 600 !important;
+}
+html.pink .wireframe-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3.5px 3.5px 0px #000000 !important;
+}
+html.pink .wireframe-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0.5px 0.5px 0px #000000 !important;
+}
+
+/* Pink mode logo inversion / tint */
+html.pink .logo-img {
+  filter: hue-rotate(290deg) brightness(0.9);
 }
 
 /* Light mode logo inversion */

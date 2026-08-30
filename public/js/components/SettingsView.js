@@ -1,4 +1,4 @@
-﻿// SettingsView.js - Dedicated Settings & API Keys Management Page with Theme Controls
+﻿// SettingsView.js - Dedicated Settings & API Keys Management Page with 3-Theme Controls
 function renderSettingsView(state) {
   const currentKey = localStorage.getItem('collab_groq_key') || '';
   const currentGemini = localStorage.getItem('collab_gemini_key') || '';
@@ -17,7 +17,7 @@ function renderSettingsView(state) {
           <p class="text-[13.5px] text-app-textSecondary">Configure your appearance, default AI provider, and custom API keys</p>
         </div>
 
-        <!-- Appearance Section -->
+        <!-- Appearance Section with 3 Themes -->
         <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-6 shadow-sm flex flex-col gap-4">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-xl bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary">
@@ -25,40 +25,58 @@ function renderSettingsView(state) {
             </div>
             <div class="flex flex-col">
               <h2 class="text-[15px] font-medium text-app-textPrimary">Theme & Appearance</h2>
-              <span class="text-[12px] text-app-textMuted">Select your preferred interface color mode</span>
+              <span class="text-[12px] text-app-textMuted">Select your preferred interface color style and aesthetic</span>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
             
+            <!-- Dark Theme -->
             <div 
               onclick="appStore.setTheme('dark')"
-              class="p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${currentTheme === 'dark' ? 'border-app-borderActive bg-app-hover text-app-textPrimary' : 'border-app-borderSubtle bg-app-input text-app-textSecondary hover:border-app-borderMed'}">
-              <div class="flex items-center gap-3">
+              class="p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between gap-3 ${currentTheme === 'dark' ? 'border-app-borderActive bg-app-hover text-app-textPrimary' : 'border-app-borderSubtle bg-app-input text-app-textSecondary hover:border-app-borderMed'}">
+              <div class="flex items-center justify-between">
                 <div class="w-8 h-8 rounded-lg bg-[#111111] border border-[#262626] flex items-center justify-center text-white">
                   <i data-lucide="moon" class="w-4 h-4"></i>
                 </div>
-                <div class="flex flex-col">
-                  <span class="font-medium text-[13.5px] text-app-textPrimary">Dark Theme</span>
-                  <span class="text-[11.5px] text-app-textMuted">Pure neutral #111111 canvas</span>
-                </div>
+                ${currentTheme === 'dark' ? `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i>` : ''}
               </div>
-              ${currentTheme === 'dark' ? `<i data-lucide="check" class="w-4 h-4 text-emerald-500"></i>` : ''}
+              <div class="flex flex-col">
+                <span class="font-medium text-[13.5px] text-app-textPrimary">Dark Minimal</span>
+                <span class="text-[11.5px] text-app-textMuted">Pure #111111 dark canvas</span>
+              </div>
             </div>
 
+            <!-- Light Minimal Theme -->
             <div 
               onclick="appStore.setTheme('light')"
-              class="p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${currentTheme === 'light' ? 'border-app-borderActive bg-app-hover text-app-textPrimary' : 'border-app-borderSubtle bg-app-input text-app-textSecondary hover:border-app-borderMed'}">
-              <div class="flex items-center gap-3">
+              class="p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between gap-3 ${currentTheme === 'light' ? 'border-app-borderActive bg-app-hover text-app-textPrimary' : 'border-app-borderSubtle bg-app-input text-app-textSecondary hover:border-app-borderMed'}">
+              <div class="flex items-center justify-between">
                 <div class="w-8 h-8 rounded-lg bg-[#FFFFFF] border border-[#E5E5E5] flex items-center justify-center text-[#18181B]">
                   <i data-lucide="sun" class="w-4 h-4 text-amber-500"></i>
                 </div>
-                <div class="flex flex-col">
-                  <span class="font-medium text-[13.5px] text-app-textPrimary">Light Theme</span>
-                  <span class="text-[11.5px] text-app-textMuted">Warm minimalist light mode</span>
-                </div>
+                ${currentTheme === 'light' ? `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i>` : ''}
               </div>
-              ${currentTheme === 'light' ? `<i data-lucide="check" class="w-4 h-4 text-emerald-500"></i>` : ''}
+              <div class="flex flex-col">
+                <span class="font-medium text-[13.5px] text-app-textPrimary">Light Minimal</span>
+                <span class="text-[11.5px] text-app-textMuted">Warm slate off-white mode</span>
+              </div>
+            </div>
+
+            <!-- Pink Wireframe Theme -->
+            <div 
+              onclick="appStore.setTheme('pink')"
+              class="p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between gap-3 ${currentTheme === 'pink' ? 'border-black bg-[#FFF5F9] text-black shadow-md' : 'border-app-borderSubtle bg-app-input text-app-textSecondary hover:border-app-borderMed'}">
+              <div class="flex items-center justify-between">
+                <div class="w-8 h-8 rounded-lg bg-[#FF5DA2] border-2 border-black flex items-center justify-center text-black shadow-[2px_2px_0px_#000000]">
+                  <i data-lucide="sparkles" class="w-4 h-4"></i>
+                </div>
+                ${currentTheme === 'pink' ? `<i data-lucide="check-circle-2" class="w-4 h-4 text-[#FF5DA2]"></i>` : ''}
+              </div>
+              <div class="flex flex-col">
+                <span class="font-bold text-[13.5px] text-app-textPrimary">Pink Wireframe</span>
+                <span class="text-[11.5px] text-app-textMuted">Cream canvas & pink pop buttons</span>
+              </div>
             </div>
 
           </div>

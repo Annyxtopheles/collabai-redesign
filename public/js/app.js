@@ -48,7 +48,7 @@ function renderApp() {
   lucide.createIcons();
 }
 
-// Functioning Profile Dropdown Menu with Theme Switcher
+// Functioning Profile Dropdown Menu with Multi-Theme Switcher (Dark, Light, Pink)
 function toggleUserMenu(event) {
   if (event) event.stopPropagation();
   const container = document.getElementById('modal-container');
@@ -68,7 +68,7 @@ function toggleUserMenu(event) {
   container.innerHTML = `
     <div class="fixed inset-0 bg-transparent z-40" onclick="closeModal()"></div>
 
-    <div class="fixed bottom-14 left-2.5 w-72 bg-app-surface border border-app-borderSubtle rounded-2xl p-2 shadow-2xl z-50 flex flex-col gap-1 text-[12.5px] font-normal select-none animate-fade-in">
+    <div class="fixed bottom-14 left-2.5 w-80 bg-app-surface border border-app-borderSubtle rounded-2xl p-2.5 shadow-2xl z-50 flex flex-col gap-1.5 text-[12.5px] font-normal select-none animate-fade-in">
       
       <!-- User Profile Header -->
       <div class="px-2.5 py-2 border-b border-app-borderSubtle flex items-center gap-2.5">
@@ -84,30 +84,40 @@ function toggleUserMenu(event) {
         </div>
       </div>
 
-      <!-- Theme Switcher Segmented Control -->
-      <div class="p-1.5 bg-app-elevated rounded-xl flex flex-col gap-1 border border-app-borderSubtle">
+      <!-- Multi-Theme Switcher Segmented Control (Dark / Light / Pink Wireframe) -->
+      <div class="p-2 bg-app-elevated rounded-xl flex flex-col gap-1.5 border border-app-borderSubtle">
         <div class="flex items-center justify-between px-1 text-[11px] text-app-textMuted font-medium uppercase tracking-wider">
-          <span>Theme</span>
-          <span class="text-app-textSecondary capitalize">${currentTheme} mode</span>
+          <span>Theme Style</span>
+          <span class="text-app-textSecondary capitalize">${currentTheme === 'pink' ? 'Pink Wireframe' : currentTheme + ' Mode'}</span>
         </div>
-        <div class="grid grid-cols-2 gap-1 bg-app-input p-0.5 rounded-lg border border-app-borderSubtle text-[12px]">
+        <div class="grid grid-cols-3 gap-1 bg-app-input p-1 rounded-xl border border-app-borderSubtle text-[11.5px]">
+          
           <button 
             onclick="switchTheme('dark')" 
-            class="flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-all ${currentTheme === 'dark' ? 'bg-app-surface text-app-textPrimary shadow-sm font-medium' : 'text-app-textMuted hover:text-app-textPrimary'}">
+            class="flex items-center justify-center gap-1 py-1.5 rounded-lg transition-all ${currentTheme === 'dark' ? 'bg-app-surface text-app-textPrimary shadow-sm font-semibold' : 'text-app-textMuted hover:text-app-textPrimary'}">
             <i data-lucide="moon" class="w-3.5 h-3.5"></i>
             <span>Dark</span>
           </button>
+
           <button 
             onclick="switchTheme('light')" 
-            class="flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-all ${currentTheme === 'light' ? 'bg-app-surface text-app-textPrimary shadow-sm font-medium' : 'text-app-textMuted hover:text-app-textPrimary'}">
+            class="flex items-center justify-center gap-1 py-1.5 rounded-lg transition-all ${currentTheme === 'light' ? 'bg-app-surface text-app-textPrimary shadow-sm font-semibold' : 'text-app-textMuted hover:text-app-textPrimary'}">
             <i data-lucide="sun" class="w-3.5 h-3.5"></i>
             <span>Light</span>
           </button>
+
+          <button 
+            onclick="switchTheme('pink')" 
+            class="flex items-center justify-center gap-1 py-1.5 rounded-lg transition-all ${currentTheme === 'pink' ? 'bg-[#FF5DA2] text-black border border-black shadow-sm font-bold' : 'text-app-textMuted hover:text-[#FF5DA2]'}">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+            <span>Pink</span>
+          </button>
+
         </div>
       </div>
 
       <!-- Menu Items -->
-      <div class="flex flex-col gap-0.5 py-1">
+      <div class="flex flex-col gap-0.5 py-0.5">
         ${isAdmin ? `
           <button onclick="appStore.setRoute('/admin'); fetchAdminUsers(); closeModal()" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-emerald-500 hover:bg-emerald-500/10 text-left transition-colors font-normal">
             <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-500"></i>
