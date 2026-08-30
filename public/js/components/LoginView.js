@@ -1,4 +1,4 @@
-﻿// LoginView.js - Sign In & Sign Up with Theme-Aware Tokens
+// LoginView.js - Sign In & Sign Up with Theme-Aware Tokens
 let activeAuthTab = 'signin';
 let registrationPendingUser = null;
 
@@ -43,7 +43,7 @@ function renderLoginView() {
         
         <!-- Logo & Title -->
         <div class="flex flex-col items-center text-center gap-3">
-          <img src="/logo.png" class="h-8 object-contain logo-img" alt="Collab AI" />
+          <img src="/assets/collab-ai-logo.svg" class="h-9 w-auto object-contain logo-img" alt="Collab AI" />
           <div class="flex flex-col gap-0.5">
             <h1 class="text-[20px] font-semibold text-app-textPrimary tracking-tight">
               ${activeAuthTab === 'signin' ? 'Sign in to CollabAI' : 'Create an Account'}

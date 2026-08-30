@@ -1,4 +1,4 @@
-﻿// Sidebar.js - Single unified sidebar, search placed above recents, Theme-aware color tokens
+// Sidebar.js - Single unified sidebar, search placed above recents, Theme-aware color tokens
 let currentSearchQuery = '';
 
 function renderSidebar(state) {
@@ -28,7 +28,7 @@ function renderSidebar(state) {
         <div class="flex flex-col items-center gap-4">
           <!-- Collapsed Logo Icon -->
           <div class="cursor-pointer flex items-center justify-center w-9 h-9 rounded-lg hover:bg-app-hover transition-colors" onclick="appStore.toggleSidebar()" title="Expand Sidebar">
-            <img src="/logo-icon.png" class="h-6 w-6 object-contain logo-img" alt="Collab AI" />
+            <img src="/assets/collab-ai-icon.svg" class="h-6 w-6 object-contain logo-img" alt="Collab AI" />
           </div>
 
           <!-- New Chat Icon Button -->
@@ -80,7 +80,7 @@ function renderSidebar(state) {
         <!-- Header: Proportional Logo & Collapse Button -->
         <div class="flex items-center justify-between px-1 cursor-pointer">
           <div onclick="appStore.setRoute('/dashboard')" class="flex items-center">
-            <img src="/logo.png" class="h-7 object-contain logo-img" alt="Collab AI" />
+            <img src="/assets/collab-ai-logo.svg" class="h-6 w-auto object-contain logo-img" alt="Collab AI" />
           </div>
           <button onclick="appStore.toggleSidebar()" class="text-app-textMuted hover:text-app-textPrimary p-1 rounded hover:bg-app-hover transition-colors" title="Collapse sidebar">
             <i data-lucide="panel-left-close" class="w-4 h-4"></i>
