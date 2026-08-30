@@ -51,7 +51,7 @@ for (let y = 0; y < height; y++) {
   }
 }
 
-// Generate SVG paths / rects
+// Generate SVG paths with clean white fill
 let svgRects = '';
 let iconRects = '';
 
@@ -77,9 +77,9 @@ for (let y = 0; y < height; y++) {
   }
 }
 
-const fullSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" fill="currentColor" shape-rendering="crispEdges">${svgRects}</svg>`;
-const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 30" fill="currentColor" shape-rendering="crispEdges">${iconRects}</svg>`;
+const fullSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" fill="#FFFFFF" shape-rendering="crispEdges">${svgRects}</svg>`;
+const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 30" fill="#FFFFFF" shape-rendering="crispEdges">${iconRects}</svg>`;
 
 fs.writeFileSync('public/assets/collab-ai-logo.svg', fullSvg);
 fs.writeFileSync('public/assets/collab-ai-icon.svg', iconSvg);
-console.log('Saved SVG files: public/assets/collab-ai-logo.svg and public/assets/collab-ai-icon.svg');
+console.log('Saved pure white vector SVGs: public/assets/collab-ai-logo.svg and public/assets/collab-ai-icon.svg');
