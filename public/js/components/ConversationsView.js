@@ -1,8 +1,7 @@
-﻿// ConversationsView.js - High-performance non-blocking streaming, collapsible high-contrast sources, suggestions label
+﻿// ConversationsView.js - Open Canvas, zero cluttered pipeline headers, ivory off-white palette, working model picker
 let isStreamingActive = false;
 let isModelPickerOpen = false;
 let expandedSources = {};
-let expandedPipelines = {};
 
 function renderConversationsView(state) {
   const conv = state.conversations.find(c => c.id === state.activeConversationId) || state.conversations[0];
@@ -26,7 +25,7 @@ function renderConversationsView(state) {
         </div>
       </header>
 
-      <!-- Message Stream Area (Open Canvas layout like Claude) -->
+      <!-- Message Stream Area (Open Canvas layout) -->
       <div class="flex-1 overflow-y-auto px-6 sm:px-12 md:px-20 lg:px-32 py-6 flex flex-col gap-8" id="chat-messages-container">
         
         <!-- Empty Conversation State -->
@@ -37,7 +36,7 @@ function renderConversationsView(state) {
             </div>
             <div class="flex flex-col gap-0.5">
               <h2 class="text-[17px] font-normal text-white">How can I help you today?</h2>
-              <p class="text-[13px] text-app-textSecondary font-normal">Ask a question, analyze code, or orchestrate multi-agent pipelines.</p>
+              <p class="text-[13px] text-app-textSecondary font-normal">Ask a question, review code, or design multi-agent workflows.</p>
             </div>
             <div class="flex items-center gap-2 pt-2 flex-wrap justify-center">
               <button 
@@ -101,7 +100,7 @@ function renderConversationsView(state) {
             <button 
               id="chat-send-button"
               onclick="handleChatSend()"
-              class="bg-app-accent hover:bg-app-accentHover text-white font-medium text-[12.5px] px-4 py-1.5 rounded-lg transition-colors shadow-sm">
+              class="btn-primary text-[12.5px] px-4 py-1.5 rounded-lg transition-all shadow-sm">
               Send
             </button>
           </div>
@@ -127,7 +126,7 @@ function renderConversationsView(state) {
 
         </div>
 
-        <span class="text-[11px] text-center text-app-textMuted font-normal">CollabAI orchestrates multi-agent pipelines. Check important facts.</span>
+        <span class="text-[11px] text-center text-app-textMuted font-normal">CollabAI can make mistakes. Verify important facts.</span>
       </div>
 
     </div>
@@ -162,7 +161,7 @@ function renderChatMessageBubble(msg) {
     `;
   }
 
-  // AI Assistant message: OPEN on canvas (no card box, clean subtle dividers)
+  // AI Assistant message: OPEN on canvas (Removed Aster Architect info & harsh breaklines)
   const cleanContent = (msg.content || '').replace(/\n---+\n/g, '\n\n');
   const parsedMarkdown = marked.parse(cleanContent);
   const isSourcesOpen = !!expandedSources[msg.id];
@@ -170,25 +169,7 @@ function renderChatMessageBubble(msg) {
   return `
     <div class="flex flex-col gap-3 w-full animate-fade-in">
       
-      <!-- Multi-Agent Pipeline Status Indicator -->
-      ${msg.pipeline && msg.pipeline.length > 0 ? `
-        <div class="flex items-center gap-2 text-[12px] text-app-textMuted py-0.5">
-          <div class="flex items-center gap-1.5 text-white">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            <span class="font-normal text-white">${msg.pipeline[0]}</span>
-          </div>
-          <span class="text-app-textMuted text-xs">➔</span>
-          <div class="flex items-center gap-1.5 text-white">
-            <span class="font-normal text-white">${msg.pipeline[1] || 'Knowledge Base'}</span>
-          </div>
-          <span class="text-app-textMuted text-xs">➔</span>
-          <div class="flex items-center gap-1.5 text-white">
-            <span class="font-normal text-white">${msg.pipeline[2] || 'Reasoning Engine'}</span>
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Open AI Content Area -->
+      <!-- Open AI Content Area (Zero cluttered pipeline headers) -->
       <div class="prose-open">
         ${parsedMarkdown}
       </div>
@@ -277,7 +258,7 @@ function handleChatSend() {
   triggerConversationStreaming(convId, text);
 }
 
-// High-speed, non-blocking real-time token streamer (60fps without freezing tab)
+// Smooth 60fps streaming without tab freezing
 function triggerConversationStreaming(convId, userPrompt) {
   isStreamingActive = true;
   const container = document.getElementById('chat-messages-container');
@@ -291,8 +272,8 @@ function triggerConversationStreaming(convId, userPrompt) {
   liveBubble.innerHTML = `
     <div class="flex flex-col gap-2 text-[12.5px] text-app-textMuted font-normal">
       <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-app-accent animate-ping"></span>
-        <span id="live-thinking-timer">Reasoning and orchestrating pipeline... (0.5s)</span>
+        <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+        <span id="live-thinking-timer">Reasoning... (0.5s)</span>
       </div>
       <div class="w-1/2 h-2 bg-app-input rounded skeleton-shimmer"></div>
     </div>
@@ -303,7 +284,7 @@ function triggerConversationStreaming(convId, userPrompt) {
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
     const label = document.getElementById('live-thinking-timer');
     if (label) {
-      label.innerText = `Reasoning and orchestrating pipeline... (${elapsed}s)`;
+      label.innerText = `Reasoning... (${elapsed}s)`;
     }
   }, 200);
 
@@ -318,14 +299,12 @@ function triggerConversationStreaming(convId, userPrompt) {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     
-    let pipeline = ['Aster Architect', 'Knowledge Base', 'Reasoning Advisor'];
+    let pipeline = [];
     let sources = ['Aster Architecture Docs', 'API Schema Reference'];
     let suggestions = ['Show error handling flow', 'Add rate limiting configuration', 'Detail deployment steps'];
     let accumulatedContent = '';
-    let isFirstToken = true;
     let renderScheduled = false;
 
-    // Smooth 60fps throttled DOM updater
     function scheduleRender() {
       if (renderScheduled) return;
       renderScheduled = true;
@@ -333,21 +312,6 @@ function triggerConversationStreaming(convId, userPrompt) {
         renderScheduled = false;
         const cleanText = accumulatedContent.replace(/\n---+\n/g, '\n\n');
         liveBubble.innerHTML = `
-          <div class="flex items-center gap-2 text-[12px] text-app-textMuted py-0.5">
-            <div class="flex items-center gap-1.5 text-white">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-              <span class="font-normal text-white">${pipeline[0]}</span>
-            </div>
-            <span class="text-app-textMuted text-xs">➔</span>
-            <div class="flex items-center gap-1.5 text-white">
-              <span class="font-normal text-white">${pipeline[1] || 'Knowledge Base'}</span>
-            </div>
-            <span class="text-app-textMuted text-xs">➔</span>
-            <div class="flex items-center gap-1.5 text-white">
-              <span class="font-normal text-white">${pipeline[2] || 'Reasoning Engine'}</span>
-            </div>
-          </div>
-
           <div class="prose-open">
             ${marked.parse(cleanText)}
           </div>
@@ -380,7 +344,6 @@ function triggerConversationStreaming(convId, userPrompt) {
         if (eventType === 'pipeline' && eventData) {
           try {
             const pData = JSON.parse(eventData);
-            if (pData.pipeline) pipeline = pData.pipeline;
             if (pData.sources) sources = pData.sources;
             if (pData.suggestions) suggestions = pData.suggestions;
           } catch(e) {}
@@ -402,7 +365,7 @@ function triggerConversationStreaming(convId, userPrompt) {
       id: 'm-' + Date.now(),
       role: 'assistant',
       content: accumulatedContent,
-      pipeline: pipeline,
+      pipeline: [],
       sources: sources,
       suggestions: suggestions
     };

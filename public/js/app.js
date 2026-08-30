@@ -18,7 +18,7 @@ function renderApp() {
 
   if (route.startsWith('/conversations')) {
     viewHtml = renderConversationsView(state);
-  } else if (route.startsWith('/agents')) {
+  } else if (route.startsWith('/agents') || route.startsWith('/explore')) {
     viewHtml = renderAgentsView(state);
   } else if (route.startsWith('/projects')) {
     viewHtml = renderProjectsView(state);
@@ -28,8 +28,6 @@ function renderApp() {
     viewHtml = renderBugReportsView(state);
   } else if (route.startsWith('/settings')) {
     viewHtml = renderSettingsView(state);
-  } else if (route.startsWith('/explore')) {
-    viewHtml = renderExploreView(state);
   } else if (route.startsWith('/docs')) {
     viewHtml = renderDocsView(state);
   } else if (route.startsWith('/academy')) {
@@ -129,7 +127,7 @@ function showToast(message, type = 'success') {
     type === 'error' ? 'bg-red-950 border-red-800 text-red-200' : 'bg-app-surface border-app-borderSubtle text-white'
   }`;
   toast.innerHTML = `
-    <i data-lucide="${type === 'error' ? 'alert-octagon' : 'check'}" class="w-3.5 h-3.5 text-app-accent"></i>
+    <i data-lucide="${type === 'error' ? 'alert-octagon' : 'check'}" class="w-3.5 h-3.5 text-white"></i>
     <span>${message}</span>
   `;
   container.appendChild(toast);

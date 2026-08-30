@@ -1,4 +1,4 @@
-﻿// Sidebar.js - Single unified sidebar, proportional logo, draggable resizer from both expanded & collapsed states
+﻿// Sidebar.js - Single unified sidebar, search placed above recents without losing focus, combined agents
 let currentSearchQuery = '';
 
 function renderSidebar(state) {
@@ -8,15 +8,14 @@ function renderSidebar(state) {
   const firstName = (state.user && state.user.name ? state.user.name.split(' ')[0] : 'Sadman');
   const sidebarWidth = state.sidebarWidth || 260;
 
-  // Primary Navigation Tabs
+  // Primary Navigation Tabs (Agents and Explore combined into Agents)
   const navItems = [
-    { label: 'Explore Agents', route: '/explore', icon: 'compass' },
     { label: 'Agents', route: '/agents', icon: 'users' },
     { label: 'Projects', route: '/projects', icon: 'folder' },
     { label: 'Knowledge Base', route: '/knowledge-base', icon: 'database' }
   ];
 
-  // Recents List (Deep Search filtered if query active)
+  // Recents List (Deep Search filtered)
   const recents = currentSearchQuery 
     ? appStore.deepSearch(currentSearchQuery)
     : (state.conversations || []);
@@ -27,14 +26,14 @@ function renderSidebar(state) {
         id="main-sidebar-panel"
         class="w-[60px] bg-app-sidebar border-r border-app-borderSubtle flex flex-col justify-between py-4 px-2 z-30 sidebar-panel select-none relative">
         <div class="flex flex-col items-center gap-4">
-          <!-- Collapsed Logo Icon (w-6 h-6) -->
+          <!-- Collapsed Logo Icon -->
           <div class="cursor-pointer flex items-center justify-center w-9 h-9 rounded-lg hover:bg-app-hover transition-colors" onclick="appStore.toggleSidebar()" title="Expand Sidebar">
             <img src="/logo-icon.png" class="h-6 w-6 object-contain" alt="Collab AI" />
           </div>
 
           <!-- New Chat Icon Button -->
-          <button onclick="appStore.createConversation('New Chat', '')" title="New Chat" class="w-9 h-9 flex items-center justify-center rounded-lg bg-white/[0.06] hover:bg-white/[0.12] text-white border border-white/[0.08] transition-colors">
-            <i data-lucide="plus" class="w-4 h-4 text-white"></i>
+          <button onclick="appStore.createConversation('New Chat', '')" title="New Chat" class="w-9 h-9 flex items-center justify-center rounded-lg btn-primary shadow-sm transition-colors">
+            <i data-lucide="plus" class="w-4 h-4 text-app-surface"></i>
           </button>
 
           <!-- Search Icon Button -->
@@ -64,7 +63,7 @@ function renderSidebar(state) {
           </div>
         </div>
 
-        <!-- Resizer Handle on Collapsed Sidebar (Drag to open/expand) -->
+        <!-- Resizer Handle on Collapsed Sidebar -->
         <div class="resizer-handle" onmousedown="initSidebarResize(event)"></div>
       </aside>
     `;
@@ -78,7 +77,7 @@ function renderSidebar(state) {
       
       <div class="flex flex-col gap-3 min-h-0 flex-1">
         
-        <!-- Header: Bigger Logo (Matching standalone icon proportion) & Collapse Button -->
+        <!-- Header: Proportional Logo & Collapse Button -->
         <div class="flex items-center justify-between px-1 cursor-pointer">
           <div onclick="appStore.setRoute('/dashboard')" class="flex items-center">
             <img src="/logo.png" class="h-7 object-contain" alt="Collab AI" />
@@ -88,30 +87,14 @@ function renderSidebar(state) {
           </button>
         </div>
 
-        <!-- + New Chat Button -->
-        <div class="flex flex-col gap-1.5 pt-1">
+        <!-- + New Chat Button (Off-White Background + Dark Text) -->
+        <div class="pt-1">
           <button 
             onclick="appStore.createConversation('New Chat', '')"
-            class="flex items-center gap-2.5 w-full bg-white/[0.06] hover:bg-white/[0.10] border border-white/[0.08] text-white font-normal text-[13px] px-3 py-2 rounded-xl transition-colors shadow-sm">
-            <i data-lucide="plus" class="w-4 h-4 text-white"></i>
+            class="flex items-center justify-center gap-2 w-full btn-primary text-[13px] px-3 py-2 rounded-xl transition-all shadow-sm">
+            <i data-lucide="plus" class="w-4 h-4"></i>
             <span>New chat</span>
           </button>
-
-          <!-- Search Chats & Content -->
-          <div class="relative flex items-center">
-            <i data-lucide="search" class="w-3.5 h-3.5 text-app-textMuted absolute left-3 pointer-events-none"></i>
-            <input 
-              type="text" 
-              id="sidebar-search-input"
-              value="${currentSearchQuery}"
-              oninput="handleSidebarSearch(this.value)"
-              placeholder="Search chats & content..." 
-              class="w-full bg-app-input border border-app-borderSubtle text-white placeholder-app-textMuted text-[12.5px] rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:border-app-borderActive transition-colors font-normal"
-            />
-            ${currentSearchQuery ? `
-              <button onclick="handleSidebarSearch('')" class="absolute right-2.5 text-app-textMuted hover:text-white text-xs">✕</button>
-            ` : ''}
-          </div>
         </div>
 
         <!-- Navigation Tabs -->
@@ -128,35 +111,42 @@ function renderSidebar(state) {
           }).join('')}
         </nav>
 
-        <!-- Recents List Section -->
+        <!-- Recents Section with Search Menu Placed Right Above Recents -->
         <div class="flex-1 flex flex-col min-h-0 pt-2 border-t border-app-borderSubtle">
-          <div class="flex items-center justify-between px-2 pb-1.5">
+          
+          <div class="flex items-center justify-between px-1 pb-2">
             <span class="text-[11px] font-normal uppercase tracking-wider text-app-textMuted">Recents</span>
-            ${currentSearchQuery ? `<span class="text-[10.5px] text-white">${recents.length} found</span>` : ''}
+            <span id="search-count-badge" class="text-[10.5px] text-white ${currentSearchQuery ? '' : 'hidden'}">${recents.length} found</span>
           </div>
 
+          <!-- Search Menu placed near Recents (Fixed focus issue) -->
+          <div class="relative flex items-center mb-2 px-0.5">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-app-textMuted absolute left-2.5 pointer-events-none"></i>
+            <input 
+              type="text" 
+              id="sidebar-search-input"
+              value="${currentSearchQuery}"
+              oninput="handleSidebarSearch(this.value)"
+              placeholder="Search recents & content..." 
+              class="w-full bg-app-input border border-app-borderSubtle text-white placeholder-app-textMuted text-[12px] rounded-lg pl-7 pr-6 py-1.5 focus:outline-none focus:border-app-borderActive transition-colors font-normal"
+            />
+            <button 
+              id="search-clear-btn"
+              onclick="clearSidebarSearch()" 
+              class="absolute right-2 text-app-textMuted hover:text-white text-xs ${currentSearchQuery ? '' : 'hidden'}">
+              ✕
+            </button>
+          </div>
+
+          <!-- Recents List Container -->
           <div class="flex-1 overflow-y-auto flex flex-col gap-0.5 pr-1" id="recents-list-container">
-            ${recents.length === 0 ? `
-              <div class="px-2 py-4 text-center text-app-textMuted text-[12px] font-normal">
-                ${currentSearchQuery ? 'No matching conversations found' : 'No recent chats'}
-              </div>
-            ` : recents.map(conv => {
-              const isActive = (currentRoute === '/conversations' || currentRoute.startsWith('/conversations')) && conv.id === activeConvId;
-              return `
-                <div 
-                  onclick="appStore.setRoute('/conversations', '${conv.id}')"
-                  title="${conv.title || 'Untitled Thread'}"
-                  class="flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors group ${isActive ? 'bg-white/[0.08] text-white font-normal' : 'text-app-textSecondary hover:bg-app-hover hover:text-white'}">
-                  <span class="text-[12.5px] truncate font-normal">${conv.title || 'Untitled Thread'}</span>
-                </div>
-              `;
-            }).join('')}
+            ${renderRecentsListHtml(recents, currentRoute, activeConvId)}
           </div>
         </div>
 
       </div>
 
-      <!-- Bottom Profile Pill (No redundant Settings button hovering above) -->
+      <!-- Bottom Profile Pill -->
       <div class="pt-2 border-t border-app-borderSubtle">
         <div id="sidebar-profile-button" class="flex items-center justify-between p-1.5 rounded-lg bg-app-surface hover:bg-app-hover border border-app-borderSubtle cursor-pointer transition-colors" onclick="toggleUserMenu(event)">
           <div class="flex items-center gap-2 min-w-0">
@@ -175,11 +165,59 @@ function renderSidebar(state) {
   `;
 }
 
+function renderRecentsListHtml(recentsList, currentRoute, activeConvId) {
+  if (!recentsList || recentsList.length === 0) {
+    return `<div class="px-2 py-4 text-center text-app-textMuted text-[12px] font-normal">No recent chats</div>`;
+  }
+
+  return recentsList.map(conv => {
+    const isActive = (currentRoute === '/conversations' || currentRoute.startsWith('/conversations')) && conv.id === activeConvId;
+    return `
+      <div 
+        onclick="appStore.setRoute('/conversations', '${conv.id}')"
+        title="${escapeHtml(conv.title || 'Untitled Thread')}"
+        class="flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors group ${isActive ? 'bg-white/[0.08] text-white font-normal' : 'text-app-textSecondary hover:bg-app-hover hover:text-white'}">
+        <span class="text-[12.5px] truncate font-normal">${escapeHtml(conv.title || 'Untitled Thread')}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+// In-place DOM update so the search input NEVER loses focus while typing!
 function handleSidebarSearch(val) {
   currentSearchQuery = val;
+  const listContainer = document.getElementById('recents-list-container');
+  const countBadge = document.getElementById('search-count-badge');
+  const clearBtn = document.getElementById('search-clear-btn');
+
+  const filtered = appStore.deepSearch(val);
+
+  if (listContainer) {
+    listContainer.innerHTML = renderRecentsListHtml(filtered, appStore.state.currentRoute, appStore.state.activeConversationId);
+  }
+
+  if (countBadge) {
+    if (val.trim()) {
+      countBadge.classList.remove('hidden');
+      countBadge.innerText = `${filtered.length} found`;
+    } else {
+      countBadge.classList.add('hidden');
+    }
+  }
+
+  if (clearBtn) {
+    if (val) clearBtn.classList.remove('hidden');
+    else clearBtn.classList.add('hidden');
+  }
+}
+
+function clearSidebarSearch() {
   const input = document.getElementById('sidebar-search-input');
-  if (input && input.value !== val) input.value = val;
-  renderApp();
+  if (input) {
+    input.value = '';
+    input.focus();
+  }
+  handleSidebarSearch('');
 }
 
 function initSidebarResize(e) {

@@ -1,12 +1,13 @@
-﻿// Projects Workspace Screen - Clean typography & monochrome styling
+﻿// Projects Workspace Screen - Functional List/Grid view toggle and ivory palette
 function renderProjectsView(state) {
   const projects = state.projects || [];
+  const viewMode = state.projectViewMode || 'list';
 
   return `
-    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-app-canvas">
+    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-app-canvas select-none">
       ${renderHeaderBreadcrumb('Projects')}
 
-      <div class="p-8 max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+      <div class="p-8 max-w-[1100px] mx-auto w-full flex flex-col gap-6">
         
         <!-- Header & Action CTA -->
         <div class="flex items-center justify-between">
@@ -16,52 +17,114 @@ function renderProjectsView(state) {
           </div>
           <button 
             onclick="showCreateProjectModal()"
-            class="bg-app-accent hover:bg-app-accentHover text-white font-medium text-[13px] px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-1.5">
+            class="btn-primary text-[13px] px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-1.5">
             <i data-lucide="plus" class="w-4 h-4"></i>
             <span>New Project</span>
           </button>
         </div>
 
-        <!-- Search Bar & List/Grid Toggles -->
+        <!-- Search Bar & Functional List/Grid Toggles -->
         <div class="flex items-center gap-3">
           <div class="relative flex-1 flex items-center">
             <i data-lucide="search" class="w-4 h-4 text-app-textMuted absolute left-3.5 pointer-events-none"></i>
             <input 
               type="text" 
-              placeholder="Search..." 
-              class="w-full bg-app-surface border border-app-borderSubtle text-white placeholder-app-textMuted text-[13.5px] rounded-xl pl-10 pr-4 py-2 focus:outline-none focus:border-app-borderActive transition-colors"
+              placeholder="Search projects..." 
+              id="projects-search-input"
+              oninput="filterProjectsSearch(this.value)"
+              class="w-full bg-app-surface border border-app-borderSubtle text-white placeholder-app-textMuted text-[13.5px] rounded-xl pl-10 pr-4 py-2 focus:outline-none focus:border-app-borderActive transition-colors font-normal"
             />
           </div>
           <div class="flex items-center gap-1 bg-app-surface p-1 rounded-lg border border-app-borderSubtle">
-            <button class="p-1.5 bg-app-input text-white rounded"><i data-lucide="layout-grid" class="w-4 h-4"></i></button>
-            <button class="p-1.5 text-app-textMuted hover:text-white rounded"><i data-lucide="list" class="w-4 h-4"></i></button>
+            <button 
+              onclick="appStore.setProjectViewMode('grid')" 
+              title="Grid view"
+              class="p-1.5 rounded transition-colors ${viewMode === 'grid' ? 'bg-app-input text-white' : 'text-app-textMuted hover:text-white'}">
+              <i data-lucide="layout-grid" class="w-4 h-4"></i>
+            </button>
+            <button 
+              onclick="appStore.setProjectViewMode('list')" 
+              title="List view"
+              class="p-1.5 rounded transition-colors ${viewMode === 'list' ? 'bg-app-input text-white' : 'text-app-textMuted hover:text-white'}">
+              <i data-lucide="list" class="w-4 h-4"></i>
+            </button>
           </div>
         </div>
 
-        <!-- Projects Rows List with Monochrome Icons -->
-        <div class="flex flex-col gap-2.5">
-          ${projects.map(proj => `
-            <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-4 flex items-center justify-between hover:border-app-borderMed transition-all cursor-pointer group" onclick="appStore.createConversation('${proj.name} Workspace Thread', '')">
-              <div class="flex items-center gap-3.5">
-                <div class="w-9 h-9 rounded-lg bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white">
-                  <i data-lucide="${proj.icon || 'box'}" class="w-4 h-4 text-white"></i>
-                </div>
-                <div class="flex flex-col">
-                  <h3 class="text-[14.5px] font-medium text-white group-hover:text-app-accent transition-colors">${proj.name}</h3>
-                  <span class="text-[12px] text-app-textMuted">${proj.itemCount || 0} items • ${proj.threadCount || 30} threads • ${proj.instructionCount || 1} instructions • Modified ${proj.modifiedDate}</span>
-                </div>
-              </div>
-
-              <button class="text-app-textMuted hover:text-white p-1.5 rounded hover:bg-app-hover">
-                <i data-lucide="more-horizontal" class="w-4 h-4"></i>
-              </button>
-            </div>
-          `).join('')}
-        </div>
+        <!-- Projects Render Area (Grid or List based on viewMode) -->
+        ${viewMode === 'grid' ? `
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="projects-container">
+            ${projects.map(proj => renderProjectCardGrid(proj)).join('')}
+          </div>
+        ` : `
+          <div class="flex flex-col gap-2.5" id="projects-container">
+            ${projects.map(proj => renderProjectRowList(proj)).join('')}
+          </div>
+        `}
 
       </div>
     </div>
   `;
+}
+
+function renderProjectRowList(proj) {
+  return `
+    <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-4 flex items-center justify-between hover:border-app-borderMed transition-all cursor-pointer group" onclick="appStore.createConversation('${escapeHtml(proj.name)} Workspace Thread', '')">
+      <div class="flex items-center gap-3.5">
+        <div class="w-9 h-9 rounded-lg bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white">
+          <i data-lucide="${proj.icon || 'box'}" class="w-4 h-4 text-white"></i>
+        </div>
+        <div class="flex flex-col">
+          <h3 class="text-[14px] font-medium text-white group-hover:text-white transition-colors">${escapeHtml(proj.name)}</h3>
+          <span class="text-[12px] text-app-textMuted">${proj.itemCount || 0} items • ${proj.threadCount || 30} threads • ${proj.instructionCount || 1} instructions • Modified ${proj.modifiedDate}</span>
+        </div>
+      </div>
+
+      <button class="text-app-textMuted hover:text-white p-1.5 rounded hover:bg-app-hover">
+        <i data-lucide="more-horizontal" class="w-4 h-4"></i>
+      </button>
+    </div>
+  `;
+}
+
+function renderProjectCardGrid(proj) {
+  return `
+    <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-5 flex flex-col justify-between gap-4 hover:border-app-borderMed transition-all cursor-pointer group" onclick="appStore.createConversation('${escapeHtml(proj.name)} Workspace Thread', '')">
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <div class="w-10 h-10 rounded-lg bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white">
+            <i data-lucide="${proj.icon || 'box'}" class="w-5 h-5 text-white"></i>
+          </div>
+          <button class="text-app-textMuted hover:text-white p-1 rounded hover:bg-app-hover">
+            <i data-lucide="more-horizontal" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="flex flex-col gap-1">
+          <h3 class="text-[15px] font-medium text-white group-hover:text-white transition-colors">${escapeHtml(proj.name)}</h3>
+          <p class="text-[12px] text-app-textSecondary font-normal">Active project workspace.</p>
+        </div>
+      </div>
+      <div class="flex items-center justify-between pt-3 border-t border-app-borderSubtle text-[11.5px] text-app-textMuted">
+        <span>${proj.threadCount || 12} threads</span>
+        <span>Modified ${proj.modifiedDate}</span>
+      </div>
+    </div>
+  `;
+}
+
+function filterProjectsSearch(query) {
+  const container = document.getElementById('projects-container');
+  if (!container) return;
+  const q = (query || '').toLowerCase().trim();
+  const filtered = appStore.state.projects.filter(p => (p.name || '').toLowerCase().includes(q));
+  const viewMode = appStore.state.projectViewMode || 'list';
+
+  if (viewMode === 'grid') {
+    container.innerHTML = filtered.map(proj => renderProjectCardGrid(proj)).join('');
+  } else {
+    container.innerHTML = filtered.map(proj => renderProjectRowList(proj)).join('');
+  }
+  lucide.createIcons();
 }
 
 function showCreateProjectModal() {
@@ -71,7 +134,7 @@ function showCreateProjectModal() {
       <div class="bg-app-surface border border-app-borderSubtle rounded-xl w-full max-w-md p-6 shadow-2xl flex flex-col gap-5">
         <div class="flex items-center justify-between">
           <h2 class="text-[16px] font-semibold text-white">Create New Project</h2>
-          <button onclick="closeModal()" class="text-app-textMuted hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+          <button onclick="closeModal()" class="text-app-textMuted hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
         </div>
 
         <form onsubmit="handleCreateProjectSubmit(event)" class="flex flex-col gap-4 text-[13px]">
@@ -82,7 +145,7 @@ function showCreateProjectModal() {
 
           <div class="flex items-center justify-end gap-2.5 pt-2">
             <button type="button" onclick="closeModal()" class="px-3.5 py-1.5 rounded-lg bg-app-input text-app-textSecondary hover:text-white">Cancel</button>
-            <button type="submit" class="px-4 py-1.5 rounded-lg bg-app-accent hover:bg-app-accentHover text-white font-medium">Create Project</button>
+            <button type="submit" class="btn-primary px-4 py-1.5 rounded-lg">Create Project</button>
           </div>
         </form>
       </div>

@@ -1,11 +1,11 @@
-﻿// Bug Reports Screen - Clean regular typography
+﻿// Bug Reports Screen - Clean regular typography & ivory palette
 let activeBugTab = 'submit';
 
 function renderBugReportsView(state) {
   const bugs = state.bugs || [];
 
   return `
-    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-app-canvas">
+    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-app-canvas select-none">
       ${renderHeaderBreadcrumb('Bug Reports')}
 
       <div class="p-8 max-w-[850px] mx-auto w-full flex flex-col gap-5">
@@ -20,18 +20,18 @@ function renderBugReportsView(state) {
         <div class="flex items-center gap-6 border-b border-app-borderSubtle text-[13.5px]">
           <button 
             onclick="setBugTab('submit')"
-            class="pb-2.5 font-medium transition-colors border-b-2 ${activeBugTab === 'submit' ? 'border-app-accent text-white' : 'border-transparent text-app-textSecondary hover:text-white'}">
+            class="pb-2.5 font-medium transition-colors border-b-2 ${activeBugTab === 'submit' ? 'border-white text-white' : 'border-transparent text-app-textSecondary hover:text-white'}">
             Submit Bug
           </button>
           <button 
             onclick="setBugTab('issues')"
-            class="pb-2.5 font-medium transition-colors border-b-2 ${activeBugTab === 'issues' ? 'border-app-accent text-white' : 'border-transparent text-app-textSecondary hover:text-white'}">
+            class="pb-2.5 font-medium transition-colors border-b-2 ${activeBugTab === 'issues' ? 'border-white text-white' : 'border-transparent text-app-textSecondary hover:text-white'}">
             My Issues (${bugs.length})
           </button>
         </div>
 
         ${activeBugTab === 'submit' ? `
-          <!-- Bug Report Form Card in brand #171717 -->
+          <!-- Bug Report Form Card -->
           <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-6 shadow-xl flex flex-col gap-5">
             <div class="flex flex-col gap-0.5">
               <h2 class="text-[15.5px] font-medium text-white">Bug Report Form</h2>
@@ -44,7 +44,7 @@ function renderBugReportsView(state) {
               <div class="flex flex-col gap-1">
                 <label class="font-normal text-white flex items-center gap-1">
                   <span>Title</span>
-                  <span class="text-app-accent">*</span>
+                  <span class="text-white">*</span>
                 </label>
                 <input 
                   type="text" 
@@ -100,7 +100,7 @@ function renderBugReportsView(state) {
               <!-- Submit Action Button -->
               <button 
                 type="submit" 
-                class="w-full bg-app-accent hover:bg-app-accentHover text-white font-medium text-[13.5px] py-2.5 rounded-lg transition-all shadow-md mt-1">
+                class="w-full btn-primary text-[13.5px] py-2.5 rounded-lg transition-all shadow-md mt-1">
                 Submit Bug Report
               </button>
 
@@ -113,13 +113,13 @@ function renderBugReportsView(state) {
               <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-4 flex items-center justify-between">
                 <div class="flex flex-col gap-0.5">
                   <div class="flex items-center gap-2">
-                    <h3 class="text-[14px] font-medium text-white">${bug.title}</h3>
-                    <span class="text-[10.5px] font-normal px-2 py-0.5 rounded bg-app-input text-app-accent border border-app-borderSubtle">${bug.category}</span>
+                    <h3 class="text-[14px] font-medium text-white">${escapeHtml(bug.title)}</h3>
+                    <span class="text-[10.5px] font-normal px-2 py-0.5 rounded bg-app-input text-white border border-app-borderSubtle">${bug.category}</span>
                   </div>
-                  <p class="text-[12.5px] text-app-textSecondary font-normal">${bug.description}</p>
+                  <p class="text-[12.5px] text-app-textSecondary font-normal">${escapeHtml(bug.description)}</p>
                 </div>
                 <div class="flex flex-col items-end gap-0.5 shrink-0">
-                  <span class="text-[11px] font-normal px-2 py-0.5 rounded ${bug.priority === 'High' ? 'bg-red-500/15 text-red-400' : 'bg-blue-500/15 text-blue-400'}">${bug.priority} Priority</span>
+                  <span class="text-[11px] font-normal px-2 py-0.5 rounded bg-white/[0.08] text-white">${bug.priority} Priority</span>
                   <span class="text-[11px] text-app-textMuted">${new Date(bug.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>

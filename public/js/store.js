@@ -14,7 +14,10 @@ class CollabStore {
           ...parsed,
           sidebarWidth: parsed.sidebarWidth || 260,
           sidebarCollapsed: parsed.sidebarCollapsed || false,
-          selectedModel: parsed.selectedModel || 'openai/gpt-oss-120b'
+          selectedModel: parsed.selectedModel || 'openai/gpt-oss-120b',
+          projectViewMode: parsed.projectViewMode || 'list',
+          knowledgeViewMode: parsed.knowledgeViewMode || 'list',
+          agentsViewMode: parsed.agentsViewMode || 'grid'
         };
       } catch (e) {
         console.error('Failed to parse saved state, using default', e);
@@ -28,6 +31,9 @@ class CollabStore {
       sidebarCollapsed: false,
       sidebarWidth: 260,
       searchQuery: '',
+      projectViewMode: 'list',
+      knowledgeViewMode: 'list',
+      agentsViewMode: 'grid',
       agents: DEFAULT_AGENTS,
       conversations: DEFAULT_CONVERSATIONS,
       projects: DEFAULT_PROJECTS,
@@ -78,7 +84,7 @@ class CollabStore {
   }
 
   setSidebarWidth(width) {
-    if (width < 150) {
+    if (width < 140) {
       this.state.sidebarCollapsed = true;
     } else {
       this.state.sidebarCollapsed = false;
@@ -101,6 +107,21 @@ class CollabStore {
     this.save();
   }
 
+  setProjectViewMode(mode) {
+    this.state.projectViewMode = mode;
+    this.save();
+  }
+
+  setKnowledgeViewMode(mode) {
+    this.state.knowledgeViewMode = mode;
+    this.save();
+  }
+
+  setAgentsViewMode(mode) {
+    this.state.agentsViewMode = mode;
+    this.save();
+  }
+
   // Deep Search across thread titles AND internal message contents
   deepSearch(query) {
     if (!query || !query.trim()) {
@@ -115,7 +136,6 @@ class CollabStore {
   }
 
   createConversation(title = 'New Conversation', initialMessage = '', agentId = 'aster-architect') {
-    // If no initial message, reuse existing empty conversation
     if (!initialMessage) {
       const existingEmpty = this.state.conversations.find(c => (!c.messages || c.messages.length === 0));
       if (existingEmpty) {
