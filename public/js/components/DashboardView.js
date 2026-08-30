@@ -1,6 +1,5 @@
-﻿// DashboardView.js - Full Theme Support (Dark & Light), Zero Flicker Dropdowns & Templates Modal
+﻿// DashboardView.js - Full Theme Support, Zero-Flicker In-Place Mode Switching (Chat, Deep Search, Templates)
 let dashboardComposerMode = 'chat'; // 'chat' | 'search'
-let deepSearchResults = [];
 
 function renderDashboardView(state) {
   const user = state.user || DEFAULT_USER;
@@ -116,25 +115,10 @@ function renderDashboardView(state) {
             </div>
           </div>
 
-          <!-- Deep Search Results Live Panel -->
-          ${dashboardComposerMode === 'search' && deepSearchResults.length > 0 ? `
-            <div class="bg-app-input border border-app-borderSubtle rounded-xl p-2 flex flex-col gap-1 max-h-48 overflow-y-auto animate-fade-in text-[12.5px]">
-              <div class="px-2 py-1 text-[11px] text-app-textMuted uppercase font-medium">Search Results (${deepSearchResults.length})</div>
-              ${deepSearchResults.map(res => `
-                <div 
-                  onclick="appStore.setRoute('/conversations', '${res.id}')"
-                  class="flex items-center justify-between p-2 rounded-lg bg-app-surface hover:bg-app-hover cursor-pointer text-app-textPrimary transition-colors">
-                  <div class="flex items-center gap-2">
-                    <i data-lucide="message-square" class="w-3.5 h-3.5 text-app-textMuted"></i>
-                    <span class="truncate font-medium">${escapeHtml(res.title)}</span>
-                  </div>
-                  <span class="text-[11px] text-app-textMuted">${res.messages ? res.messages.length : 0} messages</span>
-                </div>
-              `).join('')}
-            </div>
-          ` : ''}
+          <!-- Deep Search Results Live Panel (In-place DOM container) -->
+          <div id="dashboard-search-results-panel" class="hidden bg-app-input border border-app-borderSubtle rounded-2xl p-2 flex flex-col gap-1 max-h-48 overflow-y-auto animate-fade-in text-[12.5px]"></div>
 
-          <!-- Sub-toolbar with Model Selector & Filter Mode Buttons -->
+          <!-- Sub-toolbar with Model Selector & In-Place Filter Mode Buttons -->
           <div class="flex items-center justify-between pt-2 border-t border-app-borderSubtle text-[12px]">
             <div class="flex items-center gap-2 flex-wrap">
               <button 
@@ -147,21 +131,23 @@ function renderDashboardView(state) {
                 <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-app-textMuted"></i>
               </button>
 
-              <!-- Functional Mode Selector -->
+              <!-- In-Place Zero-Flicker Mode Selector -->
               <div class="flex items-center gap-0.5 bg-app-input p-0.5 rounded-md border border-app-borderSubtle">
                 <button 
+                  id="dashboard-mode-chat-btn"
                   onclick="setDashboardMode('chat')"
-                  class="px-2.5 py-0.5 rounded text-[11.5px] transition-colors ${dashboardComposerMode === 'chat' ? 'btn-primary font-medium' : 'text-app-textMuted hover:text-app-textPrimary'}">
+                  class="px-2.5 py-0.5 rounded text-[11.5px] transition-all ${dashboardComposerMode === 'chat' ? 'btn-primary font-medium' : 'text-app-textMuted hover:text-app-textPrimary'}">
                   Chat
                 </button>
                 <button 
+                  id="dashboard-mode-search-btn"
                   onclick="setDashboardMode('search')"
-                  class="px-2.5 py-0.5 rounded text-[11.5px] transition-colors ${dashboardComposerMode === 'search' ? 'btn-primary font-medium' : 'text-app-textMuted hover:text-app-textPrimary'}">
+                  class="px-2.5 py-0.5 rounded text-[11.5px] transition-all ${dashboardComposerMode === 'search' ? 'btn-primary font-medium' : 'text-app-textMuted hover:text-app-textPrimary'}">
                   Deep Search
                 </button>
                 <button 
                   onclick="openTemplatesModal()"
-                  class="px-2.5 py-0.5 rounded text-[11.5px] transition-colors text-app-textMuted hover:text-app-textPrimary">
+                  class="px-2.5 py-0.5 rounded text-[11.5px] transition-all text-app-textMuted hover:text-app-textPrimary">
                   Templates
                 </button>
               </div>
@@ -183,19 +169,19 @@ function renderDashboardView(state) {
 
         <!-- 4 Stat Cards Row -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-          <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-4 flex flex-col gap-0.5">
+          <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-4 flex flex-col gap-0.5 shadow-sm">
             <span class="text-[12.5px] text-app-textSecondary font-normal">Total Conversations</span>
             <span class="text-[24px] font-semibold text-app-textPrimary tracking-tight">${conversations.length > 5 ? 659 : conversations.length}</span>
           </div>
-          <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-4 flex flex-col gap-0.5">
+          <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-4 flex flex-col gap-0.5 shadow-sm">
             <span class="text-[12.5px] text-app-textSecondary font-normal">Active Agents</span>
             <span class="text-[24px] font-semibold text-app-textPrimary tracking-tight">${agents.length > 5 ? 11 : agents.length}</span>
           </div>
-          <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-4 flex flex-col gap-0.5">
+          <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-4 flex flex-col gap-0.5 shadow-sm">
             <span class="text-[12.5px] text-app-textSecondary font-normal">Projects</span>
             <span class="text-[24px] font-semibold text-app-textPrimary tracking-tight">${projects.length}</span>
           </div>
-          <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-4 flex flex-col gap-0.5">
+          <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-4 flex flex-col gap-0.5 shadow-sm">
             <span class="text-[12.5px] text-app-textSecondary font-normal">Usage This Month</span>
             <span class="text-[24px] font-semibold text-app-textPrimary tracking-tight">659</span>
           </div>
@@ -205,13 +191,13 @@ function renderDashboardView(state) {
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
           
           <!-- Left: Most Accessed Agents List with Theme-Aware Monochrome Icons -->
-          <div class="lg:col-span-2 bg-app-surface border border-app-borderSubtle rounded-xl p-5 flex flex-col gap-3.5">
+          <div class="lg:col-span-2 bg-app-surface border border-app-borderSubtle rounded-2xl p-5 flex flex-col gap-3.5 shadow-sm">
             <h2 class="text-[15px] font-semibold text-app-textPrimary">Most Accessed Agents</h2>
             <div class="flex flex-col divide-y divide-app-borderSubtle">
               ${agents.slice(0, 5).map(agent => `
-                <div class="flex items-center justify-between py-3 cursor-pointer hover:bg-app-hover/50 px-2 rounded-lg transition-colors" onclick="appStore.createConversation('${escapeHtml(agent.name)}', '', '${agent.id}')">
+                <div class="flex items-center justify-between py-3 cursor-pointer hover:bg-app-hover/50 px-2 rounded-xl transition-colors" onclick="appStore.createConversation('${escapeHtml(agent.name)}', '', '${agent.id}')">
                   <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary">
+                    <div class="w-8 h-8 rounded-xl bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary">
                       <i data-lucide="${agent.icon}" class="w-4 h-4"></i>
                     </div>
                     <div class="flex flex-col">
@@ -228,20 +214,20 @@ function renderDashboardView(state) {
           <!-- Right: Quick Actions & Recent Activity -->
           <div class="flex flex-col gap-4">
             
-            <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-5 flex flex-col gap-2.5">
+            <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-5 flex flex-col gap-2.5 shadow-sm">
               <h2 class="text-[15px] font-semibold text-app-textPrimary mb-0.5">Quick Actions</h2>
-              <button onclick="appStore.createConversation('New Chat', '')" class="w-full btn-primary text-[13px] py-2 rounded-lg transition-all shadow-sm">
+              <button onclick="appStore.createConversation('New Chat', '')" class="w-full btn-primary text-[13px] py-2 rounded-xl transition-all shadow-sm">
                 Start New Chat
               </button>
-              <button onclick="showCreateAgentModal()" class="w-full bg-app-input hover:bg-app-hover border border-app-borderSubtle text-app-textPrimary font-medium text-[13px] py-2 rounded-lg transition-colors">
+              <button onclick="showCreateAgentModal()" class="w-full bg-app-input hover:bg-app-hover border border-app-borderSubtle text-app-textPrimary font-medium text-[13px] py-2 rounded-xl transition-colors">
                 Create Agent
               </button>
-              <button onclick="showCreateProjectModal()" class="w-full bg-app-input hover:bg-app-hover border border-app-borderSubtle text-app-textPrimary font-medium text-[13px] py-2 rounded-lg transition-colors">
+              <button onclick="showCreateProjectModal()" class="w-full bg-app-input hover:bg-app-hover border border-app-borderSubtle text-app-textPrimary font-medium text-[13px] py-2 rounded-xl transition-colors">
                 New Project
               </button>
             </div>
 
-            <div class="bg-app-surface border border-app-borderSubtle rounded-xl p-5 flex flex-col gap-2.5">
+            <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-5 flex flex-col gap-2.5 shadow-sm">
               <h2 class="text-[15px] font-semibold text-app-textPrimary mb-0.5">Recent Activity</h2>
               <div class="flex flex-col gap-2.5 text-[12.5px]">
                 <div class="flex flex-col">
@@ -268,13 +254,28 @@ function renderDashboardView(state) {
   `;
 }
 
+// In-place zero-flicker mode switching
 function setDashboardMode(mode) {
   dashboardComposerMode = mode;
-  renderApp();
-  setTimeout(() => {
-    const input = document.getElementById('dashboard-composer-input');
-    if (input) input.focus();
-  }, 100);
+  const chatBtn = document.getElementById('dashboard-mode-chat-btn');
+  const searchBtn = document.getElementById('dashboard-mode-search-btn');
+  const input = document.getElementById('dashboard-composer-input');
+  const resultsPanel = document.getElementById('dashboard-search-results-panel');
+
+  if (chatBtn && searchBtn && input) {
+    if (mode === 'chat') {
+      chatBtn.className = 'px-2.5 py-0.5 rounded text-[11.5px] transition-all btn-primary font-medium';
+      searchBtn.className = 'px-2.5 py-0.5 rounded text-[11.5px] transition-all text-app-textMuted hover:text-app-textPrimary';
+      input.placeholder = 'Ask anything, mention @agent, or start a new conversation...';
+      if (resultsPanel) resultsPanel.classList.add('hidden');
+    } else if (mode === 'search') {
+      searchBtn.className = 'px-2.5 py-0.5 rounded text-[11.5px] transition-all btn-primary font-medium';
+      chatBtn.className = 'px-2.5 py-0.5 rounded text-[11.5px] transition-all text-app-textMuted hover:text-app-textPrimary';
+      input.placeholder = 'Deep search across all workspace docs, past chats & agents...';
+      handleDashboardInput(input.value);
+    }
+    input.focus();
+  }
 }
 
 function openTemplatesModal() {
@@ -323,7 +324,7 @@ function openTemplatesModal() {
 
 function applyPromptTemplate(promptText) {
   closeModal();
-  dashboardComposerMode = 'chat';
+  setDashboardMode('chat');
   const input = document.getElementById('dashboard-composer-input');
   if (input) {
     input.value = promptText;
@@ -332,17 +333,40 @@ function applyPromptTemplate(promptText) {
   showToast('Template applied to composer!');
 }
 
+// In-place live search rendering with zero page flicker
 function handleDashboardInput(val) {
   if (dashboardComposerMode === 'search') {
-    deepSearchResults = appStore.deepSearch(val);
-    renderApp();
-    setTimeout(() => {
-      const input = document.getElementById('dashboard-composer-input');
-      if (input) {
-        input.value = val;
-        input.focus();
-      }
-    }, 50);
+    const resultsPanel = document.getElementById('dashboard-search-results-panel');
+    if (!resultsPanel) return;
+
+    if (!val || !val.trim()) {
+      resultsPanel.classList.add('hidden');
+      return;
+    }
+
+    const filtered = appStore.deepSearch(val);
+    if (filtered.length === 0) {
+      resultsPanel.classList.remove('hidden');
+      resultsPanel.innerHTML = `<div class="px-3 py-2 text-center text-app-textMuted text-[12px]">No matching conversations found</div>`;
+      return;
+    }
+
+    resultsPanel.classList.remove('hidden');
+    resultsPanel.innerHTML = `
+      <div class="px-2 py-1 text-[11px] text-app-textMuted uppercase font-medium">Search Results (${filtered.length})</div>
+      ${filtered.map(res => `
+        <div 
+          onclick="appStore.setRoute('/conversations', '${res.id}')"
+          class="flex items-center justify-between p-2 rounded-xl bg-app-surface hover:bg-app-hover cursor-pointer text-app-textPrimary transition-colors">
+          <div class="flex items-center gap-2">
+            <i data-lucide="message-square" class="w-3.5 h-3.5 text-app-textMuted"></i>
+            <span class="truncate font-medium">${escapeHtml(res.title)}</span>
+          </div>
+          <span class="text-[11px] text-app-textMuted">${res.messages ? res.messages.length : 0} msgs</span>
+        </div>
+      `).join('')}
+    `;
+    lucide.createIcons();
   }
 }
 
