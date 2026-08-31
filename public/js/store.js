@@ -79,7 +79,7 @@ class CollabStore {
   setTheme(theme) {
     this.state.theme = theme;
     this.applyTheme(theme);
-    this.save();
+    this.save({ type: 'theme', theme });
   }
 
   toggleTheme() {
@@ -96,20 +96,20 @@ class CollabStore {
     if (typeof ambientStarfield !== 'undefined' && ambientStarfield.checkThemeState) {
       ambientStarfield.checkThemeState();
     }
-    this.save();
+    this.save({ type: 'ambient', enabled });
   }
 
   toggleAmbientEffects() {
     this.setAmbientEffects(!this.state.ambientEffectsEnabled);
   }
 
-  save() {
+  save(meta = { type: 'state' }) {
     localStorage.setItem('collab_ai_state', JSON.stringify(this.state));
-    this.notify();
+    this.notify(meta);
   }
 
-  notify() {
-    this.subscribers.forEach(cb => cb(this.state));
+  notify(meta = { type: 'state' }) {
+    this.subscribers.forEach(cb => cb(this.state, meta));
   }
 
   subscribe(callback) {

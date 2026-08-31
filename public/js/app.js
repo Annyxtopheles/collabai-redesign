@@ -291,7 +291,18 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-appStore.subscribe(() => {
+appStore.subscribe((state, meta) => {
+  // If the change is purely theme or ambient particles, avoid tearing down and rebuilding the whole app DOM!
+  if (meta && (meta.type === 'theme' || meta.type === 'ambient')) {
+    if (state.currentRoute === '/settings') {
+      const contentArea = document.querySelector('.content-area');
+      if (contentArea) {
+        contentArea.innerHTML = renderSettingsView(state);
+        lucide.createIcons();
+      }
+    }
+    return;
+  }
   renderApp();
 });
 
