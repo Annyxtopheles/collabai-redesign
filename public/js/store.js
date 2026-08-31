@@ -9,6 +9,8 @@ class CollabStore {
   loadState() {
     const savedTheme = localStorage.getItem('collab_theme') || 'dark';
     const savedAmbientEffects = localStorage.getItem('collab_ambient_effects') !== 'false';
+    const savedDarkAmbient = localStorage.getItem('collab_dark_ambient') || 'matrix';
+    const savedLightAmbient = localStorage.getItem('collab_light_ambient') || 'matrix';
     const saved = localStorage.getItem('collab_ai_state');
     if (saved) {
       try {
@@ -17,6 +19,8 @@ class CollabStore {
           ...parsed,
           theme: parsed.theme || savedTheme,
           ambientEffectsEnabled: (parsed.ambientEffectsEnabled !== undefined) ? parsed.ambientEffectsEnabled : savedAmbientEffects,
+          darkAmbientStyle: parsed.darkAmbientStyle || savedDarkAmbient,
+          lightAmbientStyle: parsed.lightAmbientStyle || savedLightAmbient,
           sidebarWidth: parsed.sidebarWidth || 260,
           sidebarCollapsed: parsed.sidebarCollapsed || false,
           selectedModel: parsed.selectedModel || 'openai/gpt-oss-120b',
@@ -38,6 +42,8 @@ class CollabStore {
       searchQuery: '',
       theme: savedTheme,
       ambientEffectsEnabled: savedAmbientEffects,
+      darkAmbientStyle: savedDarkAmbient,
+      lightAmbientStyle: savedLightAmbient,
       projectViewMode: 'list',
       knowledgeViewMode: 'list',
       agentsViewMode: 'grid',
@@ -88,6 +94,24 @@ class CollabStore {
     const nextTheme = themes[(currentIndex + 1) % themes.length];
     this.setTheme(nextTheme);
     return nextTheme;
+  }
+
+  setDarkAmbientStyle(style) {
+    this.state.darkAmbientStyle = style;
+    localStorage.setItem('collab_dark_ambient', style);
+    if (typeof ambientStarfield !== 'undefined' && ambientStarfield.checkThemeState) {
+      ambientStarfield.checkThemeState();
+    }
+    this.save({ type: 'ambient', darkStyle: style });
+  }
+
+  setLightAmbientStyle(style) {
+    this.state.lightAmbientStyle = style;
+    localStorage.setItem('collab_light_ambient', style);
+    if (typeof ambientStarfield !== 'undefined' && ambientStarfield.checkThemeState) {
+      ambientStarfield.checkThemeState();
+    }
+    this.save({ type: 'ambient', lightStyle: style });
   }
 
   setAmbientEffects(enabled) {

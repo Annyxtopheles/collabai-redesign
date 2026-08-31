@@ -148,12 +148,12 @@ function renderUserMenuContent() {
           }).join('')}
         </div>
 
-        <!-- Theme Ambient Background Effects Toggle (Stars in Dark, Sakura in Pink) -->
-        ${activeThemeMeta.ambientEffectName ? `
-          <div class="flex items-center justify-between px-1 pt-1.5 border-t border-app-borderSubtle text-[11.5px]">
+        <!-- Theme Ambient Background Effects Control (Glyph Matrix in Dark/Light, Stars in Dark, Sakura in Pink) -->
+        <div class="flex flex-col gap-1.5 pt-1.5 border-t border-app-borderSubtle text-[11.5px]">
+          <div class="flex items-center justify-between px-0.5">
             <div class="flex items-center gap-1.5 text-app-textSecondary">
-              <i data-lucide="${currentTheme === 'pink' ? 'flower-2' : 'sparkles'}" class="w-3.5 h-3.5 ${ambientEnabled ? (currentTheme === 'pink' ? 'text-pink-400' : 'text-amber-300') : 'text-app-textMuted'}"></i>
-              <span>${escapeHtml(activeThemeMeta.ambientEffectName)}</span>
+              <i data-lucide="${currentTheme === 'pink' ? 'flower-2' : (currentTheme === 'dark' && appStore.state.darkAmbientStyle === 'stars' ? 'sparkles' : 'binary')}" class="w-3.5 h-3.5 ${ambientEnabled ? (currentTheme === 'pink' ? 'text-pink-400' : 'text-emerald-400') : 'text-app-textMuted'}"></i>
+              <span class="font-medium text-app-textPrimary">Ambient Background</span>
             </div>
             <button 
               onclick="toggleAmbientFromMenu()" 
@@ -162,11 +162,41 @@ function renderUserMenuContent() {
               <span>${ambientEnabled ? 'Enabled' : 'Disabled'}</span>
             </button>
           </div>
-        ` : `
-          <div class="px-1 text-[10.5px] text-app-textMuted italic">
-            No ambient particle effect on clean mode
-          </div>
-        `}
+
+          <!-- Multi-Style Ambient Pills for Dark Mode (Glyph Matrix vs Stars) -->
+          ${ambientEnabled && currentTheme === 'dark' ? `
+            <div class="grid grid-cols-2 gap-1 bg-app-input p-1 rounded-lg border border-app-borderSubtle text-[10.5px]">
+              <button 
+                onclick="selectDarkAmbient('matrix')"
+                class="flex items-center justify-center gap-1 py-1 rounded transition-all ${appStore.state.darkAmbientStyle !== 'stars' ? 'bg-app-surface text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
+                <i data-lucide="binary" class="w-3 h-3 text-emerald-400"></i>
+                <span>Glyph Matrix</span>
+              </button>
+              <button 
+                onclick="selectDarkAmbient('stars')"
+                class="flex items-center justify-center gap-1 py-1 rounded transition-all ${appStore.state.darkAmbientStyle === 'stars' ? 'bg-app-surface text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
+                <i data-lucide="sparkles" class="w-3 h-3 text-amber-300"></i>
+                <span>Stars</span>
+              </button>
+            </div>
+          ` : ''}
+
+          <!-- Light Mode Status Info -->
+          ${ambientEnabled && currentTheme === 'light' ? `
+            <div class="px-0.5 text-[10.5px] text-app-textMuted flex items-center gap-1">
+              <i data-lucide="binary" class="w-3 h-3 text-zinc-600"></i>
+              <span>Active: Subtle Slate ASCII Glyph Matrix</span>
+            </div>
+          ` : ''}
+
+          <!-- Pink Mode Status Info -->
+          ${ambientEnabled && currentTheme === 'pink' ? `
+            <div class="px-0.5 text-[10.5px] text-app-textMuted flex items-center gap-1">
+              <i data-lucide="flower-2" class="w-3 h-3 text-pink-400"></i>
+              <span>Active: Japanese Sakura Falling Petals</span>
+            </div>
+          ` : ''}
+        </div>
       </div>
 
       <!-- Menu Navigation Items -->
@@ -217,6 +247,16 @@ function switchTheme(themeName) {
 
 function toggleAmbientFromMenu() {
   appStore.toggleAmbientEffects();
+  renderUserMenuContent();
+}
+
+function selectDarkAmbient(style) {
+  appStore.setDarkAmbientStyle(style);
+  renderUserMenuContent();
+}
+
+function selectLightAmbient(style) {
+  appStore.setLightAmbientStyle(style);
   renderUserMenuContent();
 }
 

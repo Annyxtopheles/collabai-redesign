@@ -1,4 +1,4 @@
-// Scalable Themes Registry
+// Scalable Themes Registry with Multi-Ambient Effect Mappings
 const THEMES_CONFIG = [
   {
     id: 'dark',
@@ -11,8 +11,12 @@ const THEMES_CONFIG = [
     previewBorder: '#262626',
     previewText: '#EDEDED',
     previewAccent: '#EDEDED',
-    ambientEffectName: 'Glittering Stars',
-    ambientEffectDesc: 'Micro-pinpoint serene starry twinkle'
+    ambientEffectName: 'Ambient Animation',
+    ambientEffectDesc: 'Choose between Starfield or Cyber Glyph Matrix',
+    ambientStyles: [
+      { id: 'matrix', name: 'Glyph Matrix', icon: 'binary', desc: 'Cyber ASCII digital rain & code matrix' },
+      { id: 'stars', name: 'Glittering Stars', icon: 'sparkles', desc: 'Micro-pinpoint serene starry twinkle' }
+    ]
   },
   {
     id: 'light',
@@ -25,8 +29,11 @@ const THEMES_CONFIG = [
     previewBorder: '#E5E5E5',
     previewText: '#18181B',
     previewAccent: '#18181B',
-    ambientEffectName: null,
-    ambientEffectDesc: null
+    ambientEffectName: 'Glyph Matrix',
+    ambientEffectDesc: 'Subtle slate cyber ASCII digital rain & code grid',
+    ambientStyles: [
+      { id: 'matrix', name: 'Glyph Matrix', icon: 'binary', desc: 'Subtle slate ASCII cryptographic rain' }
+    ]
   },
   {
     id: 'pink',
@@ -40,7 +47,10 @@ const THEMES_CONFIG = [
     previewText: '#111111',
     previewAccent: '#FF5DA2',
     ambientEffectName: 'Falling Sakura',
-    ambientEffectDesc: 'Slow drifting Japanese cherry blossom leaves'
+    ambientEffectDesc: 'Slow drifting Japanese cherry blossom leaves',
+    ambientStyles: [
+      { id: 'sakura', name: 'Falling Sakura', icon: 'flower-2', desc: 'Multi-depth Japanese sakura petals' }
+    ]
   }
 ];
 

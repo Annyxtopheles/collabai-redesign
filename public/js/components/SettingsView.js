@@ -69,31 +69,59 @@ function renderSettingsView(state) {
             }).join('')}
           </div>
 
-          <!-- Ambient Background Particle Effects Control (Stars in Dark / Sakura in Pink) -->
-          <div class="mt-2 pt-4 border-t border-app-borderSubtle flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-xl bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary">
-                <i data-lucide="${currentTheme === 'pink' ? 'flower-2' : 'sparkles'}" class="w-4 h-4 ${ambientEnabled ? (currentTheme === 'pink' ? 'text-pink-400' : 'text-amber-300') : 'text-app-textMuted'}"></i>
-              </div>
-              <div class="flex flex-col">
-                <div class="flex items-center gap-2">
-                  <span class="text-[13.5px] font-medium text-app-textPrimary">Ambient Background Animation</span>
-                  <span class="text-[10px] px-2 py-0.2 rounded-full ${ambientEnabled ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'} font-medium">
-                    ${ambientEnabled ? 'Active' : 'Disabled'}
+          <!-- Ambient Background Particle & Matrix Effects Control -->
+          <div class="mt-2 pt-4 border-t border-app-borderSubtle flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary">
+                  <i data-lucide="${currentTheme === 'pink' ? 'flower-2' : (currentTheme === 'dark' && state.darkAmbientStyle === 'stars' ? 'sparkles' : 'binary')}" class="w-4 h-4 ${ambientEnabled ? (currentTheme === 'pink' ? 'text-pink-400' : 'text-emerald-400') : 'text-app-textMuted'}"></i>
+                </div>
+                <div class="flex flex-col">
+                  <div class="flex items-center gap-2">
+                    <span class="text-[13.5px] font-medium text-app-textPrimary">Ambient Background Animation</span>
+                    <span class="text-[10px] px-2 py-0.2 rounded-full ${ambientEnabled ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'} font-medium">
+                      ${ambientEnabled ? 'Active' : 'Disabled'}
+                    </span>
+                  </div>
+                  <span class="text-[12px] text-app-textMuted">
+                    ${currentTheme === 'dark' 
+                      ? (state.darkAmbientStyle === 'stars' ? 'Micro-pinpoint glittering starfield gently twinkling behind UI' : 'Cyber ASCII digital rain & cryptographic code matrix streaming behind UI') 
+                      : (currentTheme === 'light' ? 'Subtle slate ASCII digital code rain & cryptographic matrix grid' : 'Multi-depth Japanese cherry blossom (Sakura) leaves slowly drifting in spring breeze')}
                   </span>
                 </div>
-                <span class="text-[12px] text-app-textMuted">
-                  ${currentTheme === 'dark' ? 'Micro-pinpoint glittering starfield gently twinkling behind UI' : (currentTheme === 'pink' ? 'Multi-depth Japanese cherry blossom (Sakura) leaves slowly drifting down' : 'Ambient particle layer is dormant in Clean Light mode')}
-                </span>
               </div>
+
+              <button 
+                onclick="appStore.toggleAmbientEffects()"
+                class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-[12.5px] font-medium transition-all ${ambientEnabled ? 'btn-primary shadow-sm' : 'bg-app-input border-app-borderSubtle text-app-textMuted hover:text-app-textPrimary'}">
+                <i data-lucide="${ambientEnabled ? 'check' : 'power'}" class="w-3.5 h-3.5"></i>
+                <span>${ambientEnabled ? 'Enabled' : 'Disabled'}</span>
+              </button>
             </div>
 
-            <button 
-              onclick="appStore.toggleAmbientEffects()"
-              class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-[12.5px] font-medium transition-all ${ambientEnabled ? 'btn-primary shadow-sm' : 'bg-app-input border-app-borderSubtle text-app-textMuted hover:text-app-textPrimary'}">
-              <i data-lucide="${ambientEnabled ? 'check' : 'power'}" class="w-3.5 h-3.5"></i>
-              <span>${ambientEnabled ? 'Enabled' : 'Disabled'}</span>
-            </button>
+            <!-- Dark Mode Multi-Style Selector (Glyph Matrix vs Stars) -->
+            ${ambientEnabled && currentTheme === 'dark' ? `
+              <div class="flex items-center justify-between p-3 rounded-xl bg-app-input border border-app-borderSubtle text-[12.5px]">
+                <div class="flex flex-col">
+                  <span class="font-medium text-app-textPrimary">Dark Mode Ambient Style</span>
+                  <span class="text-[11.5px] text-app-textMuted">Choose between dynamic Cyber Glyph Matrix or Serene Starfield</span>
+                </div>
+                <div class="flex items-center gap-1.5 bg-app-surface p-1 rounded-lg border border-app-borderSubtle">
+                  <button 
+                    onclick="appStore.setDarkAmbientStyle('matrix')"
+                    class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11.5px] transition-all ${state.darkAmbientStyle !== 'stars' ? 'bg-app-elevated border border-app-borderActive text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
+                    <i data-lucide="binary" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <span>Glyph Matrix</span>
+                  </button>
+                  <button 
+                    onclick="appStore.setDarkAmbientStyle('stars')"
+                    class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11.5px] transition-all ${state.darkAmbientStyle === 'stars' ? 'bg-app-elevated border border-app-borderActive text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300"></i>
+                    <span>Glittering Stars</span>
+                  </button>
+                </div>
+              </div>
+            ` : ''}
           </div>
         </div>
 
