@@ -82,26 +82,25 @@ class AmbientBackgroundManager {
     else if (layerRand > 0.75) layer = 2;
 
     // Layer-specific attributes for depth of field
-    let baseSize, baseSpeedY, baseAlpha;
+    let baseSize, baseSpeedY, baseAlpha, swayRadius;
     if (layer === 0) {
-      baseSize = Math.random() * 3 + 7;      // Small 7-10px
-      baseSpeedY = Math.random() * 0.12 + 0.12; // Ultra slow 0.12-0.24px/frame
-      baseAlpha = Math.random() * 0.15 + 0.38; // Softer opacity
+      baseSize = Math.random() * 3 + 7;         // Small 7-10px
+      baseSpeedY = Math.random() * 0.08 + 0.12; // Ultra slow 0.12-0.20px/frame
+      baseAlpha = Math.random() * 0.15 + 0.38;  // Softer opacity
+      swayRadius = Math.random() * 6 + 4;       // Tight gentle sway
     } else if (layer === 1) {
-      baseSize = Math.random() * 4 + 10;     // Medium 10-14px
-      baseSpeedY = Math.random() * 0.14 + 0.20; // 0.20-0.34px/frame
-      baseAlpha = Math.random() * 0.15 + 0.60; // Medium opacity
+      baseSize = Math.random() * 4 + 10;        // Medium 10-14px
+      baseSpeedY = Math.random() * 0.10 + 0.18; // 0.18-0.28px/frame
+      baseAlpha = Math.random() * 0.15 + 0.60;  // Medium opacity
+      swayRadius = Math.random() * 10 + 6;      // Medium natural sway
     } else {
-      baseSize = Math.random() * 4 + 14;     // Large 14-18px
-      baseSpeedY = Math.random() * 0.14 + 0.26; // 0.26-0.40px/frame
-      baseAlpha = Math.random() * 0.12 + 0.78; // Rich foreground opacity
+      baseSize = Math.random() * 4 + 14;        // Large 14-18px
+      baseSpeedY = Math.random() * 0.10 + 0.24; // 0.24-0.34px/frame
+      baseAlpha = Math.random() * 0.12 + 0.78;  // Rich foreground opacity
+      swayRadius = Math.random() * 14 + 8;      // Expressive gentle sway
     }
 
-    // 4 distinct leaf & petal shapes:
-    // 0: Classic notched Sakura petal
-    // 1: Slender curved drifting petal
-    // 2: Broad rounded blossom petal
-    // 3: Folded / cupped leaf petal
+    // 4 distinct leaf & petal shapes
     const shapeType = Math.floor(Math.random() * 4);
 
     // Varied natural gradient tone pairs (Stem base -> Petal crown)
@@ -120,32 +119,39 @@ class AmbientBackgroundManager {
       colorPair,
       alpha: baseAlpha,
       size: baseSize,
-      x: Math.random() * (this.width + 120) - 60,
+      baseX: Math.random() * (this.width + 40) - 20,
       y: initialScatter ? Math.random() * (this.height + 60) - 30 : -40,
-      // Very slow and serene fall rate
+      // Minimal, bounded horizontal drift so petals stay in their lane
+      driftX: (Math.random() - 0.5) * 0.03,
       speedY: baseSpeedY,
-      speedX: Math.random() * 0.22 + 0.10,
-      // Gentle wind physics
+      // Bounded wave sway physics (no running sideways across screen)
       swayAngle: Math.random() * Math.PI * 2,
-      swaySpeed: Math.random() * 0.009 + 0.005,
-      swayRadius: Math.random() * 1.6 + 0.8,
+      swaySpeed: Math.random() * 0.008 + 0.005,
+      swayRadius: swayRadius,
+      windOffset: Math.random() * Math.PI * 2,
       // 3D tumbling rotation
       yawAngle: Math.random() * Math.PI * 2,
-      yawSpeed: (Math.random() - 0.5) * 0.012,
+      yawSpeed: (Math.random() - 0.5) * 0.010,
       rollAngle: Math.random() * Math.PI * 2,
-      rollSpeed: Math.random() * 0.014 + 0.006,
+      rollSpeed: Math.random() * 0.012 + 0.006,
       pitchAngle: Math.random() * Math.PI * 2,
-      pitchSpeed: Math.random() * 0.010 + 0.005
+      pitchSpeed: Math.random() * 0.009 + 0.004
     };
   }
 
   checkThemeState() {
+    const isAmbientEnabled = (typeof appStore !== 'undefined' && appStore.state)
+      ? (appStore.state.ambientEffectsEnabled !== false)
+      : (localStorage.getItem('collab_ambient_effects') !== 'false');
+
     const isDark = document.documentElement.classList.contains('dark');
     const isPink = document.documentElement.classList.contains('pink');
 
     let targetMode = 'none';
-    if (isDark) targetMode = 'dark';
-    else if (isPink) targetMode = 'pink';
+    if (isAmbientEnabled) {
+      if (isDark) targetMode = 'dark';
+      else if (isPink) targetMode = 'pink';
+    }
 
     if (targetMode === this.currentMode && this.isRunning) return;
 
@@ -166,7 +172,7 @@ class AmbientBackgroundManager {
         this.canvas.style.display = 'block';
       }
     } else {
-      // Light mode or undefined: fade out and pause loop
+      // Disabled / Light mode: smoothly fade out and pause loop
       if (this.canvas) {
         this.canvas.style.opacity = '0';
         setTimeout(() => {
@@ -243,23 +249,25 @@ class AmbientBackgroundManager {
         }
       } else if (this.currentMode === 'pink') {
         // Render Pink Mode Multi-Depth Sakura Engine
-        const globalBreeze = Math.sin(time * 0.0004) * 0.25;
-
         for (let i = 0; i < this.petals.length; i++) {
           const petal = this.petals[i];
 
-          // Slow organic motion
+          // Slow vertical fall & bounded swaying
           petal.y += petal.speedY;
-          petal.x += petal.speedX + globalBreeze + Math.sin(petal.swayAngle) * petal.swayRadius;
+          petal.baseX += petal.driftX;
           petal.swayAngle += petal.swaySpeed;
+
+          // Compute bounded natural sway position (no huge horizontal travels)
+          const swayOffset = Math.sin(petal.swayAngle) * petal.swayRadius + Math.sin(time * 0.0003 + petal.windOffset) * 5;
+          const renderX = petal.baseX + swayOffset;
 
           // 3D rotation & flutter
           petal.yawAngle += petal.yawSpeed;
           petal.rollAngle += petal.rollSpeed;
           petal.pitchAngle += petal.pitchSpeed;
 
-          // Recycle when petal leaves the viewport
-          if (petal.y > this.height + 40 || petal.x > this.width + 80 || petal.x < -80) {
+          // Recycle when petal leaves bottom of the viewport
+          if (petal.y > this.height + 35) {
             this.petals[i] = this.newPetal(false);
             continue;
           }
@@ -272,7 +280,7 @@ class AmbientBackgroundManager {
           const isReverse = flipX < 0 || flipY < 0;
 
           this.ctx.save();
-          this.ctx.translate(petal.x, petal.y);
+          this.ctx.translate(renderX, petal.y);
           this.ctx.rotate(petal.yawAngle);
           this.ctx.scale(scaleX, scaleY);
           this.ctx.globalAlpha = petal.alpha;
@@ -286,7 +294,6 @@ class AmbientBackgroundManager {
             gradient.addColorStop(0.5, petal.colorPair.tip);
             gradient.addColorStop(1, '#FFFFFF');
           } else {
-            // Slightly softer shaded underside of the petal
             gradient.addColorStop(0, petal.colorPair.base);
             gradient.addColorStop(0.7, petal.colorPair.tip);
             gradient.addColorStop(1, '#FFF5F8');
@@ -311,7 +318,7 @@ class AmbientBackgroundManager {
           // Reset shadow for vein highlight
           this.ctx.shadowColor = 'transparent';
 
-          // Delicate translucent vein / crease line for realistic non-flat texture
+          // Delicate translucent vein / crease line
           this.ctx.strokeStyle = isReverse ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.35)';
           this.ctx.lineWidth = 0.55;
           this.ctx.beginPath();

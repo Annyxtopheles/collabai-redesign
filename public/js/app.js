@@ -1,4 +1,4 @@
-﻿// Main Application Controller & Router
+// Main Application Controller & Router
 let isUserMenuOpen = false;
 
 // Windows-Style Smart Dropdown Positioning (Upwards/Downwards based on viewport space)
@@ -70,7 +70,7 @@ function renderApp() {
   lucide.createIcons();
 }
 
-// Functioning Profile Dropdown Menu with Multi-Theme Switcher & Notifications
+// Functioning Profile Dropdown Menu with Scalable Multi-Theme Switcher & Ambient Toggle
 function toggleUserMenu(event) {
   if (event) event.stopPropagation();
   const container = document.getElementById('modal-container');
@@ -82,67 +82,101 @@ function toggleUserMenu(event) {
   }
 
   isUserMenuOpen = true;
+  renderUserMenuContent();
+}
+
+function renderUserMenuContent() {
+  const container = document.getElementById('modal-container');
+  if (!container || !isUserMenuOpen) return;
+
   const user = appStore.state.user || DEFAULT_USER;
   const currentTheme = appStore.state.theme || 'dark';
+  const ambientEnabled = appStore.state.ambientEffectsEnabled !== false;
   const firstName = user.name.split(' ')[0];
   const isAdmin = user.role === 'admin' || user.email === 'sadman@collabai.dev';
+  const themes = (typeof THEMES_CONFIG !== 'undefined') ? THEMES_CONFIG : [
+    { id: 'dark', name: 'Dark Minimal', shortName: 'Dark', icon: 'moon', ambientEffectName: 'Glittering Stars' },
+    { id: 'light', name: 'Light Minimal', shortName: 'Light', icon: 'sun', ambientEffectName: null },
+    { id: 'pink', name: 'Pink Wireframe', shortName: 'Pink', icon: 'sparkles', ambientEffectName: 'Falling Sakura' }
+  ];
+
+  const activeThemeMeta = themes.find(t => t.id === currentTheme) || themes[0];
 
   container.innerHTML = `
     <div class="fixed inset-0 bg-transparent z-40" onclick="closeModal()"></div>
 
-    <div class="fixed bottom-14 left-2.5 w-80 bg-app-surface border border-app-borderSubtle rounded-2xl p-2.5 shadow-2xl z-50 flex flex-col gap-1.5 text-[12.5px] font-normal select-none animate-fade-in">
+    <div class="fixed bottom-14 left-2.5 w-84 bg-app-surface border border-app-borderSubtle rounded-2xl p-2.5 shadow-2xl z-50 flex flex-col gap-2 text-[12.5px] font-normal select-none animate-fade-in" onclick="event.stopPropagation()">
       
       <!-- User Profile Header -->
-      <div class="px-2.5 py-2 border-b border-app-borderSubtle flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-full bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary font-medium text-xs">
-          ${firstName[0]}
-        </div>
-        <div class="flex flex-col min-w-0">
-          <div class="flex items-center gap-1.5">
-            <span class="font-medium text-app-textPrimary truncate text-[13px]">${escapeHtml(user.name)}</span>
-            ${isAdmin ? `<span class="text-[9px] px-1.5 py-0.2 rounded bg-purple-500/15 text-purple-400 font-medium">ADMIN</span>` : ''}
+      <div class="px-2.5 py-2 border-b border-app-borderSubtle flex items-center justify-between">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-full bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary font-medium text-xs flex-shrink-0">
+            ${firstName[0]}
           </div>
-          <span class="text-[11px] text-app-textMuted truncate">${escapeHtml(user.email)}</span>
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="font-medium text-app-textPrimary truncate text-[13px]">${escapeHtml(user.name)}</span>
+              ${isAdmin ? `<span class="text-[9px] px-1.5 py-0.2 rounded bg-purple-500/15 text-purple-400 font-medium">ADMIN</span>` : ''}
+            </div>
+            <span class="text-[11px] text-app-textMuted truncate">${escapeHtml(user.email)}</span>
+          </div>
         </div>
+        <button onclick="closeModal()" class="text-app-textMuted hover:text-app-textPrimary p-1 rounded-lg hover:bg-app-hover transition-colors" title="Close Menu">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
       </div>
 
-      <!-- Multi-Theme Switcher Segmented Control (Dark / Light / Pink Wireframe) -->
-      <div class="p-2 bg-app-elevated rounded-xl flex flex-col gap-1.5 border border-app-borderSubtle">
-        <div class="flex items-center justify-between px-1 text-[11px] text-app-textMuted font-medium uppercase tracking-wider">
-          <span>Theme Style</span>
-          <span class="text-app-textSecondary capitalize">${currentTheme === 'pink' ? 'Pink Wireframe' : currentTheme + ' Mode'}</span>
+      <!-- Scalable Theme Switcher with Live In-Place Preview -->
+      <div class="p-2.5 bg-app-elevated rounded-xl flex flex-col gap-2 border border-app-borderSubtle">
+        <div class="flex items-center justify-between px-0.5 text-[11px] text-app-textMuted font-medium uppercase tracking-wider">
+          <span>Theme & Appearance</span>
+          <span class="text-app-textSecondary capitalize font-semibold">${escapeHtml(activeThemeMeta.name || currentTheme)}</span>
         </div>
-        <div class="grid grid-cols-3 gap-1 bg-app-input p-1 rounded-xl border border-app-borderSubtle text-[11.5px]">
-          
-          <button 
-            onclick="switchTheme('dark')" 
-            class="flex items-center justify-center gap-1 py-1.5 rounded-lg transition-all ${currentTheme === 'dark' ? 'bg-app-surface text-app-textPrimary shadow-sm font-semibold' : 'text-app-textMuted hover:text-app-textPrimary'}">
-            <i data-lucide="moon" class="w-3.5 h-3.5"></i>
-            <span>Dark</span>
-          </button>
 
-          <button 
-            onclick="switchTheme('light')" 
-            class="flex items-center justify-center gap-1 py-1.5 rounded-lg transition-all ${currentTheme === 'light' ? 'bg-app-surface text-app-textPrimary shadow-sm font-semibold' : 'text-app-textMuted hover:text-app-textPrimary'}">
-            <i data-lucide="sun" class="w-3.5 h-3.5"></i>
-            <span>Light</span>
-          </button>
-
-          <button 
-            onclick="switchTheme('pink')" 
-            class="flex items-center justify-center gap-1 py-1.5 rounded-lg transition-all ${currentTheme === 'pink' ? 'bg-[#FF5DA2] text-black border border-black shadow-sm font-bold' : 'text-app-textMuted hover:text-[#FF5DA2]'}">
-            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-            <span>Pink</span>
-          </button>
-
+        <!-- Dynamically Scaled Theme Grid -->
+        <div class="grid grid-cols-${Math.min(themes.length, 3)} gap-1.5 bg-app-input p-1.5 rounded-xl border border-app-borderSubtle text-[11.5px]">
+          ${themes.map(t => {
+            const isActive = currentTheme === t.id;
+            let activeStyle = 'bg-app-surface text-app-textPrimary shadow-sm font-semibold';
+            if (t.id === 'pink' && isActive) {
+              activeStyle = 'bg-[#FF5DA2] text-black border border-black shadow-sm font-bold';
+            }
+            return `
+              <button 
+                onclick="switchTheme('${t.id}')" 
+                title="${escapeHtml(t.description || t.name)}"
+                class="flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg transition-all ${isActive ? activeStyle : 'text-app-textMuted hover:text-app-textPrimary hover:bg-app-hover'}">
+                <i data-lucide="${t.icon || 'palette'}" class="w-3.5 h-3.5"></i>
+                <span class="truncate">${escapeHtml(t.shortName || t.name)}</span>
+              </button>
+            `;
+          }).join('')}
         </div>
+
+        <!-- Theme Ambient Background Effects Toggle (Stars in Dark, Sakura in Pink) -->
+        ${activeThemeMeta.ambientEffectName ? `
+          <div class="flex items-center justify-between px-1 pt-1.5 border-t border-app-borderSubtle text-[11.5px]">
+            <div class="flex items-center gap-1.5 text-app-textSecondary">
+              <i data-lucide="${currentTheme === 'pink' ? 'flower-2' : 'sparkles'}" class="w-3.5 h-3.5 ${ambientEnabled ? (currentTheme === 'pink' ? 'text-pink-400' : 'text-amber-300') : 'text-app-textMuted'}"></i>
+              <span>${escapeHtml(activeThemeMeta.ambientEffectName)}</span>
+            </div>
+            <button 
+              onclick="toggleAmbientFromMenu()" 
+              class="flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10.5px] font-medium transition-all ${ambientEnabled ? 'bg-app-surface border-app-borderActive text-app-textPrimary shadow-xs' : 'bg-app-input border-app-borderSubtle text-app-textMuted hover:text-app-textPrimary'}">
+              <span class="w-1.5 h-1.5 rounded-full ${ambientEnabled ? 'bg-emerald-500' : 'bg-zinc-500'}"></span>
+              <span>${ambientEnabled ? 'Enabled' : 'Disabled'}</span>
+            </button>
+          </div>
+        ` : `
+          <div class="px-1 text-[10.5px] text-app-textMuted italic">
+            No ambient particle effect on clean mode
+          </div>
+        `}
       </div>
 
-      <!-- Menu Items -->
+      <!-- Menu Navigation Items -->
       <div class="flex flex-col gap-0.5 py-0.5">
-        
-        <!-- Notifications Action Item -->
-        <button onclick="showToast('You have 0 unread notifications'); closeModal()" class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
+        <button onclick="showToast('You have 0 unread notifications')" class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
           <div class="flex items-center gap-2.5">
             <i data-lucide="bell" class="w-3.5 h-3.5 text-app-textMuted"></i>
             <span>Notifications</span>
@@ -162,27 +196,20 @@ function toggleUserMenu(event) {
           <span>Settings & Preferences</span>
         </button>
 
-        <button onclick="appStore.setRoute('/settings'); closeModal()" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
-          <i data-lucide="key" class="w-3.5 h-3.5 text-app-textMuted"></i>
-          <span>API Key & Provider Settings</span>
-        </button>
-
-        <button onclick="showToast('Active Workspace: CollabAI Team'); closeModal()" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
-          <i data-lucide="building" class="w-3.5 h-3.5 text-app-textMuted"></i>
-          <span>Workspace</span>
-        </button>
-
         <button onclick="appStore.setRoute('/bug-reports'); closeModal()" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-app-textSecondary hover:text-app-textPrimary hover:bg-app-hover text-left transition-colors font-normal">
           <i data-lucide="life-buoy" class="w-3.5 h-3.5 text-app-textMuted"></i>
           <span>Bug Reports & Support</span>
         </button>
       </div>
 
-      <!-- Sign Out Button -->
-      <div class="border-t border-app-borderSubtle pt-0.5">
-        <button onclick="appStore.logout(); closeModal()" class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-red-500 hover:bg-red-500/10 text-left transition-colors font-normal">
+      <!-- Action Footer: Done & Sign Out -->
+      <div class="border-t border-app-borderSubtle pt-1.5 flex items-center justify-between gap-2">
+        <button onclick="appStore.logout(); closeModal()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-red-500 hover:bg-red-500/10 text-left transition-colors font-normal text-[12px]">
           <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
           <span>Sign Out</span>
+        </button>
+        <button onclick="closeModal()" class="px-3 py-1 rounded-lg btn-primary text-[12px] font-medium transition-all shadow-xs">
+          Done
         </button>
       </div>
     </div>
@@ -190,10 +217,15 @@ function toggleUserMenu(event) {
   lucide.createIcons();
 }
 
+// Live preview theme switcher - keeps window open for consecutive testing!
 function switchTheme(themeName) {
   appStore.setTheme(themeName);
-  showToast(`Switched to ${themeName} theme`);
-  closeModal();
+  renderUserMenuContent();
+}
+
+function toggleAmbientFromMenu() {
+  appStore.toggleAmbientEffects();
+  renderUserMenuContent();
 }
 
 function closeModal() {

@@ -1,4 +1,4 @@
-﻿// Persistent Reactive State Store with Multi-Theme Support (Dark, Light, Pink) & Ambient Particles
+// Persistent Reactive State Store with Multi-Theme Support (Dark, Light, Pink) & Ambient Particles
 class CollabStore {
   constructor() {
     this.subscribers = [];
@@ -8,6 +8,7 @@ class CollabStore {
 
   loadState() {
     const savedTheme = localStorage.getItem('collab_theme') || 'dark';
+    const savedAmbientEffects = localStorage.getItem('collab_ambient_effects') !== 'false';
     const saved = localStorage.getItem('collab_ai_state');
     if (saved) {
       try {
@@ -15,6 +16,7 @@ class CollabStore {
         return {
           ...parsed,
           theme: parsed.theme || savedTheme,
+          ambientEffectsEnabled: (parsed.ambientEffectsEnabled !== undefined) ? parsed.ambientEffectsEnabled : savedAmbientEffects,
           sidebarWidth: parsed.sidebarWidth || 260,
           sidebarCollapsed: parsed.sidebarCollapsed || false,
           selectedModel: parsed.selectedModel || 'openai/gpt-oss-120b',
@@ -35,6 +37,7 @@ class CollabStore {
       sidebarWidth: 260,
       searchQuery: '',
       theme: savedTheme,
+      ambientEffectsEnabled: savedAmbientEffects,
       projectViewMode: 'list',
       knowledgeViewMode: 'list',
       agentsViewMode: 'grid',
@@ -59,7 +62,12 @@ class CollabStore {
   }
 
   applyTheme(theme) {
-    document.documentElement.classList.remove('dark', 'light', 'pink');
+    // Dynamically remove any existing theme classes
+    if (typeof THEMES_CONFIG !== 'undefined') {
+      THEMES_CONFIG.forEach(t => document.documentElement.classList.remove(t.id));
+    } else {
+      document.documentElement.classList.remove('dark', 'light', 'pink');
+    }
     document.documentElement.classList.add(theme);
     localStorage.setItem('collab_theme', theme);
 
@@ -75,12 +83,24 @@ class CollabStore {
   }
 
   toggleTheme() {
-    let nextTheme = 'dark';
-    if (this.state.theme === 'dark') nextTheme = 'light';
-    else if (this.state.theme === 'light') nextTheme = 'pink';
-    else nextTheme = 'dark';
+    const themes = (typeof THEMES_CONFIG !== 'undefined') ? THEMES_CONFIG.map(t => t.id) : ['dark', 'light', 'pink'];
+    const currentIndex = themes.indexOf(this.state.theme);
+    const nextTheme = themes[(currentIndex + 1) % themes.length];
     this.setTheme(nextTheme);
     return nextTheme;
+  }
+
+  setAmbientEffects(enabled) {
+    this.state.ambientEffectsEnabled = enabled;
+    localStorage.setItem('collab_ambient_effects', enabled ? 'true' : 'false');
+    if (typeof ambientStarfield !== 'undefined' && ambientStarfield.checkThemeState) {
+      ambientStarfield.checkThemeState();
+    }
+    this.save();
+  }
+
+  toggleAmbientEffects() {
+    this.setAmbientEffects(!this.state.ambientEffectsEnabled);
   }
 
   save() {

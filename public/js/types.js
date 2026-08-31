@@ -1,4 +1,50 @@
-﻿// Default types, seeded data and available models
+// Scalable Themes Registry
+const THEMES_CONFIG = [
+  {
+    id: 'dark',
+    name: 'Dark Minimal',
+    shortName: 'Dark',
+    icon: 'moon',
+    description: 'Pure #111111 dark canvas',
+    badge: 'Classic',
+    previewBg: '#111111',
+    previewBorder: '#262626',
+    previewText: '#EDEDED',
+    previewAccent: '#EDEDED',
+    ambientEffectName: 'Glittering Stars',
+    ambientEffectDesc: 'Micro-pinpoint serene starry twinkle'
+  },
+  {
+    id: 'light',
+    name: 'Light Minimal',
+    shortName: 'Light',
+    icon: 'sun',
+    description: 'Warm slate off-white clean canvas',
+    badge: 'Clean',
+    previewBg: '#F9F9F8',
+    previewBorder: '#E5E5E5',
+    previewText: '#18181B',
+    previewAccent: '#18181B',
+    ambientEffectName: null,
+    ambientEffectDesc: null
+  },
+  {
+    id: 'pink',
+    name: 'Pink Wireframe',
+    shortName: 'Pink',
+    icon: 'sparkles',
+    description: 'Warm cream canvas, bubblegum pop & falling sakura',
+    badge: 'Sakura',
+    previewBg: '#FAF6F0',
+    previewBorder: '#000000',
+    previewText: '#111111',
+    previewAccent: '#FF5DA2',
+    ambientEffectName: 'Falling Sakura',
+    ambientEffectDesc: 'Slow drifting Japanese cherry blossom leaves'
+  }
+];
+
+// Default types, seeded data and available models
 const AVAILABLE_MODELS = [
   { id: 'openai/gpt-oss-120b', name: 'GPT-OSS 120B', provider: 'Groq Cloud', badge: 'Ultra-fast', desc: 'Flagship open weights model, fast reasoning & coding' },
   { id: 'qwen/qwen3.6-27b', name: 'Qwen 3.6 27B', provider: 'Groq Cloud', badge: 'Fast', desc: 'Exceptional general intelligence & math reasoning' },

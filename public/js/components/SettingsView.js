@@ -1,9 +1,11 @@
-﻿// SettingsView.js - Dedicated Settings & API Keys Management Page with 3-Theme Controls
+// SettingsView.js - Dedicated Settings & API Keys Management Page with Scalable Theme Registry & Ambient Particle Controls
 function renderSettingsView(state) {
   const currentKey = localStorage.getItem('collab_groq_key') || '';
   const currentGemini = localStorage.getItem('collab_gemini_key') || '';
   const currentOpenRouter = localStorage.getItem('collab_openrouter_key') || '';
   const currentTheme = state.theme || 'dark';
+  const ambientEnabled = state.ambientEffectsEnabled !== false;
+  const themes = (typeof THEMES_CONFIG !== 'undefined') ? THEMES_CONFIG : [];
 
   return `
     <div class="flex-1 flex flex-col h-full overflow-y-auto bg-app-canvas select-none">
@@ -14,71 +16,84 @@ function renderSettingsView(state) {
         <!-- Header -->
         <div class="flex flex-col gap-0.5">
           <h1 class="text-[22px] font-semibold text-app-textPrimary tracking-tight">Settings & Preferences</h1>
-          <p class="text-[13.5px] text-app-textSecondary">Configure your appearance, default AI provider, and custom API keys</p>
+          <p class="text-[13.5px] text-app-textSecondary">Configure your appearance, ambient particle effects, default AI provider, and custom API keys</p>
         </div>
 
-        <!-- Appearance Section with 3 Themes -->
-        <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-6 shadow-sm flex flex-col gap-4">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary">
-              <i data-lucide="palette" class="w-4 h-4"></i>
+        <!-- Appearance Section with Scalable Theme Registry -->
+        <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-6 shadow-sm flex flex-col gap-5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary">
+                <i data-lucide="palette" class="w-4 h-4"></i>
+              </div>
+              <div class="flex flex-col">
+                <h2 class="text-[15px] font-medium text-app-textPrimary">Theme & Appearance</h2>
+                <span class="text-[12px] text-app-textMuted">Select your preferred interface color palette and aesthetic</span>
+              </div>
             </div>
-            <div class="flex flex-col">
-              <h2 class="text-[15px] font-medium text-app-textPrimary">Theme & Appearance</h2>
-              <span class="text-[12px] text-app-textMuted">Select your preferred interface color style and aesthetic</span>
-            </div>
+            <span class="text-[11px] px-2.5 py-1 rounded-full bg-app-input border border-app-borderSubtle text-app-textSecondary font-mono uppercase">
+              ${escapeHtml(currentTheme)}
+            </span>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-            
-            <!-- Dark Theme -->
-            <div 
-              onclick="appStore.setTheme('dark')"
-              class="p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between gap-3 ${currentTheme === 'dark' ? 'border-app-borderActive bg-app-hover text-app-textPrimary' : 'border-app-borderSubtle bg-app-input text-app-textSecondary hover:border-app-borderMed'}">
-              <div class="flex items-center justify-between">
-                <div class="w-8 h-8 rounded-lg bg-[#111111] border border-[#262626] flex items-center justify-center text-white">
-                  <i data-lucide="moon" class="w-4 h-4"></i>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+            ${themes.map(t => {
+              const isActive = currentTheme === t.id;
+              let cardStyle = isActive 
+                ? (t.id === 'pink' ? 'border-black bg-[#FFF5F9] text-black shadow-md' : 'border-app-borderActive bg-app-hover text-app-textPrimary ring-1 ring-app-borderActive') 
+                : 'border-app-borderSubtle bg-app-input text-app-textSecondary hover:border-app-borderMed';
+              let iconBoxStyle = `background-color: ${t.previewBg}; border: 1px solid ${t.previewBorder}; color: ${t.previewText};`;
+              if (t.id === 'pink') {
+                iconBoxStyle = 'background-color: #FF5DA2; border: 2px solid #000000; color: #000000; box-shadow: 2px 2px 0px #000000;';
+              }
+
+              return `
+                <div 
+                  onclick="appStore.setTheme('${t.id}')"
+                  class="p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between gap-3 ${cardStyle}">
+                  <div class="flex items-center justify-between">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="${iconBoxStyle}">
+                      <i data-lucide="${t.icon || 'palette'}" class="w-4 h-4"></i>
+                    </div>
+                    ${isActive ? `<i data-lucide="check-circle-2" class="w-4 h-4 ${t.id === 'pink' ? 'text-[#FF5DA2]' : 'text-emerald-500'}"></i>` : ''}
+                  </div>
+                  <div class="flex flex-col">
+                    <div class="flex items-center gap-1.5">
+                      <span class="font-medium text-[13.5px] text-app-textPrimary">${escapeHtml(t.name)}</span>
+                      ${t.badge ? `<span class="text-[9.5px] px-1.5 py-0.2 rounded bg-app-surface border border-app-borderSubtle text-app-textMuted">${t.badge}</span>` : ''}
+                    </div>
+                    <span class="text-[11.5px] text-app-textMuted leading-relaxed">${escapeHtml(t.description)}</span>
+                  </div>
                 </div>
-                ${currentTheme === 'dark' ? `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i>` : ''}
+              `;
+            }).join('')}
+          </div>
+
+          <!-- Ambient Background Particle Effects Control (Stars in Dark / Sakura in Pink) -->
+          <div class="mt-2 pt-4 border-t border-app-borderSubtle flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-xl bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary">
+                <i data-lucide="${currentTheme === 'pink' ? 'flower-2' : 'sparkles'}" class="w-4 h-4 ${ambientEnabled ? (currentTheme === 'pink' ? 'text-pink-400' : 'text-amber-300') : 'text-app-textMuted'}"></i>
               </div>
               <div class="flex flex-col">
-                <span class="font-medium text-[13.5px] text-app-textPrimary">Dark Minimal</span>
-                <span class="text-[11.5px] text-app-textMuted">Pure #111111 dark canvas</span>
+                <div class="flex items-center gap-2">
+                  <span class="text-[13.5px] font-medium text-app-textPrimary">Ambient Background Animation</span>
+                  <span class="text-[10px] px-2 py-0.2 rounded-full ${ambientEnabled ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'} font-medium">
+                    ${ambientEnabled ? 'Active' : 'Disabled'}
+                  </span>
+                </div>
+                <span class="text-[12px] text-app-textMuted">
+                  ${currentTheme === 'dark' ? 'Micro-pinpoint glittering starfield gently twinkling behind UI' : (currentTheme === 'pink' ? 'Multi-depth Japanese cherry blossom (Sakura) leaves slowly drifting down' : 'Ambient particle layer is dormant in Clean Light mode')}
+                </span>
               </div>
             </div>
 
-            <!-- Light Minimal Theme -->
-            <div 
-              onclick="appStore.setTheme('light')"
-              class="p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between gap-3 ${currentTheme === 'light' ? 'border-app-borderActive bg-app-hover text-app-textPrimary' : 'border-app-borderSubtle bg-app-input text-app-textSecondary hover:border-app-borderMed'}">
-              <div class="flex items-center justify-between">
-                <div class="w-8 h-8 rounded-lg bg-[#FFFFFF] border border-[#E5E5E5] flex items-center justify-center text-[#18181B]">
-                  <i data-lucide="sun" class="w-4 h-4 text-amber-500"></i>
-                </div>
-                ${currentTheme === 'light' ? `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i>` : ''}
-              </div>
-              <div class="flex flex-col">
-                <span class="font-medium text-[13.5px] text-app-textPrimary">Light Minimal</span>
-                <span class="text-[11.5px] text-app-textMuted">Warm slate off-white mode</span>
-              </div>
-            </div>
-
-            <!-- Pink Wireframe Theme -->
-            <div 
-              onclick="appStore.setTheme('pink')"
-              class="p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between gap-3 ${currentTheme === 'pink' ? 'border-black bg-[#FFF5F9] text-black shadow-md' : 'border-app-borderSubtle bg-app-input text-app-textSecondary hover:border-app-borderMed'}">
-              <div class="flex items-center justify-between">
-                <div class="w-8 h-8 rounded-lg bg-[#FF5DA2] border-2 border-black flex items-center justify-center text-black shadow-[2px_2px_0px_#000000]">
-                  <i data-lucide="sparkles" class="w-4 h-4"></i>
-                </div>
-                ${currentTheme === 'pink' ? `<i data-lucide="check-circle-2" class="w-4 h-4 text-[#FF5DA2]"></i>` : ''}
-              </div>
-              <div class="flex flex-col">
-                <span class="font-bold text-[13.5px] text-app-textPrimary">Pink Wireframe</span>
-                <span class="text-[11.5px] text-app-textMuted">Cream canvas & pink pop buttons</span>
-              </div>
-            </div>
-
+            <button 
+              onclick="appStore.toggleAmbientEffects()"
+              class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-[12.5px] font-medium transition-all ${ambientEnabled ? 'btn-primary shadow-sm' : 'bg-app-input border-app-borderSubtle text-app-textMuted hover:text-app-textPrimary'}">
+              <i data-lucide="${ambientEnabled ? 'check' : 'power'}" class="w-3.5 h-3.5"></i>
+              <span>${ambientEnabled ? 'Enabled' : 'Disabled'}</span>
+            </button>
           </div>
         </div>
 
