@@ -325,6 +325,48 @@ html.light .logo-img {
   filter: invert(1) brightness(0);
 }
 
+/* --- Pink Theme Custom Cursor with Wireframe Border & Soft Pink Fill --- */
+html.pink,
+html.pink body,
+html.pink #app-root,
+html.pink div,
+html.pink p,
+html.pink span,
+html.pink h1,
+html.pink h2,
+html.pink h3,
+html.pink aside,
+html.pink nav,
+html.pink header {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M4 2L18.5 13.5L12 14.5L8.5 21L4 2Z' fill='%23FF5DA2' stroke='%23000000' stroke-width='1.8' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M6 5.5L14 12L10.5 12.5L8.5 16.5L6 5.5Z' fill='%23FFA6CD' opacity='0.55'/%3E%3C/svg%3E") 3 2, auto;
+}
+
+/* Interactive Clickable Elements Cursor in Pink Theme */
+html.pink button,
+html.pink a,
+html.pink [onclick],
+html.pink .cursor-pointer,
+html.pink input[type='button'],
+html.pink input[type='submit'],
+html.pink select,
+html.pink [role='button'],
+html.pink label {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26' fill='none'%3E%3Cpath d='M9 3V13M9 13L6.5 10.5C5.7 9.7 4.3 9.7 3.5 10.5C2.7 11.3 2.7 12.7 3.5 13.5L8 18C9.5 19.5 11.5 20.5 13.5 20.5H17.5C19.7 20.5 21.5 18.7 21.5 16.5V12C21.5 10.9 20.6 10 19.5 10C19.2 10 18.9 10.1 18.6 10.2C18.3 9.5 17.6 9 16.8 9C16.4 9 16 9.1 15.7 9.3C15.3 8.5 14.5 8 13.5 8C13.1 8 12.7 8.1 12.4 8.3V4C12.4 2.9 11.5 2 10.4 2C9.6 2 9 2.6 9 3.5Z' fill='%23FF5DA2' stroke='%23000000' stroke-width='1.8' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M9.5 5.5V12.5' stroke='%23FFA6CD' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E") 9 3, pointer !important;
+}
+
+/* Text Selection and Input Cursors in Pink Theme */
+html.pink input[type='text'],
+html.pink input[type='password'],
+html.pink input[type='search'],
+html.pink textarea {
+  cursor: text !important;
+}
+
+html.pink ::selection {
+  background-color: #FF5DA2;
+  color: #000000;
+}
+
 /* Fade In Animation */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(3px); }
