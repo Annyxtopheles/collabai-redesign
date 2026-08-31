@@ -186,22 +186,6 @@ function renderUserMenuContent() {
               </button>
             </div>
           ` : ''}
-
-          <!-- Light Mode Status Info -->
-          ${ambientEnabled && currentTheme === 'light' ? `
-            <div class="px-0.5 text-[10.5px] text-app-textMuted flex items-center gap-1">
-              <i data-lucide="binary" class="w-3 h-3 text-zinc-600"></i>
-              <span>Active: Subtle Slate ASCII Glyph Matrix</span>
-            </div>
-          ` : ''}
-
-          <!-- Pink Mode Status Info -->
-          ${ambientEnabled && currentTheme === 'pink' ? `
-            <div class="px-0.5 text-[10.5px] text-app-textMuted flex items-center gap-1">
-              <i data-lucide="flower-2" class="w-3 h-3 text-pink-400"></i>
-              <span>Active: Japanese Sakura Falling Petals</span>
-            </div>
-          ` : ''}
         </div>
       </div>
 
