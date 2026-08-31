@@ -108,22 +108,17 @@ function renderUserMenuContent() {
     <div class="fixed bottom-14 left-2.5 w-84 bg-app-surface border border-app-borderSubtle rounded-2xl p-2.5 shadow-2xl z-50 flex flex-col gap-2 text-[12.5px] font-normal select-none animate-fade-in" onclick="event.stopPropagation()">
       
       <!-- User Profile Header -->
-      <div class="px-2.5 py-2 border-b border-app-borderSubtle flex items-center justify-between">
-        <div class="flex items-center gap-2.5 min-w-0">
-          <div class="w-8 h-8 rounded-full bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary font-medium text-xs flex-shrink-0">
-            ${firstName[0]}
-          </div>
-          <div class="flex flex-col min-w-0">
-            <div class="flex items-center gap-1.5">
-              <span class="font-medium text-app-textPrimary truncate text-[13px]">${escapeHtml(user.name)}</span>
-              ${isAdmin ? `<span class="text-[9px] px-1.5 py-0.2 rounded bg-purple-500/15 text-purple-400 font-medium">ADMIN</span>` : ''}
-            </div>
-            <span class="text-[11px] text-app-textMuted truncate">${escapeHtml(user.email)}</span>
-          </div>
+      <div class="px-2.5 py-2 border-b border-app-borderSubtle flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-full bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary font-medium text-xs flex-shrink-0">
+          ${firstName[0]}
         </div>
-        <button onclick="closeModal()" class="text-app-textMuted hover:text-app-textPrimary p-1 rounded-lg hover:bg-app-hover transition-colors" title="Close Menu">
-          <i data-lucide="x" class="w-3.5 h-3.5"></i>
-        </button>
+        <div class="flex flex-col min-w-0">
+          <div class="flex items-center gap-1.5">
+            <span class="font-medium text-app-textPrimary truncate text-[13px]">${escapeHtml(user.name)}</span>
+            ${isAdmin ? `<span class="text-[9px] px-1.5 py-0.2 rounded bg-purple-500/15 text-purple-400 font-medium">ADMIN</span>` : ''}
+          </div>
+          <span class="text-[11px] text-app-textMuted truncate">${escapeHtml(user.email)}</span>
+        </div>
       </div>
 
       <!-- Scalable Theme Switcher with Live In-Place Preview -->
@@ -202,14 +197,11 @@ function renderUserMenuContent() {
         </button>
       </div>
 
-      <!-- Action Footer: Done & Sign Out -->
-      <div class="border-t border-app-borderSubtle pt-1.5 flex items-center justify-between gap-2">
-        <button onclick="appStore.logout(); closeModal()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-red-500 hover:bg-red-500/10 text-left transition-colors font-normal text-[12px]">
+      <!-- Sign Out Button -->
+      <div class="border-t border-app-borderSubtle pt-1">
+        <button onclick="appStore.logout(); closeModal()" class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-red-500 hover:bg-red-500/10 text-left transition-colors font-normal text-[12px]">
           <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
           <span>Sign Out</span>
-        </button>
-        <button onclick="closeModal()" class="px-3 py-1 rounded-lg btn-primary text-[12px] font-medium transition-all shadow-xs">
-          Done
         </button>
       </div>
     </div>
