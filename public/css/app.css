@@ -1,4 +1,4 @@
-﻿/* CollabAI Multi-Theme Design System */
+/* CollabAI Multi-Theme Design System */
 :root {
   /* Default Dark Mode Variables */
   --bg-canvas: #111111;
@@ -82,7 +82,7 @@ html.pink {
   --inline-code-bg: #FFEBF3;
   --badge-bg: #FFEBF3;
   --badge-border: #FFBFDB;
-  --icon-invert: 0;
+  --icon-invert: 1;
   --shadow-color: rgba(0, 0, 0, 0.12);
   --btn-border: 2px solid #000000;
   --btn-shadow: 3px 3px 0px #000000;
@@ -306,14 +306,14 @@ html.pink .wireframe-btn:active {
   box-shadow: 0.5px 0.5px 0px #000000 !important;
 }
 
-/* Pink mode logo inversion / tint */
+/* Pink mode logo - crisp solid black */
 html.pink .logo-img {
-  filter: hue-rotate(290deg) brightness(0.9);
+  filter: invert(1) brightness(0);
 }
 
-/* Light mode logo inversion */
+/* Light mode logo - crisp solid black */
 html.light .logo-img {
-  filter: invert(1) hue-rotate(180deg);
+  filter: invert(1) brightness(0);
 }
 
 /* Fade In Animation */

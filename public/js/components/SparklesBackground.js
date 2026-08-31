@@ -1,4 +1,4 @@
-// SparklesBackground.js - Ambient Background Manager: Pinpoint Starfield (Dark Mode) & Serene Falling Sakura Petals (Pink Mode)
+// SparklesBackground.js - Ambient Background Manager: Pinpoint Starfield (Dark Mode) & Multi-Depth Sakura Engine (Pink Mode)
 class AmbientBackgroundManager {
   constructor() {
     this.canvas = null;
@@ -63,55 +63,79 @@ class AmbientBackgroundManager {
     }
   }
 
-  // --- PINK THEME: Japanese Cherry Blossom (Sakura) Falling Petals ---
+  // --- PINK THEME: Japanese Cherry Blossom (Sakura) Falling Leaves & Petals ---
   createPetals() {
     this.petals = [];
-    // Serene, soothing density that never overwhelms the UI
-    const numPetals = Math.max(28, Math.min(Math.floor((this.width * this.height) / 28000), 50));
-    
-    // Palette of delicate Japanese cherry blossom tones
-    const sakuraColors = [
-      'rgba(255, 183, 197, 0.72)', // Classic soft sakura
-      'rgba(255, 195, 212, 0.65)', // Pale spring blossom
-      'rgba(244, 143, 177, 0.68)', // Rosy cherry petal
-      'rgba(255, 218, 228, 0.75)', // Delicate blush
-      'rgba(255, 128, 171, 0.55)'  // Vibrant sakura pink
-    ];
+    // Serene, very sparse density (14-22 petals on 1080p screen) for minimal clutter
+    const numPetals = Math.max(12, Math.min(Math.floor((this.width * this.height) / 58000), 22));
 
     for (let i = 0; i < numPetals; i++) {
-      this.petals.push(this.newPetal(sakuraColors, true));
+      this.petals.push(this.newPetal(true));
     }
   }
 
-  newPetal(sakuraColors, initialScatter = false) {
-    const colors = sakuraColors || [
-      'rgba(255, 183, 197, 0.72)',
-      'rgba(255, 195, 212, 0.65)',
-      'rgba(244, 143, 177, 0.68)',
-      'rgba(255, 218, 228, 0.75)',
-      'rgba(255, 128, 171, 0.55)'
-    ];
+  newPetal(initialScatter = false) {
+    // 3 Layer Depths: 0 = Far Background, 1 = Midground, 2 = Foreground
+    const layerRand = Math.random();
+    let layer = 1;
+    if (layerRand < 0.35) layer = 0;
+    else if (layerRand > 0.75) layer = 2;
 
-    const size = Math.random() * 6 + 7; // 7px to 13px petal size
+    // Layer-specific attributes for depth of field
+    let baseSize, baseSpeedY, baseAlpha;
+    if (layer === 0) {
+      baseSize = Math.random() * 3 + 7;      // Small 7-10px
+      baseSpeedY = Math.random() * 0.12 + 0.12; // Ultra slow 0.12-0.24px/frame
+      baseAlpha = Math.random() * 0.15 + 0.38; // Softer opacity
+    } else if (layer === 1) {
+      baseSize = Math.random() * 4 + 10;     // Medium 10-14px
+      baseSpeedY = Math.random() * 0.14 + 0.20; // 0.20-0.34px/frame
+      baseAlpha = Math.random() * 0.15 + 0.60; // Medium opacity
+    } else {
+      baseSize = Math.random() * 4 + 14;     // Large 14-18px
+      baseSpeedY = Math.random() * 0.14 + 0.26; // 0.26-0.40px/frame
+      baseAlpha = Math.random() * 0.12 + 0.78; // Rich foreground opacity
+    }
+
+    // 4 distinct leaf & petal shapes:
+    // 0: Classic notched Sakura petal
+    // 1: Slender curved drifting petal
+    // 2: Broad rounded blossom petal
+    // 3: Folded / cupped leaf petal
+    const shapeType = Math.floor(Math.random() * 4);
+
+    // Varied natural gradient tone pairs (Stem base -> Petal crown)
+    const colorPairs = [
+      { base: '#F48FB1', tip: '#FFE4E9' }, // Classic rosy sakura
+      { base: '#FF80AB', tip: '#FFF0F5' }, // Vibrant blossom
+      { base: '#F06292', tip: '#FFD1DC' }, // Deep cherry accent
+      { base: '#EC407A', tip: '#FFEBF0' }, // Spring rosebud
+      { base: '#FFAB91', tip: '#FFE8EC' }  // Warm coral-sakura
+    ];
+    const colorPair = colorPairs[Math.floor(Math.random() * colorPairs.length)];
+
     return {
-      x: Math.random() * (this.width + 100) - 50,
-      y: initialScatter ? Math.random() * (this.height + 40) - 20 : -30,
-      size: size,
-      // Very slow and serene falling speed
-      speedY: Math.random() * 0.45 + 0.35, 
-      speedX: Math.random() * 0.35 + 0.2,
-      // Gentle wind swaying physics
+      layer,
+      shapeType,
+      colorPair,
+      alpha: baseAlpha,
+      size: baseSize,
+      x: Math.random() * (this.width + 120) - 60,
+      y: initialScatter ? Math.random() * (this.height + 60) - 30 : -40,
+      // Very slow and serene fall rate
+      speedY: baseSpeedY,
+      speedX: Math.random() * 0.22 + 0.10,
+      // Gentle wind physics
       swayAngle: Math.random() * Math.PI * 2,
-      swaySpeed: Math.random() * 0.012 + 0.008,
-      swayRadius: Math.random() * 1.5 + 0.8,
-      // 3D realistic tumbling & flipping in the breeze
+      swaySpeed: Math.random() * 0.009 + 0.005,
+      swayRadius: Math.random() * 1.6 + 0.8,
+      // 3D tumbling rotation
       yawAngle: Math.random() * Math.PI * 2,
-      yawSpeed: (Math.random() - 0.5) * 0.015,
+      yawSpeed: (Math.random() - 0.5) * 0.012,
       rollAngle: Math.random() * Math.PI * 2,
-      rollSpeed: Math.random() * 0.018 + 0.008,
+      rollSpeed: Math.random() * 0.014 + 0.006,
       pitchAngle: Math.random() * Math.PI * 2,
-      pitchSpeed: Math.random() * 0.014 + 0.006,
-      color: colors[Math.floor(Math.random() * colors.length)]
+      pitchSpeed: Math.random() * 0.010 + 0.005
     };
   }
 
@@ -155,6 +179,39 @@ class AmbientBackgroundManager {
     }
   }
 
+  // Draw organic petal geometries with depth and curves
+  drawPetalPath(ctx, shapeType, s) {
+    ctx.beginPath();
+    switch (shapeType) {
+      case 0: // Classic Notched Sakura Petal
+        ctx.moveTo(0, -s);
+        ctx.bezierCurveTo(s * 0.50, -s * 0.95, s * 0.85, -s * 0.25, s * 0.50, s * 0.70);
+        ctx.bezierCurveTo(s * 0.20, s * 0.98, 0, s, 0, s);
+        ctx.bezierCurveTo(0, s, -s * 0.20, s * 0.98, -s * 0.50, s * 0.70);
+        ctx.bezierCurveTo(-s * 0.85, -s * 0.25, -s * 0.50, -s * 0.95, 0, -s);
+        break;
+
+      case 1: // Slender Asymmetric Drifting Petal
+        ctx.moveTo(0, -s * 1.15);
+        ctx.bezierCurveTo(s * 0.75, -s * 0.65, s * 0.55, s * 0.35, 0, s * 0.95);
+        ctx.bezierCurveTo(-s * 0.25, s * 0.45, -s * 0.45, -s * 0.45, 0, -s * 1.15);
+        break;
+
+      case 2: // Broad Rounded Blossom Petal
+        ctx.moveTo(0, -s * 0.85);
+        ctx.bezierCurveTo(s * 0.92, -s * 0.75, s * 0.80, s * 0.55, 0, s * 0.95);
+        ctx.bezierCurveTo(-s * 0.80, s * 0.55, -s * 0.92, -s * 0.75, 0, -s * 0.85);
+        break;
+
+      case 3: // Folded / Cupped Leaf Petal
+      default:
+        ctx.moveTo(-s * 0.15, -s);
+        ctx.bezierCurveTo(s * 0.70, -s * 0.70, s * 0.60, s * 0.30, 0, s);
+        ctx.bezierCurveTo(-s * 0.55, s * 0.25, -s * 0.65, -s * 0.55, -s * 0.15, -s);
+        break;
+    }
+  }
+
   start() {
     if (this.isRunning) return;
     this.isRunning = true;
@@ -185,57 +242,86 @@ class AmbientBackgroundManager {
           this.ctx.fill();
         }
       } else if (this.currentMode === 'pink') {
-        // Render Pink Mode Sakura Petals
-        const globalBreeze = Math.sin(time * 0.0006) * 0.35;
+        // Render Pink Mode Multi-Depth Sakura Engine
+        const globalBreeze = Math.sin(time * 0.0004) * 0.25;
 
         for (let i = 0; i < this.petals.length; i++) {
           const petal = this.petals[i];
 
-          // Update motion
+          // Slow organic motion
           petal.y += petal.speedY;
           petal.x += petal.speedX + globalBreeze + Math.sin(petal.swayAngle) * petal.swayRadius;
           petal.swayAngle += petal.swaySpeed;
 
-          // 3D tumbling rotation
+          // 3D rotation & flutter
           petal.yawAngle += petal.yawSpeed;
           petal.rollAngle += petal.rollSpeed;
           petal.pitchAngle += petal.pitchSpeed;
 
-          // Recycle when petal falls off-screen
-          if (petal.y > this.height + 30 || petal.x > this.width + 50 || petal.x < -60) {
-            this.petals[i] = this.newPetal(null, false);
+          // Recycle when petal leaves the viewport
+          if (petal.y > this.height + 40 || petal.x > this.width + 80 || petal.x < -80) {
+            this.petals[i] = this.newPetal(false);
             continue;
           }
 
-          // Draw graceful Sakura petal with 3D flip effect
-          this.ctx.save();
-          this.ctx.translate(petal.x, petal.y);
-          this.ctx.rotate(petal.yawAngle);
-
-          // Simulate 3D tilt/tumbling
+          // Compute 3D tumbling scale
           const flipX = Math.cos(petal.rollAngle);
           const flipY = Math.cos(petal.pitchAngle);
           const scaleX = Math.abs(flipX) > 0.08 ? flipX : 0.08;
           const scaleY = Math.abs(flipY) > 0.08 ? flipY : 0.08;
-          this.ctx.scale(scaleX, scaleY);
+          const isReverse = flipX < 0 || flipY < 0;
 
-          // Organic Sakura petal shape
+          this.ctx.save();
+          this.ctx.translate(petal.x, petal.y);
+          this.ctx.rotate(petal.yawAngle);
+          this.ctx.scale(scaleX, scaleY);
+          this.ctx.globalAlpha = petal.alpha;
+
           const s = petal.size;
-          this.ctx.fillStyle = petal.color;
-          this.ctx.beginPath();
-          this.ctx.moveTo(0, -s);
-          this.ctx.bezierCurveTo(s * 0.55, -s * 0.9, s * 0.8, -s * 0.25, s * 0.5, s * 0.65);
-          this.ctx.bezierCurveTo(s * 0.25, s * 0.95, 0, s, 0, s);
-          this.ctx.bezierCurveTo(0, s, -s * 0.25, s * 0.95, -s * 0.5, s * 0.65);
-          this.ctx.bezierCurveTo(-s * 0.8, -s * 0.25, -s * 0.55, -s * 0.9, 0, -s);
+
+          // Realistic 3D Directional Lighting Gradient
+          const gradient = this.ctx.createLinearGradient(0, s, 0, -s);
+          if (!isReverse) {
+            gradient.addColorStop(0, petal.colorPair.base);
+            gradient.addColorStop(0.5, petal.colorPair.tip);
+            gradient.addColorStop(1, '#FFFFFF');
+          } else {
+            // Slightly softer shaded underside of the petal
+            gradient.addColorStop(0, petal.colorPair.base);
+            gradient.addColorStop(0.7, petal.colorPair.tip);
+            gradient.addColorStop(1, '#FFF5F8');
+          }
+
+          // Foreground & Midground Depth Shadow
+          if (petal.layer === 2) {
+            this.ctx.shadowColor = 'rgba(233, 30, 99, 0.22)';
+            this.ctx.shadowBlur = 5;
+            this.ctx.shadowOffsetY = 2;
+          } else if (petal.layer === 1) {
+            this.ctx.shadowColor = 'rgba(233, 30, 99, 0.12)';
+            this.ctx.shadowBlur = 3;
+            this.ctx.shadowOffsetY = 1;
+          }
+
+          // Fill contoured petal
+          this.drawPetalPath(this.ctx, petal.shapeType, s);
+          this.ctx.fillStyle = gradient;
           this.ctx.fill();
 
-          // Subtle gentle petal vein / specular highlight
-          this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
-          this.ctx.lineWidth = 0.5;
+          // Reset shadow for vein highlight
+          this.ctx.shadowColor = 'transparent';
+
+          // Delicate translucent vein / crease line for realistic non-flat texture
+          this.ctx.strokeStyle = isReverse ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.35)';
+          this.ctx.lineWidth = 0.55;
           this.ctx.beginPath();
-          this.ctx.moveTo(0, -s * 0.6);
-          this.ctx.quadraticCurveTo(s * 0.04, 0, 0, s * 0.7);
+          this.ctx.moveTo(0, -s * 0.7);
+          this.ctx.quadraticCurveTo(s * 0.03, 0, 0, s * 0.75);
+          this.ctx.stroke();
+
+          // Subtle edge highlight
+          this.ctx.strokeStyle = isReverse ? 'rgba(244, 143, 177, 0.25)' : 'rgba(255, 255, 255, 0.20)';
+          this.ctx.lineWidth = 0.4;
           this.ctx.stroke();
 
           this.ctx.restore();
