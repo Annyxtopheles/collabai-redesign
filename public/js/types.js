@@ -12,8 +12,9 @@ const THEMES_CONFIG = [
     previewText: '#EDEDED',
     previewAccent: '#EDEDED',
     ambientEffectName: 'Ambient Animation',
-    ambientEffectDesc: 'Choose between Starfield or Glowing Glyph Matrix',
+    ambientEffectDesc: 'Choose between Neural Vortex, Glyph Matrix, or Starfield',
     ambientStyles: [
+      { id: 'vortex', name: 'Neural Vortex', icon: 'orbit', desc: 'Slow & subtle interactive synaptic neural vortex swarm' },
       { id: 'matrix', name: 'Glyph Matrix', icon: 'binary', desc: 'Stationary ambient ASCII symbols with gentle breathing glow & fade' },
       { id: 'stars', name: 'Glittering Stars', icon: 'sparkles', desc: 'Micro-pinpoint serene starry twinkle' }
     ]

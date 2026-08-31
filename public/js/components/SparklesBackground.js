@@ -1,18 +1,22 @@
-// SparklesBackground.js - Ambient Background Manager: Glyph Matrix (Dark/Light), Starfield (Dark), & Sakura (Pink)
+// SparklesBackground.js - Ambient Background Manager: Neural Vortex (Dark), Glyph Matrix (Dark/Light), Starfield (Dark), & Sakura (Pink)
 class AmbientBackgroundManager {
   constructor() {
     this.canvas = null;
     this.ctx = null;
     this.stars = [];
     this.petals = [];
-    this.matrixStreams = [];
+    this.vortexParticles = [];
     this.matrixGrid = [];
     this.matrixLastMutation = 0;
-    this.currentMode = null; // 'dark_matrix' | 'dark_stars' | 'light_matrix' | 'pink_sakura' | 'none'
+    this.currentMode = null; // 'dark_vortex' | 'dark_matrix' | 'dark_stars' | 'light_matrix' | 'pink_sakura' | 'none'
     this.animationFrameId = null;
     this.isRunning = false;
     this.width = window.innerWidth;
     this.height = window.innerHeight;
+    this.mouseX = window.innerWidth / 2;
+    this.mouseY = window.innerHeight / 2;
+    this.targetMouseX = this.mouseX;
+    this.targetMouseY = this.mouseY;
   }
 
   init() {
@@ -32,10 +36,16 @@ class AmbientBackgroundManager {
 
     window.addEventListener('resize', () => {
       this.resize();
-      if (this.currentMode === 'dark_stars') this.createStars();
+      if (this.currentMode === 'dark_vortex') this.createVortex();
+      else if (this.currentMode === 'dark_stars') this.createStars();
       else if (this.currentMode === 'dark_matrix' || this.currentMode === 'light_matrix') this.createMatrix();
       else if (this.currentMode === 'pink_sakura') this.createPetals();
     });
+
+    window.addEventListener('mousemove', (e) => {
+      this.targetMouseX = e.clientX;
+      this.targetMouseY = e.clientY;
+    }, { passive: true });
 
     this.checkThemeState();
   }
@@ -46,6 +56,36 @@ class AmbientBackgroundManager {
     this.height = window.innerHeight;
     this.canvas.width = this.width;
     this.canvas.height = this.height;
+  }
+
+  // --- DARK THEME: Interactive Synaptic Neural Vortex ---
+  createVortex() {
+    this.vortexParticles = [];
+    const numNodes = Math.max(65, Math.min(Math.floor((this.width * this.height) / 14000), 105));
+    const cx = this.width / 2;
+    const cy = this.height / 2;
+    const maxR = Math.min(this.width, this.height) * 0.58;
+
+    for (let i = 0; i < numNodes; i++) {
+      const spiralFactor = i / numNodes;
+      const angle = (i * 2.39996) + (Math.random() * 0.3); // Golden angle distribution
+      const r = Math.pow(spiralFactor, 0.65) * (maxR - 40) + 40;
+
+      this.vortexParticles.push({
+        currentAngle: angle,
+        orbitSpeed: (Math.random() * 0.00032 + 0.00016) * (Math.random() < 0.2 ? -1 : 1), // ultra slow, hypnotic
+        currentR: r,
+        radialSpeed: (Math.random() - 0.5) * 0.035, // subtle breathing pulse
+        minR: 30,
+        maxR: maxR + 50,
+        size: Math.random() * 0.8 + 0.8, // micro synaptic node (0.8 - 1.6px)
+        baseAlpha: Math.random() * 0.16 + 0.12, // soft subtle alpha
+        pulseSpeed: Math.random() * 0.0015 + 0.0008,
+        pulseOffset: Math.random() * Math.PI * 2,
+        x: cx,
+        y: cy
+      });
+    }
   }
 
   // --- GLYPH MATRIX: Stationary Cyber ASCII Symbol Grid with Breathing Glow & Fade ---
@@ -187,8 +227,10 @@ class AmbientBackgroundManager {
     let targetMode = 'none';
     if (isAmbientEnabled) {
       if (isDark) {
-        const darkStyle = (typeof appStore !== 'undefined' && appStore.state?.darkAmbientStyle) || localStorage.getItem('collab_dark_ambient') || 'matrix';
-        targetMode = (darkStyle === 'stars') ? 'dark_stars' : 'dark_matrix';
+        const darkStyle = (typeof appStore !== 'undefined' && appStore.state?.darkAmbientStyle) || localStorage.getItem('collab_dark_ambient') || 'vortex';
+        if (darkStyle === 'stars') targetMode = 'dark_stars';
+        else if (darkStyle === 'matrix') targetMode = 'dark_matrix';
+        else targetMode = 'dark_vortex';
       } else if (isLight) {
         targetMode = 'light_matrix';
       } else if (isPink) {
@@ -200,7 +242,14 @@ class AmbientBackgroundManager {
 
     this.currentMode = targetMode;
 
-    if (targetMode === 'dark_stars') {
+    if (targetMode === 'dark_vortex') {
+      this.createVortex();
+      this.start();
+      if (this.canvas) {
+        this.canvas.style.opacity = '1';
+        this.canvas.style.display = 'block';
+      }
+    } else if (targetMode === 'dark_stars') {
       this.createStars();
       this.start();
       if (this.canvas) {
@@ -276,7 +325,84 @@ class AmbientBackgroundManager {
 
       this.ctx.clearRect(0, 0, this.width, this.height);
 
-      if (this.currentMode === 'dark_stars') {
+      if (this.currentMode === 'dark_vortex') {
+        // Render Interactive Synaptic Neural Vortex Swarm
+        const cx = this.width / 2;
+        const cy = this.height / 2;
+
+        // Smooth mouse easing with gentle attraction
+        this.mouseX += (this.targetMouseX - this.mouseX) * 0.035;
+        this.mouseY += (this.targetMouseY - this.mouseY) * 0.035;
+
+        // Center of vortex subtly tracks cursor with low intensity
+        const vortexCx = cx + (this.mouseX - cx) * 0.06;
+        const vortexCy = cy + (this.mouseY - cy) * 0.06;
+
+        const pts = this.vortexParticles;
+        const len = pts ? pts.length : 0;
+
+        // 1. Update particle positions
+        for (let i = 0; i < len; i++) {
+          const p = pts[i];
+
+          // Ultra slow orbital angular velocity
+          p.currentAngle += p.orbitSpeed;
+          p.currentR += p.radialSpeed;
+          if (p.currentR > p.maxR) {
+            p.radialSpeed = -Math.abs(p.radialSpeed);
+          } else if (p.currentR < p.minR) {
+            p.radialSpeed = Math.abs(p.radialSpeed);
+          }
+
+          // Elliptical swirling vortex coordinate
+          let targetX = vortexCx + Math.cos(p.currentAngle) * (p.currentR * 1.28);
+          let targetY = vortexCy + Math.sin(p.currentAngle) * (p.currentR * 0.84);
+
+          // Subtle interactive mouse deflection
+          const dx = targetX - this.mouseX;
+          const dy = targetY - this.mouseY;
+          const distMouse = Math.hypot(dx, dy);
+          if (distMouse < 140 && distMouse > 0) {
+            const pushFactor = (1 - distMouse / 140) * 20;
+            targetX += (dx / distMouse) * pushFactor;
+            targetY += (dy / distMouse) * pushFactor;
+          }
+
+          p.x += (targetX - p.x) * 0.05;
+          p.y += (targetY - p.y) * 0.05;
+        }
+
+        // 2. Draw subtle synaptic filaments between nearby nodes
+        this.ctx.lineWidth = 0.5;
+        const maxDist = 85;
+        for (let i = 0; i < len; i++) {
+          const p1 = pts[i];
+          for (let j = i + 1; j < len; j++) {
+            const p2 = pts[j];
+            const d = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+            if (d < maxDist) {
+              const filamentAlpha = Math.pow(1 - d / maxDist, 1.8) * 0.14;
+              this.ctx.strokeStyle = `rgba(255, 255, 255, ${filamentAlpha.toFixed(3)})`;
+              this.ctx.beginPath();
+              this.ctx.moveTo(p1.x, p1.y);
+              this.ctx.lineTo(p2.x, p2.y);
+              this.ctx.stroke();
+            }
+          }
+        }
+
+        // 3. Draw synaptic nodes with gentle pulsation
+        for (let i = 0; i < len; i++) {
+          const p = pts[i];
+          const pulse = Math.sin(time * p.pulseSpeed + p.pulseOffset);
+          const alpha = Math.max(0.06, Math.min(0.38, p.baseAlpha + pulse * 0.08));
+
+          this.ctx.fillStyle = `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
+          this.ctx.beginPath();
+          this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          this.ctx.fill();
+        }
+      } else if (this.currentMode === 'dark_stars') {
         // Render Dark Mode Starfield
         for (let i = 0; i < this.stars.length; i++) {
           const star = this.stars[i];

@@ -74,7 +74,7 @@ function renderSettingsView(state) {
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-xl bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary">
-                  <i data-lucide="${currentTheme === 'pink' ? 'flower-2' : (currentTheme === 'dark' && state.darkAmbientStyle === 'stars' ? 'sparkles' : 'binary')}" class="w-4 h-4 ${ambientEnabled ? (currentTheme === 'pink' ? 'text-pink-400' : 'text-emerald-400') : 'text-app-textMuted'}"></i>
+                  <i data-lucide="${currentTheme === 'pink' ? 'flower-2' : (currentTheme === 'dark' ? (state.darkAmbientStyle === 'stars' ? 'sparkles' : (state.darkAmbientStyle === 'matrix' ? 'binary' : 'orbit')) : 'binary')}" class="w-4 h-4 ${ambientEnabled ? (currentTheme === 'pink' ? 'text-pink-400' : 'text-emerald-400') : 'text-app-textMuted'}"></i>
                 </div>
                 <div class="flex flex-col">
                   <div class="flex items-center gap-2">
@@ -85,7 +85,7 @@ function renderSettingsView(state) {
                   </div>
                   <span class="text-[12px] text-app-textMuted">
                     ${currentTheme === 'dark' 
-                      ? (state.darkAmbientStyle === 'stars' ? 'Micro-pinpoint glittering starfield gently twinkling behind UI' : 'Stationary cyber ASCII symbol grid with gentle breathing glow & soft fading pulses') 
+                      ? (state.darkAmbientStyle === 'stars' ? 'Micro-pinpoint glittering starfield gently twinkling behind UI' : (state.darkAmbientStyle === 'matrix' ? 'Stationary cyber ASCII symbol grid with gentle breathing glow & soft fading pulses' : 'Interactive synaptic neural vortex swarm slowly swirling & reacting to motion')) 
                       : (currentTheme === 'light' ? 'Stationary subtle slate ASCII symbol grid with soft breathing glow & dimming' : 'Multi-depth Japanese cherry blossom (Sakura) leaves slowly drifting in spring breeze')}
                   </span>
                 </div>
@@ -99,17 +99,23 @@ function renderSettingsView(state) {
               </button>
             </div>
 
-            <!-- Dark Mode Multi-Style Selector (Glyph Matrix vs Stars) -->
+            <!-- Dark Mode Multi-Style Selector (Neural Vortex vs Glyph Matrix vs Stars) -->
             ${ambientEnabled && currentTheme === 'dark' ? `
               <div class="flex items-center justify-between p-3 rounded-xl bg-app-input border border-app-borderSubtle text-[12.5px]">
                 <div class="flex flex-col">
                   <span class="font-medium text-app-textPrimary">Dark Mode Ambient Style</span>
-                  <span class="text-[11.5px] text-app-textMuted">Choose between dynamic Cyber Glyph Matrix or Serene Starfield</span>
+                  <span class="text-[11.5px] text-app-textMuted">Choose between Neural Vortex, Cyber Glyphs, or Serene Stars</span>
                 </div>
                 <div class="flex items-center gap-1.5 bg-app-surface p-1 rounded-lg border border-app-borderSubtle">
                   <button 
+                    onclick="appStore.setDarkAmbientStyle('vortex')"
+                    class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11.5px] transition-all ${state.darkAmbientStyle === 'vortex' ? 'bg-app-elevated border border-app-borderActive text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
+                    <i data-lucide="orbit" class="w-3.5 h-3.5 text-cyan-400"></i>
+                    <span>Neural Vortex</span>
+                  </button>
+                  <button 
                     onclick="appStore.setDarkAmbientStyle('matrix')"
-                    class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11.5px] transition-all ${state.darkAmbientStyle !== 'stars' ? 'bg-app-elevated border border-app-borderActive text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
+                    class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11.5px] transition-all ${state.darkAmbientStyle === 'matrix' ? 'bg-app-elevated border border-app-borderActive text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
                     <i data-lucide="binary" class="w-3.5 h-3.5 text-emerald-400"></i>
                     <span>Glyph Matrix</span>
                   </button>

@@ -148,11 +148,11 @@ function renderUserMenuContent() {
           }).join('')}
         </div>
 
-        <!-- Theme Ambient Background Effects Control (Glyph Matrix in Dark/Light, Stars in Dark, Sakura in Pink) -->
+        <!-- Theme Ambient Background Effects Control (Neural Vortex/Glyph/Stars in Dark, Glyph in Light, Sakura in Pink) -->
         <div class="flex flex-col gap-1.5 pt-1.5 border-t border-app-borderSubtle text-[11.5px]">
           <div class="flex items-center justify-between px-0.5">
             <div class="flex items-center gap-1.5 text-app-textSecondary">
-              <i data-lucide="${currentTheme === 'pink' ? 'flower-2' : (currentTheme === 'dark' && appStore.state.darkAmbientStyle === 'stars' ? 'sparkles' : 'binary')}" class="w-3.5 h-3.5 ${ambientEnabled ? (currentTheme === 'pink' ? 'text-pink-400' : 'text-emerald-400') : 'text-app-textMuted'}"></i>
+              <i data-lucide="${currentTheme === 'pink' ? 'flower-2' : (currentTheme === 'dark' ? (appStore.state.darkAmbientStyle === 'stars' ? 'sparkles' : (appStore.state.darkAmbientStyle === 'matrix' ? 'binary' : 'orbit')) : 'binary')}" class="w-3.5 h-3.5 ${ambientEnabled ? (currentTheme === 'pink' ? 'text-pink-400' : 'text-emerald-400') : 'text-app-textMuted'}"></i>
               <span class="font-medium text-app-textPrimary">Ambient Background</span>
             </div>
             <button 
@@ -163,20 +163,26 @@ function renderUserMenuContent() {
             </button>
           </div>
 
-          <!-- Multi-Style Ambient Pills for Dark Mode (Glyph Matrix vs Stars) -->
+          <!-- Multi-Style Ambient Pills for Dark Mode (Neural Vortex, Glyph Matrix, Stars) -->
           ${ambientEnabled && currentTheme === 'dark' ? `
-            <div class="grid grid-cols-2 gap-1 bg-app-input p-1 rounded-lg border border-app-borderSubtle text-[10.5px]">
+            <div class="grid grid-cols-3 gap-1 bg-app-input p-1 rounded-lg border border-app-borderSubtle text-[10px]">
+              <button 
+                onclick="selectDarkAmbient('vortex')"
+                class="flex items-center justify-center gap-1 py-1 rounded transition-all ${appStore.state.darkAmbientStyle === 'vortex' ? 'bg-app-surface text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
+                <i data-lucide="orbit" class="w-3 h-3 text-cyan-400"></i>
+                <span class="truncate">Vortex</span>
+              </button>
               <button 
                 onclick="selectDarkAmbient('matrix')"
-                class="flex items-center justify-center gap-1 py-1 rounded transition-all ${appStore.state.darkAmbientStyle !== 'stars' ? 'bg-app-surface text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
+                class="flex items-center justify-center gap-1 py-1 rounded transition-all ${appStore.state.darkAmbientStyle === 'matrix' ? 'bg-app-surface text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
                 <i data-lucide="binary" class="w-3 h-3 text-emerald-400"></i>
-                <span>Glyph Matrix</span>
+                <span class="truncate">Glyphs</span>
               </button>
               <button 
                 onclick="selectDarkAmbient('stars')"
                 class="flex items-center justify-center gap-1 py-1 rounded transition-all ${appStore.state.darkAmbientStyle === 'stars' ? 'bg-app-surface text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
                 <i data-lucide="sparkles" class="w-3 h-3 text-amber-300"></i>
-                <span>Stars</span>
+                <span class="truncate">Stars</span>
               </button>
             </div>
           ` : ''}
