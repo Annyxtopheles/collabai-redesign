@@ -82,25 +82,28 @@ class AmbientBackgroundManager {
     else if (layerRand > 0.75) layer = 2;
 
     // Layer-specific attributes for depth of field
-    let baseSize, baseSpeedY, baseAlpha, swayRadius;
+    let baseSize, baseSpeedY, baseAlpha, swayForce, windSensitivity;
     if (layer === 0) {
-      baseSize = Math.random() * 3 + 7;         // Small 7-10px
-      baseSpeedY = Math.random() * 0.08 + 0.12; // Ultra slow 0.12-0.20px/frame
-      baseAlpha = Math.random() * 0.15 + 0.38;  // Softer opacity
-      swayRadius = Math.random() * 6 + 4;       // Tight gentle sway
+      baseSize = Math.random() * 3 + 7;          // Small 7-10px
+      baseSpeedY = Math.random() * 0.08 + 0.16;  // Ultra slow 0.16-0.24px/frame
+      baseAlpha = Math.random() * 0.15 + 0.38;   // Softer opacity
+      swayForce = 0.25;                          // Gentle drift
+      windSensitivity = 0.7;                     // Distant layer caught less by local air
     } else if (layer === 1) {
-      baseSize = Math.random() * 4 + 10;        // Medium 10-14px
-      baseSpeedY = Math.random() * 0.10 + 0.18; // 0.18-0.28px/frame
-      baseAlpha = Math.random() * 0.15 + 0.60;  // Medium opacity
-      swayRadius = Math.random() * 10 + 6;      // Medium natural sway
+      baseSize = Math.random() * 4 + 10;         // Medium 10-14px
+      baseSpeedY = Math.random() * 0.10 + 0.22;  // 0.22-0.32px/frame
+      baseAlpha = Math.random() * 0.15 + 0.60;   // Medium opacity
+      swayForce = 0.40;                          // Medium organic sway
+      windSensitivity = 1.0;                     // Natural breeze responsiveness
     } else {
-      baseSize = Math.random() * 4 + 14;        // Large 14-18px
-      baseSpeedY = Math.random() * 0.10 + 0.24; // 0.24-0.34px/frame
-      baseAlpha = Math.random() * 0.12 + 0.78;  // Rich foreground opacity
-      swayRadius = Math.random() * 14 + 8;      // Expressive gentle sway
+      baseSize = Math.random() * 4 + 14;         // Large 14-18px
+      baseSpeedY = Math.random() * 0.10 + 0.28;  // 0.28-0.38px/frame
+      baseAlpha = Math.random() * 0.12 + 0.78;   // Rich foreground opacity
+      swayForce = 0.55;                          // Expressive graceful glide
+      windSensitivity = 1.25;                    // Foreground catches full breeze
     }
 
-    // 4 distinct leaf & petal shapes
+    // 4 distinct organic leaf & petal shapes
     const shapeType = Math.floor(Math.random() * 4);
 
     // Varied natural gradient tone pairs (Stem base -> Petal crown)
@@ -119,23 +122,25 @@ class AmbientBackgroundManager {
       colorPair,
       alpha: baseAlpha,
       size: baseSize,
-      baseX: Math.random() * (this.width + 40) - 20,
+      x: Math.random() * (this.width + 100) - 50,
       y: initialScatter ? Math.random() * (this.height + 60) - 30 : -40,
-      // Minimal, bounded horizontal drift so petals stay in their lane
-      driftX: (Math.random() - 0.5) * 0.03,
-      speedY: baseSpeedY,
-      // Bounded wave sway physics (no running sideways across screen)
+      // Fluid velocity vectors for organic inertia
+      vx: (Math.random() - 0.5) * 0.2,
+      vy: baseSpeedY,
+      baseSpeedY: baseSpeedY,
+      swayForce: swayForce,
+      windSensitivity: windSensitivity,
+      // Aerodynamic oscillation phase offsets
       swayAngle: Math.random() * Math.PI * 2,
-      swaySpeed: Math.random() * 0.008 + 0.005,
-      swayRadius: swayRadius,
-      windOffset: Math.random() * Math.PI * 2,
+      swaySpeed: Math.random() * 0.012 + 0.008,
+      flutterPhase: Math.random() * Math.PI * 2,
       // 3D tumbling rotation
       yawAngle: Math.random() * Math.PI * 2,
-      yawSpeed: (Math.random() - 0.5) * 0.010,
+      yawSpeed: (Math.random() - 0.5) * 0.012,
       rollAngle: Math.random() * Math.PI * 2,
-      rollSpeed: Math.random() * 0.012 + 0.006,
+      rollSpeed: Math.random() * 0.016 + 0.008,
       pitchAngle: Math.random() * Math.PI * 2,
-      pitchSpeed: Math.random() * 0.009 + 0.004
+      pitchSpeed: Math.random() * 0.012 + 0.006
     };
   }
 
@@ -248,29 +253,19 @@ class AmbientBackgroundManager {
           this.ctx.fill();
         }
       } else if (this.currentMode === 'pink') {
-        // Render Pink Mode Multi-Depth Sakura Engine
+        // Multi-frequency Spring Breeze Simulation
+        // Ambient wind current that waxes and wanes naturally across space & time
+        const breezeX = Math.sin(time * 0.0004) * 0.40 + Math.sin(time * 0.0011 + 1.2) * 0.20 + 0.15;
+        const breezeY = Math.cos(time * 0.0006 + 0.8) * 0.05;
+
         for (let i = 0; i < this.petals.length; i++) {
           const petal = this.petals[i];
 
-          // Slow vertical fall & bounded swaying
-          petal.y += petal.speedY;
-          petal.baseX += petal.driftX;
+          // 3D rotation & aerodynamic flutter coupled with air speed
           petal.swayAngle += petal.swaySpeed;
-
-          // Compute bounded natural sway position (no huge horizontal travels)
-          const swayOffset = Math.sin(petal.swayAngle) * petal.swayRadius + Math.sin(time * 0.0003 + petal.windOffset) * 5;
-          const renderX = petal.baseX + swayOffset;
-
-          // 3D rotation & flutter
-          petal.yawAngle += petal.yawSpeed;
-          petal.rollAngle += petal.rollSpeed;
+          petal.yawAngle += petal.yawSpeed + (petal.vx * 0.012);
+          petal.rollAngle += petal.rollSpeed + (Math.abs(petal.vx) * 0.015);
           petal.pitchAngle += petal.pitchSpeed;
-
-          // Recycle when petal leaves bottom of the viewport
-          if (petal.y > this.height + 35) {
-            this.petals[i] = this.newPetal(false);
-            continue;
-          }
 
           // Compute 3D tumbling scale
           const flipX = Math.cos(petal.rollAngle);
@@ -279,8 +274,34 @@ class AmbientBackgroundManager {
           const scaleY = Math.abs(flipY) > 0.08 ? flipY : 0.08;
           const isReverse = flipX < 0 || flipY < 0;
 
+          // Aerodynamic lift & gliding force generated by petal orientation in air
+          const liftX = Math.sin(petal.yawAngle) * Math.cos(petal.rollAngle) * 0.35;
+          const liftY = -Math.abs(Math.sin(petal.rollAngle)) * 0.06;
+
+          // Target velocities influenced by natural breeze + petal aerodynamic glide + gentle sway
+          const targetVx = (breezeX * petal.windSensitivity) + liftX + (Math.sin(petal.swayAngle) * petal.swayForce);
+          const targetVy = petal.baseSpeedY + breezeY + liftY;
+
+          // Smooth inertia damping (creates graceful swoops, curves, and natural floating)
+          petal.vx += (targetVx - petal.vx) * 0.035;
+          petal.vy += (targetVy - petal.vy) * 0.035;
+
+          petal.x += petal.vx;
+          petal.y += petal.vy;
+
+          // Natural screen wrap & boundary respawn
+          if (petal.y > this.height + 40) {
+            this.petals[i] = this.newPetal(false);
+            continue;
+          }
+          if (petal.x > this.width + 60) {
+            petal.x = -40;
+          } else if (petal.x < -60) {
+            petal.x = this.width + 40;
+          }
+
           this.ctx.save();
-          this.ctx.translate(renderX, petal.y);
+          this.ctx.translate(petal.x, petal.y);
           this.ctx.rotate(petal.yawAngle);
           this.ctx.scale(scaleX, scaleY);
           this.ctx.globalAlpha = petal.alpha;
