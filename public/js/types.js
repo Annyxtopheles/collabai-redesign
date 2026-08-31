@@ -12,9 +12,9 @@ const THEMES_CONFIG = [
     previewText: '#EDEDED',
     previewAccent: '#EDEDED',
     ambientEffectName: 'Ambient Animation',
-    ambientEffectDesc: 'Choose between Starfield or Cyber Glyph Matrix',
+    ambientEffectDesc: 'Choose between Starfield or Glowing Glyph Matrix',
     ambientStyles: [
-      { id: 'matrix', name: 'Glyph Matrix', icon: 'binary', desc: 'Cyber ASCII digital rain & code matrix' },
+      { id: 'matrix', name: 'Glyph Matrix', icon: 'binary', desc: 'Stationary ambient ASCII symbols with gentle breathing glow & fade' },
       { id: 'stars', name: 'Glittering Stars', icon: 'sparkles', desc: 'Micro-pinpoint serene starry twinkle' }
     ]
   },
@@ -30,9 +30,9 @@ const THEMES_CONFIG = [
     previewText: '#18181B',
     previewAccent: '#18181B',
     ambientEffectName: 'Glyph Matrix',
-    ambientEffectDesc: 'Subtle slate cyber ASCII digital rain & code grid',
+    ambientEffectDesc: 'Subtle slate ASCII symbols with gentle breathing glow & dimming',
     ambientStyles: [
-      { id: 'matrix', name: 'Glyph Matrix', icon: 'binary', desc: 'Subtle slate ASCII cryptographic rain' }
+      { id: 'matrix', name: 'Glyph Matrix', icon: 'binary', desc: 'Subtle slate ambient symbols with soft glowing pulses' }
     ]
   },
   {

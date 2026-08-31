@@ -48,49 +48,39 @@ class AmbientBackgroundManager {
     this.canvas.height = this.height;
   }
 
-  // --- GLYPH MATRIX: Cyber ASCII Cryptographic Rain & Digital Code Grid ---
+  // --- GLYPH MATRIX: Stationary Cyber ASCII Symbol Grid with Breathing Glow & Fade ---
   createMatrix() {
     const cellSize = 14;
     this.matrixCellSize = cellSize;
     this.matrixCols = Math.ceil(this.width / cellSize);
     this.matrixRows = Math.ceil(this.height / cellSize);
-    this.matrixGlyphs = "01·•+*/\\<>=-_~:;^#{}[]";
-    this.matrixInterval = 90; // ms
+    this.matrixGlyphs = "01·•+*/\\<>=-_~:;^";
+    this.matrixInterval = 90; // ms for ambient micro-mutations
     this.matrixLastMutation = 0;
-    this.matrixMutationRate = 0.04;
+    this.matrixMutationRate = 0.025;
 
-    // Ambient static background cells with slow mutations
+    // Stationary 2D matrix symbol grid
     this.matrixGrid = [];
     for (let r = 0; r < this.matrixRows; r++) {
       const row = [];
       for (let c = 0; c < this.matrixCols; c++) {
+        // ~45% density of subtle ambient symbols
+        const hasSymbol = Math.random() < 0.45;
+        const isInitiallyGlowing = hasSymbol && Math.random() < 0.06;
+
         row.push({
           char: this.matrixGlyphs[Math.floor(Math.random() * this.matrixGlyphs.length)],
-          baseAlpha: Math.random() < 0.35 ? (Math.random() * 0.06 + 0.02) : 0
+          baseAlpha: hasSymbol ? (Math.random() * 0.05 + 0.025) : 0,
+          // Gentle breathing & glowing pulse state
+          isGlowing: isInitiallyGlowing,
+          glowProgress: isInitiallyGlowing ? Math.random() : 0,
+          glowSpeed: Math.random() * 0.012 + 0.006, // smooth rise & fade
+          glowPeakAlpha: Math.random() * 0.35 + 0.40,
+          mutationCooldown: 0
         });
       }
       this.matrixGrid.push(row);
     }
-
-    // Active streaming columns
-    this.matrixStreams = [];
-    const numStreams = Math.max(16, Math.min(Math.floor(this.matrixCols * 0.45), 45));
-    for (let i = 0; i < numStreams; i++) {
-      this.matrixStreams.push(this.newMatrixStream(true));
-    }
-  }
-
-  newMatrixStream(initialScatter = false) {
-    const col = Math.floor(Math.random() * this.matrixCols);
-    const length = Math.floor(Math.random() * 12 + 6);
-    return {
-      col,
-      row: initialScatter ? Math.random() * (this.matrixRows + 10) - 5 : -Math.random() * 10 - 2,
-      speed: Math.random() * 0.20 + 0.12, // rows per frame (calm, elegant stream)
-      length,
-      chars: Array.from({ length }, () => this.matrixGlyphs[Math.floor(Math.random() * this.matrixGlyphs.length)]),
-      mutationTimer: Math.random() * 10
-    };
   }
 
   // --- DARK THEME: Micro-Pinpoint Starfield ---
@@ -307,105 +297,97 @@ class AmbientBackgroundManager {
           this.ctx.fill();
         }
       } else if (this.currentMode === 'dark_matrix' || this.currentMode === 'light_matrix') {
-        // Render Glyph Matrix (Cyber ASCII Digital Rain & Code Grid)
+        // Render Stationary Cyber ASCII Symbol Grid with Organic Breathing Glow & Dimming
         const isDark = (this.currentMode === 'dark_matrix');
         const cellSize = this.matrixCellSize || 14;
 
-        // Periodic ambient mutation (interval: ~90ms, mutationRate: ~0.04)
-        if (time - this.matrixLastMutation > this.matrixInterval) {
+        // Periodic micro-mutation timer (~90ms)
+        const shouldMutate = (time - this.matrixLastMutation > this.matrixInterval);
+        if (shouldMutate) {
           this.matrixLastMutation = time;
-          if (this.matrixGrid) {
-            for (let r = 0; r < this.matrixRows; r++) {
-              for (let c = 0; c < this.matrixCols; c++) {
-                if (Math.random() < this.matrixMutationRate) {
-                  this.matrixGrid[r][c].char = this.matrixGlyphs[Math.floor(Math.random() * this.matrixGlyphs.length)];
-                }
-              }
-            }
-          }
         }
 
         this.ctx.font = '12px Cousine, monospace, "Courier New"';
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
 
-        // 1. Render ambient faint background matrix grid
         if (this.matrixGrid) {
           for (let r = 0; r < this.matrixRows; r++) {
             const y = r * cellSize + (cellSize / 2);
+            // Soft vertical bottom fade so it blends into background seamlessly
             const rowRatio = r / this.matrixRows;
-            const bottomFade = Math.max(0.2, 1 - (rowRatio > 0.4 ? (rowRatio - 0.4) * 1.2 : 0));
+            const bottomFade = Math.max(0.2, 1 - (rowRatio > 0.4 ? (rowRatio - 0.4) * 1.1 : 0));
 
             for (let c = 0; c < this.matrixCols; c++) {
               const cell = this.matrixGrid[r][c];
-              if (cell.baseAlpha > 0) {
-                const alpha = cell.baseAlpha * bottomFade;
-                this.ctx.fillStyle = isDark
-                  ? `rgba(255, 255, 255, ${alpha.toFixed(3)})`
-                  : `rgba(0, 0, 0, ${alpha.toFixed(3)})`;
-                const x = c * cellSize + (cellSize / 2);
-                this.ctx.fillText(cell.char, x, y);
+              if (cell.baseAlpha <= 0) continue;
+
+              // Periodic mutation of dormant symbols
+              if (shouldMutate && Math.random() < this.matrixMutationRate) {
+                cell.char = this.matrixGlyphs[Math.floor(Math.random() * this.matrixGlyphs.length)];
               }
+
+              // Randomly ignite individual symbols into a soft breathing glow cycle
+              if (!cell.isGlowing && Math.random() < 0.00045) {
+                cell.isGlowing = true;
+                cell.glowProgress = 0;
+                cell.glowSpeed = Math.random() * 0.008 + 0.004; // slow, gentle breathing pulse
+                cell.glowPeakAlpha = Math.random() * 0.35 + 0.35;
+                // Mutate on glow initiation for lively cryptographic effect
+                cell.char = this.matrixGlyphs[Math.floor(Math.random() * this.matrixGlyphs.length)];
+              }
+
+              let currentAlpha = cell.baseAlpha;
+              let isBrightGlow = false;
+
+              // Update glow progress (sinusoidal bell curve: 0 -> peak -> 0)
+              if (cell.isGlowing) {
+                cell.glowProgress += cell.glowSpeed;
+                if (cell.glowProgress >= 1) {
+                  cell.isGlowing = false;
+                  cell.glowProgress = 0;
+                } else {
+                  const pulseFactor = Math.sin(cell.glowProgress * Math.PI);
+                  currentAlpha = cell.baseAlpha + (cell.glowPeakAlpha - cell.baseAlpha) * pulseFactor;
+                  if (pulseFactor > 0.4) {
+                    isBrightGlow = true;
+                  }
+                }
+              }
+
+              const finalAlpha = currentAlpha * bottomFade;
+              if (finalAlpha <= 0.005) continue;
+
+              const x = c * cellSize + (cellSize / 2);
+
+              if (isDark) {
+                if (isBrightGlow) {
+                  this.ctx.fillStyle = `rgba(255, 255, 255, ${finalAlpha.toFixed(3)})`;
+                  this.ctx.shadowColor = 'rgba(255, 255, 255, 0.45)';
+                  this.ctx.shadowBlur = 4;
+                } else {
+                  this.ctx.fillStyle = `rgba(255, 255, 255, ${finalAlpha.toFixed(3)})`;
+                  this.ctx.shadowColor = 'transparent';
+                  this.ctx.shadowBlur = 0;
+                }
+              } else {
+                if (isBrightGlow) {
+                  this.ctx.fillStyle = `rgba(15, 15, 18, ${finalAlpha.toFixed(3)})`;
+                  this.ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+                  this.ctx.shadowBlur = 2;
+                } else {
+                  this.ctx.fillStyle = `rgba(40, 40, 45, ${finalAlpha.toFixed(3)})`;
+                  this.ctx.shadowColor = 'transparent';
+                  this.ctx.shadowBlur = 0;
+                }
+              }
+
+              this.ctx.fillText(cell.char, x, y);
             }
           }
-        }
-
-        // 2. Render falling digital streams
-        if (this.matrixStreams) {
-          for (let i = 0; i < this.matrixStreams.length; i++) {
-            const stream = this.matrixStreams[i];
-            stream.row += stream.speed;
-
-            // Mutate stream characters periodically
-            stream.mutationTimer++;
-            if (stream.mutationTimer > 8) {
-              stream.mutationTimer = 0;
-              const mutIdx = Math.floor(Math.random() * stream.length);
-              stream.chars[mutIdx] = this.matrixGlyphs[Math.floor(Math.random() * this.matrixGlyphs.length)];
-            }
-
-            const x = stream.col * cellSize + (cellSize / 2);
-
-            for (let j = 0; j < stream.length; j++) {
-              const itemRow = Math.floor(stream.row - j);
-              if (itemRow < 0 || itemRow >= this.matrixRows) continue;
-
-              const y = itemRow * cellSize + (cellSize / 2);
-              const isHead = (j === 0);
-
-              let alpha;
-              if (isHead) {
-                alpha = isDark ? 0.65 : 0.45;
-              } else {
-                const trailRatio = 1 - (j / stream.length);
-                alpha = isDark ? (trailRatio * 0.35 + 0.05) : (trailRatio * 0.22 + 0.03);
-              }
-
-              // Apply bottom fade
-              const rowRatio = itemRow / this.matrixRows;
-              if (rowRatio > 0.5) {
-                alpha *= Math.max(0.15, 1 - (rowRatio - 0.5) * 1.5);
-              }
-
-              if (isHead) {
-                this.ctx.fillStyle = isDark
-                  ? `rgba(255, 255, 255, ${alpha.toFixed(3)})`
-                  : `rgba(24, 24, 27, ${alpha.toFixed(3)})`;
-              } else {
-                this.ctx.fillStyle = isDark
-                  ? `rgba(220, 225, 235, ${alpha.toFixed(3)})`
-                  : `rgba(60, 60, 65, ${alpha.toFixed(3)})`;
-              }
-
-              const char = stream.chars[j] || '0';
-              this.ctx.fillText(char, x, y);
-            }
-
-            // Respawn stream when it falls past bottom
-            if (stream.row - stream.length > this.matrixRows + 2) {
-              this.matrixStreams[i] = this.newMatrixStream(false);
-            }
-          }
+          // Reset shadow for next operations
+          this.ctx.shadowColor = 'transparent';
+          this.ctx.shadowBlur = 0;
         }
       } else if (this.currentMode === 'pink_sakura') {
         // Multi-frequency Spring Breeze Simulation

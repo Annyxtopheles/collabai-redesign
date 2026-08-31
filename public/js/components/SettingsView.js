@@ -85,8 +85,8 @@ function renderSettingsView(state) {
                   </div>
                   <span class="text-[12px] text-app-textMuted">
                     ${currentTheme === 'dark' 
-                      ? (state.darkAmbientStyle === 'stars' ? 'Micro-pinpoint glittering starfield gently twinkling behind UI' : 'Cyber ASCII digital rain & cryptographic code matrix streaming behind UI') 
-                      : (currentTheme === 'light' ? 'Subtle slate ASCII digital code rain & cryptographic matrix grid' : 'Multi-depth Japanese cherry blossom (Sakura) leaves slowly drifting in spring breeze')}
+                      ? (state.darkAmbientStyle === 'stars' ? 'Micro-pinpoint glittering starfield gently twinkling behind UI' : 'Stationary cyber ASCII symbol grid with gentle breathing glow & soft fading pulses') 
+                      : (currentTheme === 'light' ? 'Stationary subtle slate ASCII symbol grid with soft breathing glow & dimming' : 'Multi-depth Japanese cherry blossom (Sakura) leaves slowly drifting in spring breeze')}
                   </span>
                 </div>
               </div>
