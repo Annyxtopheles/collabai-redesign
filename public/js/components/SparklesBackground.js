@@ -55,27 +55,27 @@ class AmbientBackgroundManager {
     this.matrixCols = Math.ceil(this.width / cellSize);
     this.matrixRows = Math.ceil(this.height / cellSize);
     this.matrixGlyphs = "01·•+*/\\<>=-_~:;^";
-    this.matrixInterval = 90; // ms for ambient micro-mutations
+    this.matrixInterval = 160; // ms for ambient micro-mutations
     this.matrixLastMutation = 0;
-    this.matrixMutationRate = 0.025;
+    this.matrixMutationRate = 0.015;
 
     // Stationary 2D matrix symbol grid
     this.matrixGrid = [];
     for (let r = 0; r < this.matrixRows; r++) {
       const row = [];
       for (let c = 0; c < this.matrixCols; c++) {
-        // ~45% density of subtle ambient symbols
-        const hasSymbol = Math.random() < 0.45;
-        const isInitiallyGlowing = hasSymbol && Math.random() < 0.06;
+        // ~40% density of subtle ambient symbols
+        const hasSymbol = Math.random() < 0.40;
+        const isInitiallyGlowing = hasSymbol && Math.random() < 0.04;
 
         row.push({
           char: this.matrixGlyphs[Math.floor(Math.random() * this.matrixGlyphs.length)],
-          baseAlpha: hasSymbol ? (Math.random() * 0.05 + 0.025) : 0,
-          // Gentle breathing & glowing pulse state
+          baseAlpha: hasSymbol ? (Math.random() * 0.03 + 0.015) : 0,
+          // Gentle, leisurely breathing & glowing pulse state
           isGlowing: isInitiallyGlowing,
           glowProgress: isInitiallyGlowing ? Math.random() : 0,
-          glowSpeed: Math.random() * 0.012 + 0.006, // smooth rise & fade
-          glowPeakAlpha: Math.random() * 0.35 + 0.40,
+          glowSpeed: Math.random() * 0.0035 + 0.0018, // 50% slower, serene breathing cycle
+          glowPeakAlpha: Math.random() * 0.14 + 0.18,  // 50% less glow intensity (subtle & soft)
           mutationCooldown: 0
         });
       }
@@ -327,12 +327,12 @@ class AmbientBackgroundManager {
                 cell.char = this.matrixGlyphs[Math.floor(Math.random() * this.matrixGlyphs.length)];
               }
 
-              // Randomly ignite individual symbols into a soft breathing glow cycle
-              if (!cell.isGlowing && Math.random() < 0.00045) {
+              // Randomly ignite individual symbols into a soft, slow breathing glow cycle
+              if (!cell.isGlowing && Math.random() < 0.00022) {
                 cell.isGlowing = true;
                 cell.glowProgress = 0;
-                cell.glowSpeed = Math.random() * 0.008 + 0.004; // slow, gentle breathing pulse
-                cell.glowPeakAlpha = Math.random() * 0.35 + 0.35;
+                cell.glowSpeed = Math.random() * 0.0035 + 0.0018; // 50% slower, serene rise & fade
+                cell.glowPeakAlpha = Math.random() * 0.14 + 0.18; // 50% less intensity
                 // Mutate on glow initiation for lively cryptographic effect
                 cell.char = this.matrixGlyphs[Math.floor(Math.random() * this.matrixGlyphs.length)];
               }
@@ -349,7 +349,7 @@ class AmbientBackgroundManager {
                 } else {
                   const pulseFactor = Math.sin(cell.glowProgress * Math.PI);
                   currentAlpha = cell.baseAlpha + (cell.glowPeakAlpha - cell.baseAlpha) * pulseFactor;
-                  if (pulseFactor > 0.4) {
+                  if (pulseFactor > 0.5) {
                     isBrightGlow = true;
                   }
                 }
@@ -363,8 +363,8 @@ class AmbientBackgroundManager {
               if (isDark) {
                 if (isBrightGlow) {
                   this.ctx.fillStyle = `rgba(255, 255, 255, ${finalAlpha.toFixed(3)})`;
-                  this.ctx.shadowColor = 'rgba(255, 255, 255, 0.45)';
-                  this.ctx.shadowBlur = 4;
+                  this.ctx.shadowColor = 'rgba(255, 255, 255, 0.20)';
+                  this.ctx.shadowBlur = 2;
                 } else {
                   this.ctx.fillStyle = `rgba(255, 255, 255, ${finalAlpha.toFixed(3)})`;
                   this.ctx.shadowColor = 'transparent';
@@ -372,11 +372,11 @@ class AmbientBackgroundManager {
                 }
               } else {
                 if (isBrightGlow) {
-                  this.ctx.fillStyle = `rgba(15, 15, 18, ${finalAlpha.toFixed(3)})`;
-                  this.ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
-                  this.ctx.shadowBlur = 2;
+                  this.ctx.fillStyle = `rgba(20, 20, 24, ${finalAlpha.toFixed(3)})`;
+                  this.ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
+                  this.ctx.shadowBlur = 1;
                 } else {
-                  this.ctx.fillStyle = `rgba(40, 40, 45, ${finalAlpha.toFixed(3)})`;
+                  this.ctx.fillStyle = `rgba(50, 50, 55, ${finalAlpha.toFixed(3)})`;
                   this.ctx.shadowColor = 'transparent';
                   this.ctx.shadowBlur = 0;
                 }
