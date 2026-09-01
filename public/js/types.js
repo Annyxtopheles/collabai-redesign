@@ -97,10 +97,10 @@ const THEMES_CONFIG = [
     previewBorder: '#315EFF',
     previewText: '#FFFFFF',
     previewAccent: '#315EFF',
-    ambientEffectName: 'Neural Vortex',
-    ambientEffectDesc: 'Interactive electric blue neural vortex with caustic starburst & fluid plasma',
+    ambientEffectName: 'Floating Lines',
+    ambientEffectDesc: 'Smooth undulating electric indigo & cyan floating ribbon wave lines',
     ambientStyles: [
-      { id: 'vortex', name: 'Neural Vortex', icon: 'sparkle', desc: 'Interactive #315EFF electric plasma vortex & caustic rays' }
+      { id: 'vortex', name: 'Floating Lines', icon: 'activity', desc: 'Autonomous #315EFF royal indigo, violet & cyan floating ribbon lines' }
     ]
   }
 ];

@@ -91,66 +91,95 @@ class AmbientBackgroundManager {
     const fsSource = `
       precision highp float;
       uniform vec2 u_resolution;
-      uniform vec2 u_mouse;
       uniform float u_time;
 
-      vec2 domainWarp(vec2 p, float t) {
-        for (int i = 1; i <= 4; i++) {
-          float fi = float(i);
-          p += vec2(
-            sin(p.y * 2.2 + t * 0.25 + fi * 0.7) * 0.35,
-            cos(p.x * 1.8 - t * 0.20 + fi * 0.9) * 0.35
-          ) / fi;
+      const vec3 COLOR_INDIGO = vec3(49.0, 94.0, 255.0) / 255.0;  // #315EFF Royal Indigo
+      const vec3 COLOR_VIOLET = vec3(99.0, 102.0, 241.0) / 255.0; // #6366F1 Indigo Violet
+      const vec3 COLOR_CYAN   = vec3(56.0, 189.0, 248.0) / 255.0; // #38BDF8 Sky Cyan
+
+      mat2 rotate(float r) {
+        return mat2(cos(r), sin(r), -sin(r), cos(r));
+      }
+
+      vec3 getLineColor(float t) {
+        if (t < 0.33) {
+          return mix(COLOR_INDIGO, COLOR_VIOLET, t / 0.33);
+        } else if (t < 0.66) {
+          return mix(COLOR_VIOLET, COLOR_CYAN, (t - 0.33) / 0.33);
+        } else {
+          return mix(COLOR_CYAN, COLOR_INDIGO, (t - 0.66) / 0.34);
         }
-        return p;
+      }
+
+      float wave(vec2 uv, float offset) {
+        float time = u_time * 0.45;
+
+        float x_offset   = offset;
+        float x_movement = time * 0.12;
+        float amp        = sin(offset + time * 0.22) * 0.28;
+        float y          = sin(uv.x + x_offset + x_movement) * amp;
+
+        float m = uv.y - y;
+        return 0.0175 / max(abs(m) + 0.01, 1e-3) + 0.01;
       }
 
       void main() {
-        vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
-        vec2 mouse = (u_mouse - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
-        mouse.y = -mouse.y;
+        vec2 baseUv = (2.0 * gl_FragCoord.xy - u_resolution.xy) / u_resolution.y;
+        baseUv.y *= -1.0;
 
-        float t = u_time * 0.28;
+        vec3 col = vec3(0.0);
 
-        // 1. Wispy Electric Silk Filaments
-        vec2 p = uv;
-        vec2 warped = domainWarp(p * 2.0 + vec2(t * 0.08, -t * 0.06), t);
+        // Bottom Waves
+        const int bottomLineCount = 6;
+        for (int i = 0; i < bottomLineCount; ++i) {
+          float fi = float(i);
+          float t = fi / float(bottomLineCount - 1);
+          vec3 lineCol = getLineColor(t);
+          
+          float angle = 0.4 * log(length(baseUv) + 1.0);
+          vec2 ruv = baseUv * rotate(angle);
+          col += lineCol * wave(
+            ruv + vec2(0.05 * fi + 2.0, -0.7),
+            1.5 + 0.2 * fi
+          ) * 0.22;
+        }
 
-        // Thin flowing caustic ribbon
-        float ribbonDist = abs(warped.y - warped.x * 0.60 + sin(warped.x * 2.8 + t) * 0.25);
-        float ribbonGlow = 0.018 / (ribbonDist + 0.022);
-        
-        // Fine delicate filaments
-        float filaments = 0.009 / (abs(sin(warped.x * 4.5 + warped.y * 3.2 + t * 0.7)) + 0.045);
+        // Middle Waves
+        const int middleLineCount = 7;
+        for (int i = 0; i < middleLineCount; ++i) {
+          float fi = float(i);
+          float t = fi / float(middleLineCount - 1);
+          vec3 lineCol = getLineColor(t);
+          
+          float angle = 0.2 * log(length(baseUv) + 1.0);
+          vec2 ruv = baseUv * rotate(angle);
+          col += lineCol * wave(
+            ruv + vec2(0.05 * fi + 5.0, 0.0),
+            2.0 + 0.15 * fi
+          ) * 0.75;
+        }
 
-        // 2. Compact 4-Point Caustic Starburst at Cursor
-        vec2 toMouse = uv - mouse;
-        float distMouse = length(toMouse);
+        // Top Waves
+        const int topLineCount = 5;
+        for (int i = 0; i < topLineCount; ++i) {
+          float fi = float(i);
+          float t = fi / float(topLineCount - 1);
+          vec3 lineCol = getLineColor(t);
+          
+          float angle = -0.4 * log(length(baseUv) + 1.0);
+          vec2 ruv = baseUv * rotate(angle);
+          ruv.x *= -1.0;
+          col += lineCol * wave(
+            ruv + vec2(0.05 * fi + 10.0, 0.5),
+            1.0 + 0.2 * fi
+          ) * 0.18;
+        }
 
-        float ang = atan(toMouse.y, toMouse.x);
-        // Sharp 4-point diamond rays
-        float flareRays = pow(abs(cos(ang * 2.0 + 0.785)), 12.0) + pow(abs(sin(ang * 2.0 + 0.785)), 12.0);
-        float starburst = (0.015 / (distMouse + 0.015)) * (0.2 + flareRays * 0.8) * smoothstep(0.4, 0.0, distMouse);
+        // Smooth atmospheric vignette
+        float vig = 1.0 - smoothstep(0.6, 1.8, length(baseUv));
+        col *= vig;
 
-        // Crisp compact white point core
-        float whiteCore = 0.008 / (distMouse * distMouse * 45.0 + 0.006);
-
-        // 3. Electric Royal Indigo Palette
-        vec3 bgCol = vec3(0.02, 0.035, 0.08);
-        vec3 deepIndigo = vec3(0.12, 0.28, 0.98);
-        vec3 cyanHighlight = vec3(0.45, 0.78, 1.0);
-        vec3 whiteCoreColor = vec3(1.0, 1.0, 1.0);
-
-        vec3 color = bgCol * 0.2;
-        color += deepIndigo * (ribbonGlow * 0.75 + filaments * 0.4);
-        color += cyanHighlight * (starburst * 0.7 + filaments * 0.25);
-        color += whiteCoreColor * (whiteCore * 0.9 + starburst * 0.35);
-
-        // Atmospheric vignette
-        float vig = 1.0 - smoothstep(0.5, 1.6, length(uv));
-        color *= vig;
-
-        gl_FragColor = vec4(color, clamp(length(color) * 0.75, 0.0, 1.0));
+        gl_FragColor = vec4(col, clamp(length(col) * 1.2, 0.0, 1.0));
       }
     `;
 
@@ -725,10 +754,7 @@ class AmbientBackgroundManager {
       if (!this.isRunning) return;
 
       if (this.currentMode === 'saas_aurora' && this.gl && this.shaderProgram) {
-        // --- GPU WebGL Interactive Neural Vortex Fragment Shader ---
-        this.mouseX += (this.targetMouseX - this.mouseX) * 0.05;
-        this.mouseY += (this.targetMouseY - this.mouseY) * 0.05;
-
+        // --- GPU WebGL FloatingLines Autonomous Ambient Waves ---
         const gl = this.gl;
         gl.viewport(0, 0, this.width, this.height);
         gl.useProgram(this.shaderProgram);
@@ -737,7 +763,6 @@ class AmbientBackgroundManager {
         gl.vertexAttribPointer(this.positionLocation, 2, gl.FLOAT, false, 0, 0);
 
         gl.uniform2f(this.resLocation, this.width, this.height);
-        gl.uniform2f(this.mouseLocation, this.mouseX, this.mouseY);
         gl.uniform1f(this.timeLocation, time * 0.001);
 
         gl.drawArrays(gl.TRIANGLES, 0, 6);

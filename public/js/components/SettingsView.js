@@ -85,7 +85,7 @@ function renderSettingsView(state) {
                   </div>
                   <span class="text-[12px] text-app-textMuted">
                     ${currentTheme === 'saas'
-                      ? 'Interactive #315EFF electric blue neural vortex with caustic starburst & fluid plasma reacting to cursor'
+                      ? 'Smooth undulating #315EFF royal indigo, violet & cyan floating ribbon wave lines'
                       : (currentTheme === 'synthwave'
                         ? '3D retro perspective neon horizon grid & celestial synthwave stardust'
                         : (currentTheme === 'crt'
