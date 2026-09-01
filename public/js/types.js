@@ -86,6 +86,23 @@ const THEMES_CONFIG = [
     ambientStyles: [
       { id: 'grid', name: 'Synth Horizon', icon: 'grid', desc: 'Perspective neon grid & dual-tone cyber dust' }
     ]
+  },
+  {
+    id: 'saas',
+    name: 'Modern SaaS',
+    shortName: 'SaaS',
+    icon: 'layers',
+    description: 'Ultra-refined dark indigo glassmorphism with #315EFF highlight',
+    badge: 'Glass',
+    previewBg: '#090D16',
+    previewBorder: '#315EFF',
+    previewText: '#FFFFFF',
+    previewAccent: '#315EFF',
+    ambientEffectName: 'Indigo Aurora',
+    ambientEffectDesc: 'Floating luminous royal indigo aurora mesh orbs',
+    ambientStyles: [
+      { id: 'aurora', name: 'Indigo Aurora', icon: 'sparkle', desc: 'Luminous #315EFF floating ambient aurora mesh' }
+    ]
   }
 ];
 

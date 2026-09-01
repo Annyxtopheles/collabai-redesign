@@ -1,4 +1,4 @@
-// SparklesBackground.js - Ambient Background Manager: Synthwave (Synth), CRT Raster (CRT), Neural Vortex (Dark), Glyph Matrix (Dark/Light), Starfield (Dark), & Sakura (Pink)
+// SparklesBackground.js - Ambient Background Manager: SaaS Aurora (SaaS), Synthwave (Synth), CRT Raster (CRT), Neural Vortex (Dark), Glyph Matrix (Dark/Light), Starfield (Dark), & Sakura (Pink)
 class AmbientBackgroundManager {
   constructor() {
     this.canvas = null;
@@ -10,9 +10,11 @@ class AmbientBackgroundManager {
     this.crtBeamY = 0;
     this.synthStars = [];
     this.synthGridOffset = 0;
+    this.saasOrbs = [];
+    this.saasSpecks = [];
     this.matrixGrid = [];
     this.matrixLastMutation = 0;
-    this.currentMode = null; // 'synthwave_grid' | 'crt_raster' | 'dark_vortex' | 'dark_matrix' | 'dark_stars' | 'light_matrix' | 'pink_sakura' | 'none'
+    this.currentMode = null; // 'saas_aurora' | 'synthwave_grid' | 'crt_raster' | 'dark_vortex' | 'dark_matrix' | 'dark_stars' | 'light_matrix' | 'pink_sakura' | 'none'
     this.animationFrameId = null;
     this.isRunning = false;
     this.width = window.innerWidth;
@@ -40,7 +42,8 @@ class AmbientBackgroundManager {
 
     window.addEventListener('resize', () => {
       this.resize();
-      if (this.currentMode === 'synthwave_grid') this.createSynthwave();
+      if (this.currentMode === 'saas_aurora') this.createSaaS();
+      else if (this.currentMode === 'synthwave_grid') this.createSynthwave();
       else if (this.currentMode === 'crt_raster') this.createCRT();
       else if (this.currentMode === 'dark_vortex') this.createVortex();
       else if (this.currentMode === 'dark_stars') this.createStars();
@@ -62,6 +65,62 @@ class AmbientBackgroundManager {
     this.height = window.innerHeight;
     this.canvas.width = this.width;
     this.canvas.height = this.height;
+  }
+
+  // --- SAAS THEME: Floating Indigo Aurora Mesh Orbs & Ambient Glow ---
+  createSaaS() {
+    this.saasOrbs = [
+      {
+        x: this.width * 0.25,
+        y: this.height * 0.35,
+        baseX: this.width * 0.25,
+        baseY: this.height * 0.35,
+        radius: Math.min(this.width, this.height) * 0.32,
+        color: '49, 94, 255', // #315EFF SaaS Royal Indigo
+        alpha: 0.075,
+        speedX: 0.0004,
+        speedY: 0.0003,
+        phase: 0
+      },
+      {
+        x: this.width * 0.78,
+        y: this.height * 0.65,
+        baseX: this.width * 0.78,
+        baseY: this.height * 0.65,
+        radius: Math.min(this.width, this.height) * 0.28,
+        color: '99, 102, 241', // #6366F1 Indigo Violet
+        alpha: 0.06,
+        speedX: -0.00035,
+        speedY: 0.00045,
+        phase: Math.PI * 0.5
+      },
+      {
+        x: this.width * 0.55,
+        y: this.height * 0.20,
+        baseX: this.width * 0.55,
+        baseY: this.height * 0.20,
+        radius: Math.min(this.width, this.height) * 0.24,
+        color: '56, 189, 248', // #38BDF8 Sky Cyan
+        alpha: 0.045,
+        speedX: 0.0003,
+        speedY: -0.00035,
+        phase: Math.PI
+      }
+    ];
+
+    this.saasSpecks = [];
+    const numSpecks = Math.max(18, Math.min(Math.floor((this.width * this.height) / 35000), 40));
+    for (let i = 0; i < numSpecks; i++) {
+      this.saasSpecks.push({
+        x: Math.random() * this.width,
+        y: Math.random() * this.height,
+        size: Math.random() * 0.8 + 0.6,
+        baseAlpha: Math.random() * 0.18 + 0.08,
+        speedY: -(Math.random() * 0.04 + 0.015),
+        pulseSpeed: Math.random() * 0.002 + 0.001,
+        pulseOffset: Math.random() * Math.PI * 2
+      });
+    }
   }
 
   // --- SYNTHWAVE THEME: 3D Perspective Horizon Grid & Floating Stardust ---
@@ -269,10 +328,13 @@ class AmbientBackgroundManager {
     const isPink = document.documentElement.classList.contains('pink');
     const isCRT = document.documentElement.classList.contains('crt');
     const isSynthwave = document.documentElement.classList.contains('synthwave');
+    const isSaaS = document.documentElement.classList.contains('saas');
 
     let targetMode = 'none';
     if (isAmbientEnabled) {
-      if (isSynthwave) {
+      if (isSaaS) {
+        targetMode = 'saas_aurora';
+      } else if (isSynthwave) {
         targetMode = 'synthwave_grid';
       } else if (isCRT) {
         targetMode = 'crt_raster';
@@ -292,7 +354,14 @@ class AmbientBackgroundManager {
 
     this.currentMode = targetMode;
 
-    if (targetMode === 'synthwave_grid') {
+    if (targetMode === 'saas_aurora') {
+      this.createSaaS();
+      this.start();
+      if (this.canvas) {
+        this.canvas.style.opacity = '1';
+        this.canvas.style.display = 'block';
+      }
+    } else if (targetMode === 'synthwave_grid') {
       this.createSynthwave();
       this.start();
       if (this.canvas) {
@@ -389,7 +458,52 @@ class AmbientBackgroundManager {
 
       this.ctx.clearRect(0, 0, this.width, this.height);
 
-      if (this.currentMode === 'synthwave_grid') {
+      if (this.currentMode === 'saas_aurora') {
+        // Render Modern SaaS Floating Indigo Aurora Mesh Orbs & Ambient Light
+        this.mouseX += (this.targetMouseX - this.mouseX) * 0.02;
+        this.mouseY += (this.targetMouseY - this.mouseY) * 0.02;
+        const offsetX = (this.mouseX - this.width / 2) * 0.08;
+        const offsetY = (this.mouseY - this.height / 2) * 0.08;
+
+        // 1. Soft Ambient Luminous Mesh Orbs
+        if (this.saasOrbs) {
+          for (let i = 0; i < this.saasOrbs.length; i++) {
+            const orb = this.saasOrbs[i];
+            orb.phase += 0.003;
+            const driftX = Math.sin(time * orb.speedX + orb.phase) * (this.width * 0.08);
+            const driftY = Math.cos(time * orb.speedY + orb.phase) * (this.height * 0.08);
+            const x = orb.baseX + driftX + offsetX;
+            const y = orb.baseY + driftY + offsetY;
+
+            const orbGrad = this.ctx.createRadialGradient(x, y, 0, x, y, orb.radius);
+            orbGrad.addColorStop(0, `rgba(${orb.color}, ${orb.alpha})`);
+            orbGrad.addColorStop(0.5, `rgba(${orb.color}, ${(orb.alpha * 0.4).toFixed(4)})`);
+            orbGrad.addColorStop(1, `rgba(${orb.color}, 0)`);
+
+            this.ctx.fillStyle = orbGrad;
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, orb.radius, 0, Math.PI * 2);
+            this.ctx.fill();
+          }
+        }
+
+        // 2. Floating Indigo Light Specks
+        if (this.saasSpecks) {
+          for (let i = 0; i < this.saasSpecks.length; i++) {
+            const sp = this.saasSpecks[i];
+            sp.y += sp.speedY;
+            if (sp.y < 0) sp.y = this.height;
+
+            const pulse = Math.sin(time * sp.pulseSpeed + sp.pulseOffset);
+            const alpha = Math.max(0.04, Math.min(0.28, sp.baseAlpha + pulse * 0.08));
+
+            this.ctx.fillStyle = `rgba(49, 94, 255, ${alpha.toFixed(3)})`;
+            this.ctx.beginPath();
+            this.ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2);
+            this.ctx.fill();
+          }
+        }
+      } else if (this.currentMode === 'synthwave_grid') {
         // Render 3D Perspective Neon Horizon Grid & Synthwave Stardust
         const horizonY = this.height * 0.60;
         const vanishX = this.width / 2;

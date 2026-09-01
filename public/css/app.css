@@ -146,6 +146,35 @@ html.synthwave {
   --btn-shadow: 0 0 12px rgba(255, 42, 133, 0.35);
 }
 
+html.saas {
+  /* Modern SaaS Glassmorphic Theme with #315EFF Highlight */
+  --bg-canvas: #090D16;
+  --bg-sidebar: #0D121F;
+  --bg-surface: #121829;
+  --bg-elevated: #182035;
+  --bg-input: #0E1424;
+  --bg-hover: #1E293B;
+  --bg-hover-subtle: rgba(49, 94, 255, 0.10);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-med: rgba(255, 255, 255, 0.14);
+  --border-active: #315EFF;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --btn-primary-bg: #315EFF;
+  --btn-primary-text: #FFFFFF;
+  --btn-primary-hover: #254BDB;
+  --code-bg: #070B14;
+  --code-text: #60A5FA;
+  --inline-code-bg: #151D30;
+  --badge-bg: rgba(49, 94, 255, 0.12);
+  --badge-border: rgba(49, 94, 255, 0.25);
+  --icon-invert: 0;
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --btn-border: 1px solid rgba(255, 255, 255, 0.2);
+  --btn-shadow: 0 0 20px rgba(49, 94, 255, 0.35);
+}
+
 @layer base {
   * {
     border-color: var(--border-subtle);
@@ -357,23 +386,26 @@ html.pink .bg-app-surface:hover {
   transform: translate(-1px, -1px);
 }
 
-/* Neo-Brutalist Inputs, Textarea, and Search Bars */
+/* Clean, Smooth Typing Areas for Pink Theme (No Wireframe Shadows) */
 html.pink input[type='text'],
 html.pink input[type='password'],
 html.pink input[type='search'],
 html.pink textarea,
-html.pink select {
-  border: 1.5px solid #231C18 !important;
-  box-shadow: 2px 2px 0px #231C18 !important;
+html.pink select,
+html.pink .prompt-input-wrapper {
+  border: 1.5px solid #E8DDCF !important;
+  box-shadow: none !important;
   background-color: #FFFFFF !important;
   color: #231C18 !important;
-  transition: all 0.12s ease !important;
+  border-radius: 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
 html.pink input:focus,
 html.pink textarea:focus,
-html.pink select:focus {
-  box-shadow: 3px 3px 0px #FF5DA2 !important;
-  border-color: #231C18 !important;
+html.pink select:focus,
+html.pink .prompt-input-wrapper:focus-within {
+  border-color: #FF5DA2 !important;
+  box-shadow: 0 0 0 3px rgba(255, 93, 162, 0.20) !important;
   outline: none !important;
 }
 
@@ -719,5 +751,109 @@ html.synthwave textarea {
 
 html.synthwave ::selection {
   background-color: #FF2A85;
+  color: #FFFFFF;
+}
+
+/* =========================================================
+   MODERN SAAS GLASSMORPHISM THEME ENHANCEMENTS (#315EFF)
+   ========================================================= */
+
+/* SaaS Frosted Glass Surfaces */
+html.saas .bg-app-surface {
+  background-color: rgba(18, 24, 41, 0.72) !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+html.saas .bg-app-elevated {
+  background-color: rgba(24, 32, 53, 0.65) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+}
+
+/* SaaS Glassmorphic Primary Buttons with Glow & Inner Highlight Bevel */
+html.saas .btn-primary {
+  background: linear-gradient(135deg, rgba(49, 94, 255, 0.95) 0%, rgba(37, 75, 219, 0.98) 100%) !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 0 0 20px rgba(49, 94, 255, 0.38), inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
+  font-weight: 600 !important;
+  backdrop-filter: blur(8px);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+html.saas .btn-primary:hover {
+  background: linear-gradient(135deg, #4470FF 0%, #315EFF 100%) !important;
+  box-shadow: 0 0 26px rgba(49, 94, 255, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.45) !important;
+  transform: translateY(-1px);
+}
+
+html.saas .btn-primary:active {
+  transform: translateY(1px);
+}
+
+/* SaaS Secondary Glass Buttons */
+html.saas button.border,
+html.saas .wireframe-btn {
+  background: rgba(255, 255, 255, 0.04) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  color: #F8FAFC !important;
+  transition: all 0.15s ease !important;
+}
+
+html.saas button.border:hover,
+html.saas .wireframe-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(49, 94, 255, 0.4) !important;
+  box-shadow: 0 0 12px rgba(49, 94, 255, 0.2) !important;
+}
+
+/* SaaS Modern Logo Filter - Electric Indigo Glow */
+html.saas .logo-img {
+  filter: invert(36%) sepia(85%) saturate(3000%) hue-rotate(215deg) brightness(1.2) drop-shadow(0 0 6px rgba(49, 94, 255, 0.6));
+}
+
+/* --- SaaS Theme Custom Precision Cursor: Electric Indigo with Soft Glow --- */
+html.saas,
+html.saas body,
+html.saas #app-root,
+html.saas div,
+html.saas p,
+html.saas span,
+html.saas h1,
+html.saas h2,
+html.saas h3,
+html.saas aside,
+html.saas nav,
+html.saas header {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M5.5 3.5C4.7 2.8 3.5 3.4 3.5 4.5V17.8C3.5 18.9 4.8 19.5 5.6 18.7L9.2 15.2C9.6 14.8 10.1 14.7 10.6 14.8L15.4 16.2C16.5 16.5 17.3 15.4 16.7 14.5L5.5 3.5Z' fill='%23315EFF' stroke='%23050811' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M6.2 6.8V14.2L8.8 11.7C9.3 11.2 10.1 11 10.8 11.2L13.2 11.9L6.2 6.8Z' fill='%2385A2FF' opacity='0.85' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 3 2, auto;
+}
+
+/* Interactive Clickable Elements: SaaS Pointer Cursor */
+html.saas button,
+html.saas a,
+html.saas [onclick],
+html.saas .cursor-pointer,
+html.saas input[type='button'],
+html.saas input[type='submit'],
+html.saas select,
+html.saas [role='button'],
+html.saas label {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26' fill='none'%3E%3Cpath d='M9.5 4C8.7 4 8 4.7 8 5.5V12.8L6.8 11.6C6.1 10.9 5 10.9 4.3 11.6C3.6 12.3 3.6 13.4 4.3 14.1L8.8 18.6C10.1 19.9 11.8 20.5 13.6 20.5H16.8C18.8 20.5 20.5 18.8 20.5 16.8V13.5C20.5 12.7 19.8 12 19 12C18.7 12 18.5 12.1 18.3 12.2C18 11.5 17.3 11 16.5 11C16.3 11 16.1 11 15.9 11.1C15.6 10.4 14.8 10 14 10C13.7 10 13.5 10.1 13.3 10.2V5.5C13.3 4.7 12.6 4 11.8 4C11.5 4 11.2 4.1 11 4.3C10.7 4.1 10.4 4 10.1 4H9.5Z' fill='%23315EFF' stroke='%23050811' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M9.5 6.5V11.5' stroke='%2385A2FF' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E") 9 3, pointer !important;
+}
+
+/* Text Selection and Input Cursors in SaaS Theme */
+html.saas input[type='text'],
+html.saas input[type='password'],
+html.saas input[type='search'],
+html.saas textarea {
+  cursor: text !important;
+}
+
+html.saas ::selection {
+  background-color: #315EFF;
   color: #FFFFFF;
 }
