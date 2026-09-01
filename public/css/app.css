@@ -1039,16 +1039,12 @@ html.saas .border-glow-card {
 
 /* Border Glow Layer Elements for active dark themes */
 html.dark .border-glow-card::before,
-html.dark .border-glow-card::after,
 html.dark .border-glow-card > .edge-light,
 html.crt .border-glow-card::before,
-html.crt .border-glow-card::after,
 html.crt .border-glow-card > .edge-light,
 html.synthwave .border-glow-card::before,
-html.synthwave .border-glow-card::after,
 html.synthwave .border-glow-card > .edge-light,
 html.saas .border-glow-card::before,
-html.saas .border-glow-card::after,
 html.saas .border-glow-card > .edge-light {
   content: "";
   position: absolute;
@@ -1061,22 +1057,18 @@ html.saas .border-glow-card > .edge-light {
 
 /* Hide glow on inactive hover */
 html.dark .border-glow-card:not(:hover):not(.sweep-active)::before,
-html.dark .border-glow-card:not(:hover):not(.sweep-active)::after,
 html.dark .border-glow-card:not(:hover):not(.sweep-active) > .edge-light,
 html.crt .border-glow-card:not(:hover):not(.sweep-active)::before,
-html.crt .border-glow-card:not(:hover):not(.sweep-active)::after,
 html.crt .border-glow-card:not(:hover):not(.sweep-active) > .edge-light,
 html.synthwave .border-glow-card:not(:hover):not(.sweep-active)::before,
-html.synthwave .border-glow-card:not(:hover):not(.sweep-active)::after,
 html.synthwave .border-glow-card:not(:hover):not(.sweep-active) > .edge-light,
 html.saas .border-glow-card:not(:hover):not(.sweep-active)::before,
-html.saas .border-glow-card:not(:hover):not(.sweep-active)::after,
 html.saas .border-glow-card:not(:hover):not(.sweep-active) > .edge-light {
   opacity: 0;
   transition: opacity 0.75s ease-in-out;
 }
 
-/* Colored mesh-gradient border */
+/* Colored mesh-gradient border (Edge Only) */
 html.dark .border-glow-card::before,
 html.crt .border-glow-card::before,
 html.synthwave .border-glow-card::before,
@@ -1112,37 +1104,6 @@ html.saas .border-glow-card::before {
       transparent calc((100 - var(--cone-spread) - 15) * 1%),
       black calc((100 - var(--cone-spread)) * 1%)
     );
-}
-
-/* Colored mesh-gradient background fill near edges */
-html.dark .border-glow-card::after,
-html.crt .border-glow-card::after,
-html.synthwave .border-glow-card::after,
-html.saas .border-glow-card::after {
-  border: 1px solid transparent;
-  background:
-    var(--gradient-one) padding-box,
-    var(--gradient-two) padding-box,
-    var(--gradient-three) padding-box,
-    var(--gradient-four) padding-box,
-    var(--gradient-five) padding-box,
-    var(--gradient-six) padding-box,
-    var(--gradient-seven) padding-box,
-    var(--gradient-base) padding-box;
-
-  mask-image:
-    linear-gradient(to bottom, black, black),
-    radial-gradient(ellipse at 50% 50%, black 40%, transparent 65%),
-    conic-gradient(from var(--cursor-angle) at center, transparent 5%, black 15%, black 85%, transparent 95%);
-  -webkit-mask-image:
-    linear-gradient(to bottom, black, black),
-    radial-gradient(ellipse at 50% 50%, black 40%, transparent 65%),
-    conic-gradient(from var(--cursor-angle) at center, transparent 5%, black 15%, black 85%, transparent 95%);
-
-  mask-composite: subtract, add;
-  -webkit-mask-composite: source-out;
-  opacity: calc(0.35 * (var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
-  mix-blend-mode: soft-light;
 }
 
 /* Outer Edge Light Glow Layer */
@@ -1190,10 +1151,8 @@ html.saas .border-glow-card > .edge-light::before {
 
 /* Light and Pink Themes: Standard Clean Borders without glow */
 html.light .border-glow-card::before,
-html.light .border-glow-card::after,
 html.light .border-glow-card > .edge-light,
 html.pink .border-glow-card::before,
-html.pink .border-glow-card::after,
 html.pink .border-glow-card > .edge-light {
   display: none !important;
 }
