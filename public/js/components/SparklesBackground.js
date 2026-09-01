@@ -112,15 +112,16 @@ class AmbientBackgroundManager {
       }
 
       float wave(vec2 uv, float offset) {
-        float time = u_time * 0.45;
+        float time = u_time * 0.40;
 
         float x_offset   = offset;
-        float x_movement = time * 0.12;
-        float amp        = sin(offset + time * 0.22) * 0.28;
+        float x_movement = time * 0.10;
+        float amp        = sin(offset + time * 0.18) * 0.26;
         float y          = sin(uv.x + x_offset + x_movement) * amp;
 
         float m = uv.y - y;
-        return 0.0175 / max(abs(m) + 0.01, 1e-3) + 0.01;
+        // Softened subtle falloff (eliminating harsh overbright core)
+        return 0.010 / (abs(m) + 0.024);
       }
 
       void main() {
@@ -141,7 +142,7 @@ class AmbientBackgroundManager {
           col += lineCol * wave(
             ruv + vec2(0.05 * fi + 2.0, -0.7),
             1.5 + 0.2 * fi
-          ) * 0.22;
+          ) * 0.16;
         }
 
         // Middle Waves
@@ -156,7 +157,7 @@ class AmbientBackgroundManager {
           col += lineCol * wave(
             ruv + vec2(0.05 * fi + 5.0, 0.0),
             2.0 + 0.15 * fi
-          ) * 0.75;
+          ) * 0.48;
         }
 
         // Top Waves
@@ -172,14 +173,14 @@ class AmbientBackgroundManager {
           col += lineCol * wave(
             ruv + vec2(0.05 * fi + 10.0, 0.5),
             1.0 + 0.2 * fi
-          ) * 0.18;
+          ) * 0.14;
         }
 
-        // Smooth atmospheric vignette
+        // Smooth atmospheric vignette and clamp peak exposure
         float vig = 1.0 - smoothstep(0.6, 1.8, length(baseUv));
         col *= vig;
 
-        gl_FragColor = vec4(col, clamp(length(col) * 1.2, 0.0, 1.0));
+        gl_FragColor = vec4(col, clamp(length(col) * 0.85, 0.0, 1.0));
       }
     `;
 
@@ -210,6 +211,67 @@ class AmbientBackgroundManager {
     }
 
     this.shaderProgram = program;
+
+    // Compile Dark Mode Celestial Aurora SideRays Shader Program
+    const auroraFsSource = `
+      precision highp float;
+      uniform vec2 u_resolution;
+      uniform float u_time;
+
+      float rayStrength(vec2 raySource, vec2 rayRefDirection, vec2 coord, float seedA, float seedB, float speed) {
+        vec2 sourceToCoord = coord - raySource;
+        float cosAngle = dot(normalize(sourceToCoord), rayRefDirection);
+        return clamp(
+          (0.45 + 0.15 * sin(cosAngle * seedA + u_time * speed)) +
+          (0.3 + 0.2 * cos(-cosAngle * seedB + u_time * speed)),
+          0.0, 1.0) *
+          clamp((u_resolution.x - length(sourceToCoord)) / u_resolution.x, 0.5, 1.0);
+      }
+
+      void main() {
+        vec2 fragCoord = gl_FragCoord.xy;
+        vec2 coord = vec2(fragCoord.x, u_resolution.y - fragCoord.y);
+        vec2 rayPos = vec2(u_resolution.x * 1.1, -0.5 * u_resolution.y);
+
+        vec2 rel = coord - rayPos;
+        vec2 tiltedCoord = rel + rayPos;
+
+        float halfSpread = 2.0 * 0.275;
+        vec2 rayRefDir1 = normalize(vec2(cos(0.785398 + halfSpread), sin(0.785398 + halfSpread)));
+        vec2 rayRefDir2 = normalize(vec2(cos(0.785398 - halfSpread), sin(0.785398 - halfSpread)));
+
+        vec3 rayColor1 = vec3(0.92, 0.70, 0.03); // #EAB308 Golden Amber
+        vec3 rayColor2 = vec3(0.59, 0.78, 1.0);  // #96C8FF Celestial Sky Blue
+
+        vec4 rays1 = vec4(rayColor1, 1.0) * rayStrength(rayPos, rayRefDir1, tiltedCoord, 36.2214, 21.11349, 1.2);
+        vec4 rays2 = vec4(rayColor2, 1.0) * rayStrength(rayPos, rayRefDir2, tiltedCoord, 22.3991, 18.0234, 0.35);
+
+        vec4 color = rays1 * 0.35 + rays2 * 0.65;
+
+        float distanceToLight = length(fragCoord.xy - vec2(rayPos.x, u_resolution.y - rayPos.y)) / u_resolution.y;
+        float brightness = 0.85 / pow(max(distanceToLight, 0.001), 1.4);
+        color.rgb *= brightness;
+
+        float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+        color.rgb = mix(vec3(gray), color.rgb, 1.4);
+
+        float vig = 1.0 - smoothstep(0.4, 1.4, length(coord / u_resolution.xy - 0.5) * 1.5);
+        color.rgb *= vig * 0.38;
+
+        gl_FragColor = vec4(color.rgb, clamp(length(color.rgb) * 1.5, 0.0, 1.0));
+      }
+    `;
+
+    const auroraFs = createShader(gl.FRAGMENT_SHADER, auroraFsSource);
+    if (auroraFs) {
+      const auroraProgram = gl.createProgram();
+      gl.attachShader(auroraProgram, vs);
+      gl.attachShader(auroraProgram, auroraFs);
+      gl.linkProgram(auroraProgram);
+      if (gl.getProgramParameter(auroraProgram, gl.LINK_STATUS)) {
+        this.auroraShaderProgram = auroraProgram;
+      }
+    }
 
     // Compile CRT FaultyTerminal Shader Program
     const crtFsSource = `
@@ -611,8 +673,9 @@ class AmbientBackgroundManager {
       } else if (isCRT) {
         targetMode = 'crt_raster';
       } else if (isDark) {
-        const darkStyle = (typeof appStore !== 'undefined' && appStore.state?.darkAmbientStyle) || localStorage.getItem('collab_dark_ambient') || 'matrix';
-        if (darkStyle === 'stars') targetMode = 'dark_stars';
+        const darkStyle = (typeof appStore !== 'undefined' && appStore.state?.darkAmbientStyle) || localStorage.getItem('collab_dark_ambient') || 'aurora';
+        if (darkStyle === 'aurora') targetMode = 'dark_aurora';
+        else if (darkStyle === 'stars') targetMode = 'dark_stars';
         else targetMode = 'dark_matrix';
       } else if (isLight) {
         targetMode = 'light_matrix';
@@ -640,6 +703,13 @@ class AmbientBackgroundManager {
           this.canvas.style.opacity = '1';
           this.canvas.style.display = 'block';
         }
+      }
+      this.start();
+    } else if (targetMode === 'dark_aurora') {
+      if (this.gl && this.auroraShaderProgram && this.webglCanvas) {
+        this.webglCanvas.style.display = 'block';
+        this.webglCanvas.style.opacity = '0.90';
+        if (this.canvas) this.canvas.style.display = 'none';
       }
       this.start();
     } else {
@@ -758,6 +828,23 @@ class AmbientBackgroundManager {
         const gl = this.gl;
         gl.viewport(0, 0, this.width, this.height);
         gl.useProgram(this.shaderProgram);
+
+        gl.enableVertexAttribArray(this.positionLocation);
+        gl.vertexAttribPointer(this.positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+        gl.uniform2f(this.resLocation, this.width, this.height);
+        gl.uniform1f(this.timeLocation, time * 0.001);
+
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        this.animationFrameId = requestAnimationFrame(render);
+        return;
+      }
+
+      if (this.currentMode === 'dark_aurora' && this.gl && this.auroraShaderProgram) {
+        // --- GPU WebGL Celestial Aurora SideRays ---
+        const gl = this.gl;
+        gl.viewport(0, 0, this.width, this.height);
+        gl.useProgram(this.auroraShaderProgram);
 
         gl.enableVertexAttribArray(this.positionLocation);
         gl.vertexAttribPointer(this.positionLocation, 2, gl.FLOAT, false, 0, 0);

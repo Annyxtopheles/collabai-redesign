@@ -169,9 +169,15 @@ function renderUserMenuContent() {
             </button>
           </div>
 
-          <!-- Multi-Style Ambient Pills for Dark Mode (Glyph Matrix, Stars) -->
+          <!-- Multi-Style Ambient Pills for Dark Mode (Aurora, Glyph Matrix, Stars) -->
           ${ambientEnabled && currentTheme === 'dark' ? `
-            <div class="grid grid-cols-2 gap-1 bg-app-input p-1 rounded-lg border border-app-borderSubtle text-[10px]">
+            <div class="grid grid-cols-3 gap-1 bg-app-input p-1 rounded-lg border border-app-borderSubtle text-[10px]">
+              <button 
+                onclick="selectDarkAmbient('aurora')"
+                class="flex items-center justify-center gap-1 py-1 rounded transition-all ${appStore.state.darkAmbientStyle === 'aurora' ? 'bg-app-surface text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
+                <i data-lucide="sun-dim" class="w-3 h-3 text-amber-400"></i>
+                <span class="truncate">Aurora</span>
+              </button>
               <button 
                 onclick="selectDarkAmbient('matrix')"
                 class="flex items-center justify-center gap-1 py-1 rounded transition-all ${appStore.state.darkAmbientStyle === 'matrix' ? 'bg-app-surface text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
@@ -181,7 +187,7 @@ function renderUserMenuContent() {
               <button 
                 onclick="selectDarkAmbient('stars')"
                 class="flex items-center justify-center gap-1 py-1 rounded transition-all ${appStore.state.darkAmbientStyle === 'stars' ? 'bg-app-surface text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
-                <i data-lucide="sparkles" class="w-3 h-3 text-amber-300"></i>
+                <i data-lucide="sparkles" class="w-3 h-3 text-cyan-300"></i>
                 <span class="truncate">Stars</span>
               </button>
             </div>

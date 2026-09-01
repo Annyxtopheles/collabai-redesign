@@ -11,9 +11,10 @@ const THEMES_CONFIG = [
     previewBorder: '#232A3B',
     previewText: '#E6EDF3',
     previewAccent: '#10B981',
-    ambientEffectName: 'Glyph Matrix & Stars',
-    ambientEffectDesc: 'Subtle stationary ASCII matrix or glittering pinpoint starfield',
+    ambientEffectName: 'Aurora, Matrix & Stars',
+    ambientEffectDesc: 'Volumetric celestial aurora rays, cyber ASCII matrix, or pinpoint starfield',
     ambientStyles: [
+      { id: 'aurora', name: 'Celestial Aurora', icon: 'sun-dim', desc: 'Volumetric golden amber and sky blue celestial side rays' },
       { id: 'matrix', name: 'Glyph Matrix', icon: 'binary', desc: 'Stationary cyber ASCII symbol grid with breathing glow' },
       { id: 'stars', name: 'Starfield', icon: 'sparkles', desc: 'Pinpoint glittering stars gently twinkling in deep space' }
     ]
