@@ -77,140 +77,499 @@ class AmbientBackgroundManager {
     }
     this.webglCanvas = glCanvas;
 
-    const gl = glCanvas.getContext('webgl', { alpha: true, antialias: true, premultipliedAlpha: false });
+    const gl = glCanvas.getContext('webgl2', { alpha: true, antialias: true, premultipliedAlpha: false }) || glCanvas.getContext('webgl', { alpha: true, antialias: true, premultipliedAlpha: false });
     if (!gl) return false;
     this.gl = gl;
+    this.instancedExt = gl.getExtension('ANGLE_instanced_arrays');
+    this.vao = gl.createVertexArray ? gl.createVertexArray() : null;
 
-    const vsSource = `
-      attribute vec2 position;
-      void main() {
-        gl_Position = vec4(position, 0.0, 1.0);
-      }
-    `;
-
-    const fsSource = `
+    const vsAeroShards = `#version 300 es
       precision highp float;
-      uniform vec2 u_resolution;
-      uniform float u_time;
-      uniform vec2 u_mouse;
 
-      // SaaS Signature Palette: Royal Indigo, Indigo Violet, Sky Cyan, Pearl White
-      const vec3 COLOR_NAVY      = vec3(0.04, 0.07, 0.16); // #0A1229
-      const vec3 COLOR_INDIGO    = vec3(0.19, 0.37, 1.00); // #315EFF
-      const vec3 COLOR_VIOLET    = vec3(0.39, 0.40, 0.95); // #6366F1
-      const vec3 COLOR_CYAN      = vec3(0.22, 0.74, 0.97); // #38BDF8
-      const vec3 COLOR_PEARL     = vec3(0.94, 0.97, 1.00); // #F0F8FF
+      uniform vec4 u_viewport;     // [aspect, shardWorldSize, renderScale, flowDistance]
+      uniform vec4 u_shape;        // [spread, depth, turbulence, pointerShiftY]
+      uniform vec4 u_effects;      // [spin, edgeSoftness, stretch, exposure]
+      uniform vec4 u_composition;  // [right, left, center, full]
+      uniform vec4 u_transport;    // [travelPhase, seamTaper, 0, 0]
+      uniform vec4 u_formation;    // [stream, vortex, ribbon, 0]
+      uniform vec4 u_gather;       // [pointerWorldX, pointerWorldY, holdAmount, holdPhase]
+      uniform vec4 u_pointer;      // [pointerWorldX, pointerWorldY, radius, presence]
+      uniform vec4 u_material;     // [roughness, materialKind, brightness, glow]
+      uniform vec4 u_light;        // [lightX, lightY, lightZ, pointerShiftX]
+      uniform vec4 u_environment;  // [lightSurface, 0, 0, 0]
+      uniform vec4 u_baseColor;
+      uniform vec4 u_highlightColor;
+      uniform vec4 u_accentColor;
 
-      mat2 rot(float a) {
-        float c = cos(a);
-        float s = sin(a);
-        return mat2(c, -s, s, c);
+      out vec4 v_baseAlpha;
+      out vec3 v_creaseColor;
+      out vec2 v_localCoord;
+
+      uint hashU32(uint value) {
+        uint state = value * 747796405u + 2891336453u;
+        uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+        return (word >> 22u) ^ word;
       }
 
-      float hash12(vec2 p) {
-        vec3 p3 = fract(vec3(p.xyx) * 0.1031);
-        p3 += dot(p3, p3.yzx + 33.33);
-        return fract((p3.x + p3.y) * p3.z);
+      float unitFloat(uint value) {
+        return float(hashU32(value)) * (1.0 / 4294967296.0);
       }
 
-      vec3 aces(vec3 x) {
-        float a = 2.51;
-        float b = 0.03;
-        float c = 2.43;
-        float d = 0.59;
-        float e = 0.14;
-        return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+      vec3 safeNormalize(vec3 value) {
+        return value / max(length(value), 0.0001);
       }
 
-      void main() {
-        vec2 uv = (gl_FragCoord.xy * 2.0 - u_resolution.xy) / min(u_resolution.x, u_resolution.y);
-        uv.y *= -1.0;
-        float t = u_time * 0.28;
+      vec2 safeNormalize2(vec2 value) {
+        return value / max(length(value), 0.0001);
+      }
 
-        // Subtle interactive mouse perspective
-        vec2 mouseShift = (u_mouse - 0.5) * 0.25;
-        vec3 ro = vec3(mouseShift, -3.2);
-        vec3 rd = normalize(vec3(uv, 1.75));
+      float cubic(float p0, float p1, float p2, float p3, float t) {
+        float oneMinusT = 1.0 - t;
+        return oneMinusT * oneMinusT * oneMinusT * p0
+          + 3.0 * oneMinusT * oneMinusT * t * p1
+          + 3.0 * oneMinusT * t * t * p2
+          + t * t * t * p3;
+      }
 
-        vec3 col = vec3(0.0);
+      float cubicDerivative(float p0, float p1, float p2, float p3, float t) {
+        float oneMinusT = 1.0 - t;
+        return 3.0 * oneMinusT * oneMinusT * (p1 - p0)
+          + 6.0 * oneMinusT * t * (p2 - p1)
+          + 3.0 * t * t * (p3 - p2);
+      }
 
-        // Procedural stream of 56 faceted AeroShards along a multi-octave ribbon path
-        for (int i = 0; i < 56; i++) {
-          float fi = float(i);
-          float seed = hash12(vec2(fi, 17.38));
-          float seedLane = hash12(vec2(fi, 43.19)) * 2.0 - 1.0;
-          float seedDepth = hash12(vec2(fi, 89.91));
+      float sideArc(float phase) {
+        float lookup[32] = float[32](
+          0.000000, 0.052475, 0.097829, 0.135121, 0.166845, 0.195164, 0.221458, 0.246639,
+          0.271368, 0.296184, 0.321577, 0.348019, 0.375973, 0.405832, 0.437746, 0.471327,
+          0.505474, 0.538781, 0.570323, 0.599945, 0.628000, 0.655048, 0.681734, 0.708795,
+          0.737169, 0.768244, 0.804295, 0.848010, 0.894805, 0.935083, 0.969270, 1.000000
+        );
+        float scaled = clamp(phase, 0.0, 0.999999) * 31.0;
+        int index = int(floor(scaled));
+        if (index > 30) index = 30;
+        return mix(lookup[index], lookup[index + 1], fract(scaled));
+      }
 
-          // Continuous path parameter with looping phase
-          float pathPhase = fract(seed + t * 0.065);
-          float pathAngle = pathPhase * 6.2831853;
+      float centerArc(float phase) {
+        float lookup[32] = float[32](
+          0.000000, 0.028692, 0.059794, 0.096620, 0.140315, 0.179839, 0.212476, 0.241834,
+          0.270282, 0.299332, 0.329968, 0.362347, 0.395341, 0.427241, 0.457283, 0.485900,
+          0.514192, 0.543773, 0.577230, 0.618093, 0.661144, 0.696770, 0.727388, 0.756064,
+          0.784657, 0.814415, 0.845979, 0.878880, 0.911508, 0.942489, 0.971712, 1.000000
+        );
+        float scaled = clamp(phase, 0.0, 0.999999) * 31.0;
+        int index = int(floor(scaled));
+        if (index > 30) index = 30;
+        return mix(lookup[index], lookup[index + 1], fract(scaled));
+      }
 
-          // 3D Stream Bezier Curve trajectory
-          float pathX = sin(pathAngle) * 1.65 + sin(pathAngle * 2.0) * 0.45 + seedLane * 0.38;
-          float pathY = cos(pathAngle * 1.5) * 0.78 + sin(t * 0.4 + seed * 6.28) * 0.20;
-          float pathZ = mix(-1.4, 2.6, pathPhase) + (seedDepth - 0.5) * 0.5;
+      float fullArc(float phase) {
+        float lookup[32] = float[32](
+          0.000000, 0.028092, 0.055939, 0.083892, 0.112291, 0.141449, 0.171637, 0.203033,
+          0.235650, 0.269282, 0.303537, 0.337982, 0.372308, 0.406392, 0.440263, 0.474026,
+          0.507794, 0.541636, 0.575553, 0.609470, 0.643257, 0.676761, 0.709855, 0.742465,
+          0.774594, 0.806319, 0.837790, 0.869218, 0.900862, 0.933020, 0.965991, 1.000000
+        );
+        float scaled = clamp(phase, 0.0, 0.999999) * 31.0;
+        int index = int(floor(scaled));
+        if (index > 30) index = 30;
+        return mix(lookup[index], lookup[index + 1], fract(scaled));
+      }
 
-          vec3 shardPos = vec3(pathX, pathY, pathZ);
-          vec3 shardScale = vec3(0.09, 0.24, 0.035) * (0.65 + 0.65 * seed);
+      float mobileArc(float phase) {
+        float lookup[32] = float[32](
+          0.000000, 0.028885, 0.057970, 0.087431, 0.117400, 0.147935, 0.179017, 0.210560,
+          0.242467, 0.274689, 0.307272, 0.340367, 0.374193, 0.408970, 0.444794, 0.481483,
+          0.518517, 0.555206, 0.591030, 0.625807, 0.659633, 0.692728, 0.725311, 0.757533,
+          0.789440, 0.820983, 0.852065, 0.882600, 0.912569, 0.942030, 0.971115, 1.000000
+        );
+        float scaled = clamp(phase, 0.0, 0.999999) * 31.0;
+        int index = int(floor(scaled));
+        if (index > 30) index = 30;
+        return mix(lookup[index], lookup[index + 1], fract(scaled));
+      }
 
-          // Fast ray-sphere bounding test
-          vec3 toShard = shardPos - ro;
-          float proj = dot(toShard, rd);
-          if (proj > 0.0 && proj < 6.5) {
-            vec3 closestPoint = ro + rd * proj;
-            float dist = length(closestPoint - shardPos);
-            float boundRadius = length(shardScale) * 1.8;
+      struct PathSample {
+        vec3 position;
+        vec3 tangent;
+        float phase;
+      };
 
-            if (dist < boundRadius) {
-              // 3D Faceted Diamond Normals with Roll Rotation
-              float roll = pathPhase * 14.0 + seed * 6.28;
-              vec3 localOffset = closestPoint - shardPos;
-              localOffset.xz *= rot(roll);
-              localOffset.xy *= rot(roll * 0.4);
+      PathSample sidePath(float seedPhase, float distance, float aspect, float mirror) {
+        const float pi = 3.14159265359;
+        float pathLength = 2.65 + 0.61 * aspect + 0.09 * aspect * aspect;
+        float phase = fract(seedPhase + distance / pathLength);
+        float t = sideArc(phase);
+        float x = cubic(1.24, 1.02, -0.28, 0.12, t) + sin(t * pi * 4.0 + 0.34) * 0.055;
+        float y = cubic(1.38, 0.72, -0.56, -1.38, t) + sin(t * pi * 2.0 - 0.6) * 0.04;
+        float z = sin(t * pi * 3.0) * 0.18;
+        vec3 derivative = vec3(
+          mirror * aspect * (
+            cubicDerivative(1.24, 1.02, -0.28, 0.12, t)
+              + cos(t * pi * 4.0 + 0.34) * pi * 4.0 * 0.055
+          ),
+          cubicDerivative(1.38, 0.72, -0.56, -1.38, t)
+            + cos(t * pi * 2.0 - 0.6) * pi * 2.0 * 0.04,
+          cos(t * pi * 3.0) * pi * 3.0 * 0.18
+        );
+        PathSample s;
+        s.position = vec3(mirror * aspect * x, y, z);
+        s.tangent = safeNormalize(derivative);
+        s.phase = phase;
+        return s;
+      }
 
-              // Calculate facet normal based on diamond ridge crease
-              float facetSign = localOffset.x > 0.0 ? 1.0 : -1.0;
-              vec3 facetNormal = normalize(vec3(facetSign * 0.42, localOffset.y * 0.15, 0.90));
-              facetNormal.xy *= rot(-roll * 0.4);
-              facetNormal.xz *= rot(-roll);
+      PathSample centerPath(float seedPhase, float distance, float aspect) {
+        const float pi = 3.14159265359;
+        float pathLength = 2.3 + 2.0 * aspect + 0.35 * aspect * aspect;
+        float phase = fract(seedPhase + distance / pathLength);
+        float t = centerArc(phase);
+        float angle = mix(-0.25 * pi, 1.75 * pi, t);
+        float angleDerivative = 2.0 * pi;
+        float radius = 0.72 + sin(t * pi * 4.0) * 0.12;
+        float radiusDerivative = cos(t * pi * 4.0) * pi * 4.0 * 0.12;
+        vec3 derivative = vec3(
+          aspect * (
+            -sin(angle) * angleDerivative * radius
+              + cos(angle) * radiusDerivative
+          ),
+          cos(angle) * angleDerivative * radius
+            + sin(angle) * radiusDerivative,
+          cos(t * pi * 2.0) * pi * 2.0 * 0.16
+        );
+        PathSample s;
+        s.position = vec3(
+          cos(angle) * radius * aspect,
+          sin(angle) * radius,
+          sin(t * pi * 2.0) * 0.16
+        );
+        s.tangent = safeNormalize(derivative);
+        s.phase = phase;
+        return s;
+      }
 
-              // Lighting vectors
-              vec3 viewDir = -rd;
-              vec3 lightDir = normalize(vec3(-0.40, 0.60, -0.68));
-              vec3 halfDir = normalize(lightDir + viewDir);
+      PathSample fullPath(float seedPhase, float distance, float aspect) {
+        const float pi = 3.14159265359;
+        float pathWidth = 2.44 * aspect;
+        float pathLength = sqrt(pathWidth * pathWidth + 5.0);
+        float phase = fract(seedPhase + distance / pathLength);
+        float t = fullArc(phase);
+        vec3 derivative = vec3(
+          aspect * 2.44,
+          cos((t * 1.72 - 0.2) * pi) * 1.72 * pi * 0.54
+            + cos(t * pi * 3.0) * pi * 3.0 * 0.12,
+          -sin(t * pi * 2.0 - 0.7) * pi * 2.0 * 0.22
+        );
+        PathSample s;
+        s.position = vec3(
+          mix(-aspect * 1.22, aspect * 1.22, t),
+          sin((t * 1.72 - 0.2) * pi) * 0.54 + sin(t * pi * 3.0) * 0.12,
+          cos(t * pi * 2.0 - 0.7) * 0.22
+        );
+        s.tangent = safeNormalize(derivative);
+        s.phase = phase;
+        return s;
+      }
 
-              // Facet shading, specular highlight, and Fresnel rim
-              float diffuse = max(dot(facetNormal, lightDir), 0.0);
-              float specular = pow(max(dot(facetNormal, halfDir), 0.0), 28.0);
-              float fresnel = pow(1.0 - max(dot(facetNormal, viewDir), 0.0), 3.0);
-              float ridgeCrease = 1.0 - smoothstep(0.0, 0.05, abs(localOffset.x));
+      PathSample mobilePath(float seedPhase, float distance, float aspect) {
+        const float pi = 3.14159265359;
+        float pathWidth = 2.56 * aspect;
+        float pathLength = sqrt(pathWidth * pathWidth + 1.0);
+        float phase = fract(seedPhase + distance / pathLength);
+        float t = mobileArc(phase);
+        vec3 derivative = vec3(
+          aspect * 2.56,
+          cos(t * pi) * pi * 0.28 + cos(t * pi * 3.0) * pi * 3.0 * 0.06,
+          -sin(t * pi * 2.0) * pi * 2.0 * 0.16
+        );
+        PathSample s;
+        s.position = vec3(
+          mix(-aspect * 1.28, aspect * 1.28, t),
+          -0.86 + sin(t * pi) * 0.28 + sin(t * pi * 3.0) * 0.06,
+          cos(t * pi * 2.0) * 0.16
+        );
+        s.tangent = safeNormalize(derivative);
+        s.phase = phase;
+        return s;
+      }
 
-              // Material Palette Layering (Satin Pearl, Royal Indigo, Sky Cyan)
-              vec3 baseShardCol = mix(COLOR_INDIGO, COLOR_VIOLET, seed);
-              vec3 shardCol = baseShardCol * (0.25 + diffuse * 0.45);
-              shardCol += COLOR_CYAN * (fresnel * 0.60 + ridgeCrease * 0.35);
-              shardCol += COLOR_PEARL * (specular * 1.25 + ridgeCrease * 0.70);
+      PathSample weightedPath(float seedPhase, float phaseOffset, float aspect, vec4 weights) {
+        float phase = fract(seedPhase + phaseOffset);
+        PathSample result;
+        result.position = vec3(0.0);
+        result.tangent = vec3(0.0);
+        result.phase = phase;
 
-              // Smooth edge coverage and depth fog
-              float coverage = smoothstep(boundRadius, boundRadius * 0.15, dist);
-              float depthFog = smoothstep(6.0, 0.6, proj);
-
-              col += shardCol * coverage * depthFog * 0.48;
-            }
+        if (aspect < 0.82) {
+          float compactWeight = weights.x + weights.y + weights.z;
+          if (compactWeight > 0.0001) {
+            PathSample compact = mobilePath(phase, 0.0, aspect);
+            result.position += compact.position * compactWeight;
+            result.tangent += compact.tangent * compactWeight;
+          }
+          if (weights.w > 0.0001) {
+            PathSample wide = fullPath(phase, 0.0, aspect);
+            result.position += wide.position * weights.w;
+            result.tangent += wide.tangent * weights.w;
+          }
+        } else {
+          if (weights.x > 0.0001) {
+            PathSample right = sidePath(phase, 0.0, aspect, 1.0);
+            result.position += right.position * weights.x;
+            result.tangent += right.tangent * weights.x;
+          }
+          if (weights.y > 0.0001) {
+            PathSample left = sidePath(phase, 0.0, aspect, -1.0);
+            result.position += left.position * weights.y;
+            result.tangent += left.tangent * weights.y;
+          }
+          if (weights.z > 0.0001) {
+            PathSample center = centerPath(phase, 0.0, aspect);
+            result.position += center.position * weights.z;
+            result.tangent += center.tangent * weights.z;
+          }
+          if (weights.w > 0.0001) {
+            PathSample wide = fullPath(phase, 0.0, aspect);
+            result.position += wide.position * weights.w;
+            result.tangent += wide.tangent * weights.w;
           }
         }
 
-        // Soft Volumetric Ambient Shard Atmosphere & Glow
-        float flowWave = sin(uv.x * 2.2 + t * 0.5) * cos(uv.y * 2.2 - t * 0.35);
-        vec3 ambientGlow = mix(COLOR_INDIGO * 0.12, COLOR_CYAN * 0.16, uv.y * 0.5 + 0.5) * (0.35 + 0.15 * flowWave);
-        col += ambientGlow;
+        result.tangent = safeNormalize(result.tangent + vec3(0.0001, 0.0, 0.0));
+        return result;
+      }
 
-        // Soft Vignette and Tone-mapping
-        float vig = 1.0 - smoothstep(0.55, 1.85, length(uv));
-        col *= vig;
-        col = aces(col * 1.12);
+      vec2 pointerField(vec2 delta, float radius, vec2 flow, float depth) {
+        vec2 offset = delta / max(radius, 0.001);
+        float along = dot(offset, flow);
+        float across = dot(offset, vec2(-flow.y, flow.x));
+        float alongSquared = along * along;
+        float layer = depth * inversesqrt(1.0 + depth * depth);
+        float bend = (0.22 * alongSquared + 0.12 * layer * along) / (1.0 + alongSquared);
+        float curvedAcross = (across + bend) / (1.0 + layer * 0.18);
+        float falloff = exp(-0.28 * alongSquared - 1.2 * curvedAcross * curvedAcross);
+        return offset * falloff;
+      }
 
-        gl_FragColor = vec4(col, clamp(length(col) * 1.25, 0.0, 1.0));
+      vec3 shardVertex(uint index) {
+        const float fold = 0.34;
+        vec3 vertices[6] = vec3[6](
+          vec3(0.0, 1.0, fold),
+          vec3(-0.72, 0.0, 0.0),
+          vec3(0.0, -1.0, fold),
+          vec3(0.0, 1.0, fold),
+          vec3(0.0, -1.0, fold),
+          vec3(0.72, 0.0, 0.0)
+        );
+        return vertices[index % 6u];
+      }
+
+      float softbox(vec3 direction, vec2 center, vec2 size) {
+        vec2 q = abs((direction.xy - center) / size);
+        vec2 q2 = q * q;
+        vec2 q4 = q2 * q2;
+        return exp(-(q4.x + q4.y));
+      }
+
+      vec3 aces(vec3 color) {
+        const float a = 2.51;
+        const float b = 0.03;
+        const float c = 2.43;
+        const float d = 0.59;
+        const float e = 0.14;
+        return clamp((color * (a * color + b)) / (color * (c * color + d) + e), vec3(0.0), vec3(1.0));
+      }
+
+      void main() {
+        uint vertexIndex = uint(gl_VertexID);
+        uint instanceIndex = uint(gl_InstanceID);
+
+        float seedPhase = unitFloat(instanceIndex * 1664525u + 1013904223u);
+        float seedLane = unitFloat(instanceIndex * 2246822519u + 3266489917u);
+        float seedDepth = unitFloat(instanceIndex * 668265263u + 374761393u);
+        float seedScale = unitFloat(instanceIndex * 1597334677u + 3812015801u);
+
+        float aspect = u_viewport.x;
+        PathSample path = weightedPath(seedPhase, u_transport.x, aspect, u_composition);
+        vec3 direction = path.tangent;
+        vec2 planarNormal = safeNormalize2(vec2(-direction.y, direction.x));
+
+        float signedLane = seedLane * 2.0 - 1.0;
+        float lane = sign(signedLane) * pow(abs(signedLane), 0.72);
+        float widthProfile = 0.46 + pow(max(sin(path.phase * 3.14159265359), 0.0), 0.72) * 0.54;
+        float looseSeed = unitFloat(instanceIndex * 3266489917u + 668265263u);
+        float loose = smoothstep(0.92, 1.0, looseSeed);
+        float flowWave = sin(path.phase * 37.6991118431 + seedDepth * 12.0);
+        float laneWidth = (lane * 0.56 + flowWave * 0.055 * u_shape.z) * u_shape.x
+          * widthProfile * (1.0 + loose * 0.72);
+        float depthLane = (seedDepth * 2.0 - 1.0) * u_shape.y
+          + cos(path.phase * 31.4159265359 + seedLane * 8.0) * 0.06 * u_shape.z;
+        vec3 renderPosition = path.position + vec3(planarNormal * laneWidth, depthLane);
+
+        if (u_formation.y + u_formation.z > 0.00001) {
+          vec2 center = vec2((u_composition.x - u_composition.y) * aspect * 0.56, 0.0);
+          vec3 formedPosition = renderPosition * u_formation.x;
+          vec3 formedDirection = direction * u_formation.x;
+          if (u_formation.y > 0.00001) {
+            float radius = 0.16 + sqrt(seedLane) * 0.74 * (0.45 + u_shape.x * 0.55);
+            float angle = seedPhase * 6.28318530718 + u_viewport.w / radius;
+            vec2 radial = vec2(cos(angle), sin(angle));
+            vec3 pos = vec3(center + radial * radius, (seedDepth - 0.5) * u_shape.y * 0.65 + radial.y * 0.2);
+            formedPosition += pos * u_formation.y;
+            formedDirection += safeNormalize(vec3(-radial.y, radial.x, radial.x * 0.2)) * u_formation.y;
+          }
+          if (u_formation.z > 0.00001) {
+            float phase = fract(seedPhase + u_viewport.w / (aspect * 3.0 + 2.0));
+            float angle = phase * 6.28318530718;
+            float ribbonWidth = (seedLane - 0.5) * 0.54 * u_shape.x;
+            vec3 pos = vec3(
+              mix(-aspect * 1.35, aspect * 1.35, phase) + center.x * 0.5,
+              sin(angle) * 0.42 + cos(angle * 2.0) * ribbonWidth,
+              (cos(angle) * 0.35 + sin(angle * 2.0) * ribbonWidth + (seedDepth - 0.5) * 0.12) * u_shape.y
+            );
+            vec3 tangent = safeNormalize(vec3(aspect * 2.7, cos(angle) * 2.638938, -sin(angle) * 2.199115 * u_shape.y));
+            formedPosition += pos * u_formation.z;
+            formedDirection += tangent * u_formation.z;
+          }
+          renderPosition = formedPosition;
+          direction = safeNormalize(formedDirection + vec3(0.0, 0.0, 0.02 * u_formation.x * (1.0 - u_formation.x)));
+          planarNormal = safeNormalize2(vec2(-direction.y, direction.x));
+        }
+
+        if (abs(u_pointer.w) > 0.0001) {
+          vec2 field = pointerField(
+            u_pointer.xy - renderPosition.xy,
+            u_pointer.z,
+            vec2(planarNormal.y, -planarNormal.x),
+            renderPosition.z
+          );
+          vec2 lateral = field - direction.xy * dot(field, direction.xy);
+          renderPosition += vec3(lateral * u_pointer.w * 0.36, 0.0);
+          direction = safeNormalize(vec3(direction.xy + lateral * u_pointer.w * 0.65, direction.z));
+        }
+
+        vec3 shapeLocal = shardVertex(vertexIndex);
+        vec3 local = shapeLocal;
+        local.x *= mix(0.72, 1.08, seedLane);
+        local.y *= mix(0.82, 1.12, seedDepth);
+        local.x += (seedDepth - 0.5) * (1.0 - abs(local.y)) * 0.16;
+
+        vec3 side = cross(vec3(0.0, 0.0, 1.0), direction);
+        float sideLengthSquared = dot(side, side);
+        if (sideLengthSquared > 0.0001) {
+          side *= inversesqrt(sideLengthSquared);
+        } else {
+          side = vec3(1.0, 0.0, 0.0);
+        }
+        vec3 facing = cross(direction, side);
+        float rollDirection = mix(-1.5, 1.7, seedDepth);
+        float roll = seedLane * 6.28318530718 + u_viewport.w * rollDirection * u_effects.x * 2.4;
+        float rollSin = sin(roll);
+        float rollCos = cos(roll);
+        vec3 bankedSide = side * rollCos + facing * rollSin;
+        vec3 bankedFacing = facing * rollCos - side * rollSin;
+        float depthScale = mix(0.56, 1.58, clamp(renderPosition.z * 0.62 + 0.5, 0.0, 1.0));
+        float scaleShape = 0.46 + seedScale * 0.58 + pow(seedScale, 12.0) * 1.55;
+        float size = u_viewport.y * scaleShape * depthScale * (1.0 - u_gather.z * 0.3);
+        float width = size * 0.72;
+        float lengthScale = size * 1.26 * u_effects.z;
+        vec3 world = renderPosition
+          + direction * local.y * lengthScale
+          + bankedSide * local.x * width
+          + bankedFacing * local.z * width;
+
+        float perspective = 1.0 / max(0.62, 1.0 - world.z * 0.34);
+        vec2 ndc = world.xy * u_viewport.z / vec2(aspect, 1.0) * perspective;
+        float depth = clamp(0.56 - world.z * 0.24, 0.03, 0.97);
+        uint triangle = vertexIndex / 3u;
+        uint corner = vertexIndex % 3u;
+        vec3 mapped = vec3(0.0);
+        vec3 mappedCrease = vec3(0.0);
+        float shardAlpha = 0.0;
+
+        if (corner == 0u) {
+          float facetSide = (triangle == 1u) ? 1.0 : -1.0;
+          vec3 localNormal = vec3(facetSide * 0.394903, 0.0, 0.918723);
+          vec3 normal = bankedSide * localNormal.x + bankedFacing * localNormal.z;
+          vec3 viewDirection = normalize(vec3(-renderPosition.xy * 0.08, 1.0));
+          vec2 pointerShift = vec2(u_light.w, u_shape.w);
+          vec3 keyDirection = u_light.xyz;
+          vec3 halfDirection = normalize(keyDirection + viewDirection);
+          float roughness = clamp(u_material.x, 0.04, 0.96);
+          float materialKind = u_material.y;
+          float glow = u_material.w;
+          vec3 reflection = reflect(-viewDirection, normal);
+          float broad = softbox(
+            reflection,
+            vec2(-0.34, 0.28) + pointerShift * 0.36,
+            vec2(0.52, 0.22) + roughness * 0.3
+          );
+          float strip = softbox(
+            reflection,
+            vec2(0.48, -0.08) - pointerShift * 0.2,
+            vec2(0.12, 0.72)
+          );
+          float diffuse = max(dot(normal, keyDirection), 0.0);
+          float specularPower = mix(92.0, 9.0, roughness);
+          float specular = pow(max(dot(normal, halfDirection), 0.0), specularPower);
+          float fresnelBase = 1.0 - max(dot(normal, viewDirection), 0.0);
+          float fresnelSquared = fresnelBase * fresnelBase;
+          float fresnel = fresnelSquared * fresnelSquared;
+          float facet = mix(0.76, 1.0, smoothstep(-0.08, 0.08, normal.x));
+          float depthFog = smoothstep(-0.68, 0.58, renderPosition.z);
+          vec3 depthTint = mix(u_accentColor.rgb * 0.52, u_baseColor.rgb, depthFog);
+          vec3 color = depthTint * (0.1 + diffuse * 0.3) * facet;
+          color += u_highlightColor.rgb * (broad * mix(0.3, 0.86, 1.0 - roughness)) * (1.0 + glow * 0.14);
+          color += u_accentColor.rgb * strip * (0.12 + fresnel * 0.42);
+          color += u_highlightColor.rgb * specular * mix(0.82, 1.0, seedDepth);
+          color += mix(u_baseColor.rgb, u_accentColor.rgb, seedLane) * fresnel * (0.15 + glow * 0.16);
+          color += u_accentColor.rgb * (broad * 0.045 + fresnel * 0.075) * glow;
+          vec3 creaseCol = color + u_highlightColor.rgb * (0.08 + specular * 0.22);
+
+          float fill = (0.38 + diffuse * 0.12) * facet * u_environment.x;
+          color += mix(u_accentColor.rgb, u_baseColor.rgb, depthFog) * fill;
+          creaseCol += mix(u_accentColor.rgb, u_baseColor.rgb, depthFog) * fill;
+
+          float fog = mix(0.42, 1.0, depthFog);
+          float exposure = fog * u_material.z * u_effects.w;
+          mapped = aces(color * exposure);
+          mappedCrease = aces(creaseCol * exposure);
+          shardAlpha = mix(0.58, 0.97, depthFog);
+          float seam = smoothstep(0.0, 0.035, path.phase) * (1.0 - smoothstep(0.965, 1.0, path.phase));
+          shardAlpha *= mix(1.0, seam, u_transport.y * u_formation.x * (1.0 - u_gather.z));
+        }
+
+        gl_Position = vec4(ndc, depth, 1.0);
+        v_baseAlpha = vec4(mapped, shardAlpha);
+        v_creaseColor = mappedCrease - mapped;
+        v_localCoord = shapeLocal.xy;
+      }
+    `;
+
+    const fsAeroShards = `#version 300 es
+      precision highp float;
+
+      uniform vec4 u_effects; // [spin, edgeSoftness, stretch, exposure]
+
+      in vec4 v_baseAlpha;
+      in vec3 v_creaseColor;
+      in vec2 v_localCoord;
+
+      out vec4 fragColor;
+
+      void main() {
+        float crease = (1.0 - smoothstep(0.015, 0.11, abs(v_localCoord.x)))
+          * (1.0 - smoothstep(0.78, 1.0, abs(v_localCoord.y)));
+        float coverage = 1.0;
+        if (u_effects.y > 0.001) {
+          float diamondDistance = 1.0 - abs(v_localCoord.y) - abs(v_localCoord.x) / 0.72;
+          float edgeWidth = max(fwidth(diamondDistance) * u_effects.y, 0.0001);
+          coverage = smoothstep(0.0, edgeWidth, diamondDistance);
+        }
+        vec3 mapped = v_baseAlpha.rgb + v_creaseColor * crease;
+        float coveredAlpha = v_baseAlpha.a * coverage;
+        fragColor = vec4(mapped * coveredAlpha, coveredAlpha);
       }
     `;
 
@@ -226,8 +585,8 @@ class AmbientBackgroundManager {
       return shader;
     };
 
-    const vs = createShader(gl.VERTEX_SHADER, vsSource);
-    const fs = createShader(gl.FRAGMENT_SHADER, fsSource);
+    const vs = createShader(gl.VERTEX_SHADER, vsAeroShards);
+    const fs = createShader(gl.FRAGMENT_SHADER, fsAeroShards);
     if (!vs || !fs) return false;
 
     const saasProgram = gl.createProgram();
@@ -236,16 +595,27 @@ class AmbientBackgroundManager {
     gl.linkProgram(saasProgram);
 
     if (!gl.getProgramParameter(saasProgram, gl.LINK_STATUS)) {
-      console.error('SaaS Program link error:', gl.getProgramInfoLog(saasProgram));
+      console.error('SaaS AeroShards Program link error:', gl.getProgramInfoLog(saasProgram));
       return false;
     }
 
     this.saasShader = {
       program: saasProgram,
-      pos: gl.getAttribLocation(saasProgram, 'position'),
-      res: gl.getUniformLocation(saasProgram, 'u_resolution'),
-      time: gl.getUniformLocation(saasProgram, 'u_time'),
-      mouse: gl.getUniformLocation(saasProgram, 'u_mouse')
+      u_viewport: gl.getUniformLocation(saasProgram, 'u_viewport'),
+      u_shape: gl.getUniformLocation(saasProgram, 'u_shape'),
+      u_effects: gl.getUniformLocation(saasProgram, 'u_effects'),
+      u_composition: gl.getUniformLocation(saasProgram, 'u_composition'),
+      u_transport: gl.getUniformLocation(saasProgram, 'u_transport'),
+      u_formation: gl.getUniformLocation(saasProgram, 'u_formation'),
+      u_gather: gl.getUniformLocation(saasProgram, 'u_gather'),
+      u_pointer: gl.getUniformLocation(saasProgram, 'u_pointer'),
+      u_material: gl.getUniformLocation(saasProgram, 'u_material'),
+      u_light: gl.getUniformLocation(saasProgram, 'u_light'),
+      u_environment: gl.getUniformLocation(saasProgram, 'u_environment'),
+      u_baseColor: gl.getUniformLocation(saasProgram, 'u_baseColor'),
+      u_highlightColor: gl.getUniformLocation(saasProgram, 'u_highlightColor'),
+      u_accentColor: gl.getUniformLocation(saasProgram, 'u_accentColor'),
+      instanceCount: 3200
     };
 
     // Compile Dark Mode Celestial Aurora SideRays Shader Program
@@ -1116,26 +1486,53 @@ class AmbientBackgroundManager {
       if (!this.isRunning) return;
 
       if (this.currentMode === 'saas_aurora' && this.gl && this.saasShader) {
-        // --- GPU WebGL AeroShards 3D Procedural Faceted Shard Stream ---
+        // --- GPU WebGL AeroShards Instanced 3D Diamond Shards Stream ---
         this.mouseX += (this.targetMouseX - this.mouseX) * 0.05;
         this.mouseY += (this.targetMouseY - this.mouseY) * 0.05;
 
         const gl = this.gl;
         const s = this.saasShader;
         gl.viewport(0, 0, this.width, this.height);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         gl.useProgram(s.program);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-        gl.enableVertexAttribArray(s.pos);
-        gl.vertexAttribPointer(s.pos, 2, gl.FLOAT, false, 0, 0);
+        if (this.vao) gl.bindVertexArray(this.vao);
 
-        gl.uniform2f(s.res, this.width, this.height);
-        gl.uniform1f(s.time, time * 0.001);
-        if (s.mouse) {
-          gl.uniform2f(s.mouse, this.mouseX / this.width, 1.0 - (this.mouseY / this.height));
+        const aspect = this.width / Math.max(this.height, 1);
+        const t = time * 0.001;
+        const flowDistance = t * 0.34;
+        const pathLength = aspect < 0.82 ? Math.hypot(2.56 * aspect, 1) : Math.hypot(2.44 * aspect, Math.sqrt(5));
+        const travelPhase = (flowDistance / pathLength) % 1.0;
+
+        const pointerNormX = (this.mouseX / this.width) * 2.0 - 1.0;
+        const pointerNormY = 1.0 - (this.mouseY / this.height) * 2.0;
+
+        gl.uniform4f(s.u_viewport, aspect, 0.0132, 1.0, flowDistance);
+        gl.uniform4f(s.u_shape, 1.0, 1.0, 0.36, 0.0);
+        gl.uniform4f(s.u_effects, 1.0, 2.0, 1.0, 1.12);
+        gl.uniform4f(s.u_composition, 0.0, 0.0, 0.0, 1.0); // full placement stream
+        gl.uniform4f(s.u_transport, travelPhase, 0.0, 0.0, 0.0);
+        gl.uniform4f(s.u_formation, 1.0, 0.0, 0.0, 0.0); // stream flow
+        gl.uniform4f(s.u_gather, 0.0, 0.0, 0.0, 0.0);
+        gl.uniform4f(s.u_pointer, pointerNormX * aspect, pointerNormY, 0.54, 0.25);
+        gl.uniform4f(s.u_material, 0.46, 0.0, 0.92, 0.54); // pearl preset
+        gl.uniform4f(s.u_light, -0.321, 0.49, 0.845, 0.0);
+        gl.uniform4f(s.u_environment, 0.0, 0.0, 0.0, 0.0);
+
+        // SaaS Theme Royal Indigo / Sky Cyan / Indigo Violet Palette
+        gl.uniform4f(s.u_baseColor, 49 / 255, 94 / 255, 255 / 255, 1.0);
+        gl.uniform4f(s.u_highlightColor, 56 / 255, 189 / 255, 248 / 255, 1.0);
+        gl.uniform4f(s.u_accentColor, 99 / 255, 102 / 255, 241 / 255, 1.0);
+
+        if (gl.drawArraysInstanced) {
+          gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, s.instanceCount);
+        } else if (this.instancedExt) {
+          this.instancedExt.drawArraysInstancedANGLE(gl.TRIANGLES, 0, 6, s.instanceCount);
         }
 
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
         this.animationFrameId = requestAnimationFrame(render);
         return;
       }
