@@ -182,6 +182,121 @@ class AmbientBackgroundManager {
 
     this.shaderProgram = program;
 
+    // Compile CRT FaultyTerminal Shader Program
+    const crtFsSource = `
+      precision mediump float;
+      uniform vec2 u_resolution;
+      uniform vec2 u_mouse;
+      uniform float u_time;
+
+      float time;
+
+      float noise(vec2 p) {
+        return sin(p.x * 10.0) * sin(p.y * (3.0 + sin(time * 0.09))) + 0.2; 
+      }
+
+      mat2 rotate(float angle) {
+        float c = cos(angle);
+        float s = sin(angle);
+        return mat2(c, -s, s, c);
+      }
+
+      float fbm(vec2 p) {
+        p *= 1.1;
+        float f = 0.0;
+        float amp = 0.35;
+        
+        mat2 modify0 = rotate(time * 0.02);
+        f += amp * noise(p);
+        p = modify0 * p * 2.0;
+        amp *= 0.45;
+        
+        mat2 modify1 = rotate(time * 0.02);
+        f += amp * noise(p);
+        p = modify1 * p * 2.0;
+        amp *= 0.45;
+        
+        mat2 modify2 = rotate(time * 0.08);
+        f += amp * noise(p);
+        
+        return f;
+      }
+
+      float digit(vec2 p) {
+        vec2 grid = vec2(40.0, 20.0);
+        vec2 s = floor(p * grid) / grid;
+        p = p * grid;
+        vec2 q = vec2(fbm(s * 0.1 + vec2(1.0)), fbm(s * 0.1 + vec2(1.0)));
+        float intensity = fbm(s * 0.1 + q) * 1.2 - 0.02;
+        
+        vec2 mouseWorld = u_mouse;
+        float distToMouse = distance(s, mouseWorld);
+        float mouseInfluence = exp(-distToMouse * 5.0) * 0.20;
+        intensity += mouseInfluence;
+        
+        float ripple = sin(distToMouse * 20.0 - u_time * 4.0) * 0.06 * mouseInfluence;
+        intensity += ripple;
+        
+        p = fract(p);
+        p *= 1.35;
+        
+        float px5 = p.x * 5.0;
+        float py5 = (1.0 - p.y) * 5.0;
+        float x = fract(px5);
+        float y = fract(py5);
+        
+        float i = floor(py5) - 2.0;
+        float j = floor(px5) - 2.0;
+        float n = i * i + j * j;
+        float f = n * 0.0625;
+        
+        float isOn = step(0.14, intensity - f);
+        float brightness = isOn * (0.15 + y * 0.85) * (0.75 + x * 0.25);
+        
+        return step(0.0, p.x) * step(p.x, 1.0) * step(0.0, p.y) * step(p.y, 1.0) * brightness;
+      }
+
+      vec2 barrel(vec2 uv) {
+        vec2 c = uv * 2.0 - 1.0;
+        float r2 = dot(c, c);
+        c *= 1.0 + 0.08 * r2;
+        return c * 0.5 + 0.5;
+      }
+
+      void main() {
+        time = u_time * 0.333;
+        vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+        uv.y = 1.0 - uv.y;
+        uv = barrel(uv);
+
+        float d = digit(uv);
+        const float off = 0.002;
+        float sum = digit(uv + vec2(-off, -off)) + digit(uv + vec2(0.0, -off)) + digit(uv + vec2(off, -off)) +
+                    digit(uv + vec2(-off, 0.0)) + digit(uv + vec2(0.0, 0.0)) + digit(uv + vec2(off, 0.0)) +
+                    digit(uv + vec2(-off, off)) + digit(uv + vec2(0.0, off)) + digit(uv + vec2(off, off));
+
+        float scanline = step(mod(uv.y * 120.0 + time * 12.0, 1.0), 0.25) * 0.2 + 0.85;
+        vec3 tint = vec3(0.20, 1.0, 0.40);
+        vec3 col = (vec3(0.85) * d + sum * 0.06 * scanline) * tint * 0.16;
+
+        float vig = 1.0 - smoothstep(0.4, 1.4, length(uv * 2.0 - 1.0));
+        col *= vig;
+
+        gl_FragColor = vec4(col, clamp(length(col) * 1.5, 0.0, 1.0));
+      }
+    `;
+
+    const crtFs = createShader(gl.FRAGMENT_SHADER, crtFsSource);
+    if (crtFs) {
+      const crtProgram = gl.createProgram();
+      gl.attachShader(crtProgram, vs);
+      gl.attachShader(crtProgram, crtFs);
+      gl.linkProgram(crtProgram);
+      if (gl.getProgramParameter(crtProgram, gl.LINK_STATUS)) {
+        this.crtShaderProgram = crtProgram;
+      }
+    }
+
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
@@ -508,22 +623,50 @@ class AmbientBackgroundManager {
       }
 
       if (targetMode === 'synthwave_grid') {
+        if (this.webglCanvas) {
+          this.webglCanvas.style.opacity = '0';
+          this.webglCanvas.style.display = 'none';
+        }
+        if (this.canvas) this.canvas.style.display = 'block';
         this.createSynthwave();
         this.start();
         if (this.canvas) this.canvas.style.opacity = '1';
       } else if (targetMode === 'crt_raster') {
+        // Fuse FaultyTerminal WebGL CRT Shader with 2D Analog Cathode Sweep
+        if (this.gl && this.crtShaderProgram && this.webglCanvas) {
+          this.webglCanvas.style.display = 'block';
+          this.webglCanvas.style.opacity = '0.70';
+        }
+        if (this.canvas) {
+          this.canvas.style.display = 'block';
+          this.canvas.style.opacity = '1';
+        }
         this.createCRT();
         this.start();
-        if (this.canvas) this.canvas.style.opacity = '1';
       } else if (targetMode === 'dark_stars') {
+        if (this.webglCanvas) {
+          this.webglCanvas.style.opacity = '0';
+          this.webglCanvas.style.display = 'none';
+        }
+        if (this.canvas) this.canvas.style.display = 'block';
         this.createStars();
         this.start();
         if (this.canvas) this.canvas.style.opacity = '1';
       } else if (targetMode === 'dark_matrix' || targetMode === 'light_matrix') {
+        if (this.webglCanvas) {
+          this.webglCanvas.style.opacity = '0';
+          this.webglCanvas.style.display = 'none';
+        }
+        if (this.canvas) this.canvas.style.display = 'block';
         this.createMatrix();
         this.start();
         if (this.canvas) this.canvas.style.opacity = '1';
       } else if (targetMode === 'pink_sakura') {
+        if (this.webglCanvas) {
+          this.webglCanvas.style.opacity = '0';
+          this.webglCanvas.style.display = 'none';
+        }
+        if (this.canvas) this.canvas.style.display = 'block';
         this.createPetals();
         this.start();
         if (this.canvas) this.canvas.style.opacity = '1';
@@ -600,6 +743,25 @@ class AmbientBackgroundManager {
         gl.drawArrays(gl.TRIANGLES, 0, 6);
         this.animationFrameId = requestAnimationFrame(render);
         return;
+      }
+
+      // If CRT mode, render WebGL FaultyTerminal raster under 2D canvas
+      if (this.currentMode === 'crt_raster' && this.gl && this.crtShaderProgram) {
+        this.mouseX += (this.targetMouseX - this.mouseX) * 0.05;
+        this.mouseY += (this.targetMouseY - this.mouseY) * 0.05;
+
+        const gl = this.gl;
+        gl.viewport(0, 0, this.width, this.height);
+        gl.useProgram(this.crtShaderProgram);
+
+        gl.enableVertexAttribArray(this.positionLocation);
+        gl.vertexAttribPointer(this.positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+        gl.uniform2f(this.resLocation, this.width, this.height);
+        gl.uniform2f(this.mouseLocation, this.mouseX / this.width, 1.0 - (this.mouseY / this.height));
+        gl.uniform1f(this.timeLocation, time * 0.001);
+
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
       }
 
       this.ctx.clearRect(0, 0, this.width, this.height);
