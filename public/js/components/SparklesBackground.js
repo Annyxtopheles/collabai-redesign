@@ -1,4 +1,4 @@
-// SparklesBackground.js - Ambient Background Manager: CRT Raster (CRT), Neural Vortex (Dark), Glyph Matrix (Dark/Light), Starfield (Dark), & Sakura (Pink)
+// SparklesBackground.js - Ambient Background Manager: Synthwave (Synth), CRT Raster (CRT), Neural Vortex (Dark), Glyph Matrix (Dark/Light), Starfield (Dark), & Sakura (Pink)
 class AmbientBackgroundManager {
   constructor() {
     this.canvas = null;
@@ -8,9 +8,11 @@ class AmbientBackgroundManager {
     this.vortexParticles = [];
     this.crtPhosphorParticles = [];
     this.crtBeamY = 0;
+    this.synthStars = [];
+    this.synthGridOffset = 0;
     this.matrixGrid = [];
     this.matrixLastMutation = 0;
-    this.currentMode = null; // 'crt_raster' | 'dark_vortex' | 'dark_matrix' | 'dark_stars' | 'light_matrix' | 'pink_sakura' | 'none'
+    this.currentMode = null; // 'synthwave_grid' | 'crt_raster' | 'dark_vortex' | 'dark_matrix' | 'dark_stars' | 'light_matrix' | 'pink_sakura' | 'none'
     this.animationFrameId = null;
     this.isRunning = false;
     this.width = window.innerWidth;
@@ -38,7 +40,8 @@ class AmbientBackgroundManager {
 
     window.addEventListener('resize', () => {
       this.resize();
-      if (this.currentMode === 'crt_raster') this.createCRT();
+      if (this.currentMode === 'synthwave_grid') this.createSynthwave();
+      else if (this.currentMode === 'crt_raster') this.createCRT();
       else if (this.currentMode === 'dark_vortex') this.createVortex();
       else if (this.currentMode === 'dark_stars') this.createStars();
       else if (this.currentMode === 'dark_matrix' || this.currentMode === 'light_matrix') this.createMatrix();
@@ -59,6 +62,26 @@ class AmbientBackgroundManager {
     this.height = window.innerHeight;
     this.canvas.width = this.width;
     this.canvas.height = this.height;
+  }
+
+  // --- SYNTHWAVE THEME: 3D Perspective Horizon Grid & Floating Stardust ---
+  createSynthwave() {
+    this.synthGridOffset = 0;
+    this.synthStars = [];
+    const numStars = Math.max(30, Math.min(Math.floor((this.width * this.height) / 24000), 65));
+
+    for (let i = 0; i < numStars; i++) {
+      this.synthStars.push({
+        x: Math.random() * this.width,
+        y: Math.random() * (this.height * 0.65), // upper sky area
+        size: Math.random() * 0.9 + 0.5,
+        color: Math.random() < 0.5 ? '#FF2A85' : '#00F0FF',
+        baseAlpha: Math.random() * 0.25 + 0.10,
+        twinkleSpeed: Math.random() * 0.003 + 0.001,
+        twinkleOffset: Math.random() * Math.PI * 2,
+        vy: -(Math.random() * 0.03 + 0.01)
+      });
+    }
   }
 
   // --- CRT THEME: Cathode Ray Scanline Sweep & Analog Phosphor Static ---
@@ -245,10 +268,13 @@ class AmbientBackgroundManager {
     const isLight = document.documentElement.classList.contains('light');
     const isPink = document.documentElement.classList.contains('pink');
     const isCRT = document.documentElement.classList.contains('crt');
+    const isSynthwave = document.documentElement.classList.contains('synthwave');
 
     let targetMode = 'none';
     if (isAmbientEnabled) {
-      if (isCRT) {
+      if (isSynthwave) {
+        targetMode = 'synthwave_grid';
+      } else if (isCRT) {
         targetMode = 'crt_raster';
       } else if (isDark) {
         const darkStyle = (typeof appStore !== 'undefined' && appStore.state?.darkAmbientStyle) || localStorage.getItem('collab_dark_ambient') || 'vortex';
@@ -266,7 +292,14 @@ class AmbientBackgroundManager {
 
     this.currentMode = targetMode;
 
-    if (targetMode === 'crt_raster') {
+    if (targetMode === 'synthwave_grid') {
+      this.createSynthwave();
+      this.start();
+      if (this.canvas) {
+        this.canvas.style.opacity = '1';
+        this.canvas.style.display = 'block';
+      }
+    } else if (targetMode === 'crt_raster') {
       this.createCRT();
       this.start();
       if (this.canvas) {
@@ -356,7 +389,68 @@ class AmbientBackgroundManager {
 
       this.ctx.clearRect(0, 0, this.width, this.height);
 
-      if (this.currentMode === 'crt_raster') {
+      if (this.currentMode === 'synthwave_grid') {
+        // Render 3D Perspective Neon Horizon Grid & Synthwave Stardust
+        const horizonY = this.height * 0.60;
+        const vanishX = this.width / 2;
+
+        // 1. Soft Horizon Glow
+        const horizonGrad = this.ctx.createLinearGradient(0, horizonY - 40, 0, horizonY + 25);
+        horizonGrad.addColorStop(0, 'rgba(255, 42, 133, 0)');
+        horizonGrad.addColorStop(0.5, 'rgba(255, 42, 133, 0.055)');
+        horizonGrad.addColorStop(1, 'rgba(0, 240, 255, 0.025)');
+        this.ctx.fillStyle = horizonGrad;
+        this.ctx.fillRect(0, horizonY - 40, this.width, 65);
+
+        // 2. Perspective Longitudinal Grid Lines
+        this.ctx.lineWidth = 0.6;
+        const numRadials = 16;
+        for (let i = -numRadials; i <= numRadials; i++) {
+          const bottomX = vanishX + (i * (this.width / numRadials) * 1.35);
+          const lineAlpha = Math.max(0.02, 0.12 - (Math.abs(i) / numRadials) * 0.06);
+          this.ctx.strokeStyle = `rgba(255, 42, 133, ${lineAlpha.toFixed(3)})`;
+          this.ctx.beginPath();
+          this.ctx.moveTo(vanishX, horizonY);
+          this.ctx.lineTo(bottomX, this.height);
+          this.ctx.stroke();
+        }
+
+        // 3. Perspective Transverse Moving Grid Lines
+        this.synthGridOffset = (this.synthGridOffset || 0) + 0.0028;
+        if (this.synthGridOffset > 1) this.synthGridOffset -= 1;
+
+        const numHorizontals = 9;
+        for (let i = 0; i < numHorizontals; i++) {
+          const progress = (i + this.synthGridOffset) / numHorizontals;
+          if (progress <= 0) continue;
+          const y = horizonY + Math.pow(progress, 2.4) * (this.height - horizonY);
+          const alpha = Math.pow(progress, 1.8) * 0.18;
+          this.ctx.strokeStyle = `rgba(0, 240, 255, ${alpha.toFixed(3)})`;
+          this.ctx.beginPath();
+          this.ctx.moveTo(0, y);
+          this.ctx.lineTo(this.width, y);
+          this.ctx.stroke();
+        }
+
+        // 4. Floating Celestial Synthwave Stardust
+        if (this.synthStars) {
+          for (let i = 0; i < this.synthStars.length; i++) {
+            const star = this.synthStars[i];
+            star.y += star.vy;
+            if (star.y < 0) star.y = horizonY;
+
+            const pulse = Math.sin(time * star.twinkleSpeed + star.twinkleOffset);
+            const alpha = Math.max(0.04, Math.min(0.40, star.baseAlpha + pulse * 0.12));
+
+            this.ctx.fillStyle = star.color === '#FF2A85'
+              ? `rgba(255, 42, 133, ${alpha.toFixed(3)})`
+              : `rgba(0, 240, 255, ${alpha.toFixed(3)})`;
+            this.ctx.beginPath();
+            this.ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+            this.ctx.fill();
+          }
+        }
+      } else if (this.currentMode === 'crt_raster') {
         // Render Cathode Ray Scanline Sweep & Analog Phosphor Shimmer
         this.crtBeamY += 0.70;
         if (this.crtBeamY > this.height + 60) {

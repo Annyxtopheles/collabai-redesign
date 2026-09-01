@@ -69,6 +69,23 @@ const THEMES_CONFIG = [
     ambientStyles: [
       { id: 'raster', name: 'Cathode Raster', icon: 'tv', desc: 'Horizontal scanline sweep & phosphor shimmer' }
     ]
+  },
+  {
+    id: 'synthwave',
+    name: 'Cyberpunk Synth',
+    shortName: 'Synth',
+    icon: 'zap',
+    description: 'Retro neon synthwave with electric magenta & laser cyan glow',
+    badge: 'Neon',
+    previewBg: '#0D0B18',
+    previewBorder: '#FF2A85',
+    previewText: '#00F0FF',
+    previewAccent: '#FF2A85',
+    ambientEffectName: 'Synth Horizon',
+    ambientEffectDesc: '3D retro perspective neon grid & floating stardust',
+    ambientStyles: [
+      { id: 'grid', name: 'Synth Horizon', icon: 'grid', desc: 'Perspective neon grid & dual-tone cyber dust' }
+    ]
   }
 ];
 
