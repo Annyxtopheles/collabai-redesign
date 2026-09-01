@@ -1,4 +1,4 @@
-﻿// Explore Agents & Templates Catalog - Clean white typography
+// Explore Agents & Templates Catalog - Clean white typography
 function renderExploreView(state) {
   const agents = state.agents || [];
 
@@ -10,7 +10,7 @@ function renderExploreView(state) {
   ];
 
   return `
-    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-app-canvas select-none">
+    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-transparent select-none">
       ${renderHeaderBreadcrumb('Explore')}
 
       <div class="p-8 max-w-[1100px] mx-auto w-full flex flex-col gap-8">

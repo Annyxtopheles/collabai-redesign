@@ -1,4 +1,4 @@
-﻿// Combined AI Agents & Templates Screen with Full Theme Support (Dark & Light)
+// Combined AI Agents & Templates Screen with Full Theme Support (Dark & Light)
 function renderAgentsView(state) {
   const agents = state.agents || [];
   const activeFilter = state.agentFilter || 'All';
@@ -19,7 +19,7 @@ function renderAgentsView(state) {
   });
 
   return `
-    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-app-canvas select-none">
+    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-transparent select-none">
       ${renderHeaderBreadcrumb('AI Agents')}
 
       <div class="p-8 max-w-[1100px] mx-auto w-full flex flex-col gap-7">

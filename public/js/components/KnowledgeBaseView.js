@@ -1,10 +1,10 @@
-﻿// Knowledge Base Screen - Theme-Aware Tokens & Functional List/Grid view toggle
+// Knowledge Base Screen - Theme-Aware Tokens & Functional List/Grid view toggle
 function renderKnowledgeBaseView(state) {
   const folders = state.folders || [];
   const viewMode = state.knowledgeViewMode || 'list';
 
   return `
-    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-app-canvas select-none">
+    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-transparent select-none">
       ${renderHeaderBreadcrumb('Knowledge Base')}
 
       <div class="p-8 max-w-[1100px] mx-auto w-full flex flex-col gap-6">

@@ -527,10 +527,10 @@ class AmbientBackgroundManager {
         creaseCol += mix(u_accentColor.rgb, u_baseColor.rgb, depthFog) * fill;
 
         float fog = mix(0.42, 1.0, depthFog);
-        float exposure = fog * u_material.z * u_effects.w;
+        float exposure = fog * u_material.z * u_effects.w * 0.78;
         vec3 mapped = aces(color * exposure);
         vec3 mappedCrease = aces(creaseCol * exposure);
-        float shardAlpha = mix(0.58, 0.97, depthFog);
+        float shardAlpha = mix(0.40, 0.85, depthFog);
         float seam = smoothstep(0.0, 0.035, path.phase) * (1.0 - smoothstep(0.965, 1.0, path.phase));
         shardAlpha *= mix(1.0, seam, u_transport.y * u_formation.x * (1.0 - u_gather.z));
 
@@ -562,7 +562,7 @@ class AmbientBackgroundManager {
           coverage = smoothstep(0.0, edgeWidth, diamondDistance);
         }
         vec3 mapped = v_baseAlpha.rgb + v_creaseColor * crease;
-        float coveredAlpha = v_baseAlpha.a * coverage;
+        float coveredAlpha = v_baseAlpha.a * coverage * 0.46;
         fragColor = vec4(mapped * coveredAlpha, coveredAlpha);
       }
     `;
@@ -1497,7 +1497,7 @@ class AmbientBackgroundManager {
 
         const aspect = this.width / Math.max(this.height, 1);
         const t = time * 0.001;
-        const flowDistance = t * 0.34;
+        const flowDistance = t * 0.12; // Slower, graceful motion
         const pathLength = aspect < 0.82 ? Math.hypot(2.56 * aspect, 1) : Math.hypot(2.44 * aspect, Math.sqrt(5));
         const travelPhase = (flowDistance / pathLength) % 1.0;
 
@@ -1505,7 +1505,7 @@ class AmbientBackgroundManager {
         const pointerNormY = 1.0 - (this.mouseY / this.height) * 2.0;
 
         gl.uniform4f(s.u_viewport, aspect, 0.012, 1.0, flowDistance);
-        gl.uniform4f(s.u_shape, 0.88, 0.92, 0.36, 0.0);
+        gl.uniform4f(s.u_shape, 1.45, 1.2, 0.42, 0.0); // Increased spread
         gl.uniform4f(s.u_effects, 1.0, 1.6, 1.0, 1.12);
         gl.uniform4f(s.u_composition, 0.0, 0.0, 0.0, 1.0); // full placement stream
         gl.uniform4f(s.u_transport, travelPhase, 0.0, 0.0, 0.0);
@@ -1516,10 +1516,10 @@ class AmbientBackgroundManager {
         gl.uniform4f(s.u_light, -0.321, 0.49, 0.845, 0.0);
         gl.uniform4f(s.u_environment, 0.0, 0.0, 0.0, 0.0);
 
-        // SaaS Theme Royal Indigo / Sky Cyan / Indigo Violet Palette
-        gl.uniform4f(s.u_baseColor, 49 / 255, 94 / 255, 255 / 255, 1.0);
-        gl.uniform4f(s.u_highlightColor, 56 / 255, 189 / 255, 248 / 255, 1.0);
-        gl.uniform4f(s.u_accentColor, 99 / 255, 102 / 255, 241 / 255, 1.0);
+        // SaaS Theme: Brand Royal Indigo + Indigo Violet with Pure Crisp White Highlights
+        gl.uniform4f(s.u_baseColor, 49 / 255, 94 / 255, 255 / 255, 1.0); // #315EFF Royal Indigo
+        gl.uniform4f(s.u_highlightColor, 1.0, 1.0, 1.0, 1.0); // Crisp Pure White
+        gl.uniform4f(s.u_accentColor, 99 / 255, 102 / 255, 241 / 255, 1.0); // #6366F1 Indigo Violet
 
         if (gl.drawArraysInstanced) {
           gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, s.instanceCount);

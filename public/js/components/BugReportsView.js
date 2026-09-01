@@ -1,11 +1,11 @@
-﻿// Bug Reports Screen - Theme-Aware Tokens
+// Bug Reports Screen - Theme-Aware Tokens
 let activeBugTab = 'submit';
 
 function renderBugReportsView(state) {
   const bugs = state.bugs || [];
 
   return `
-    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-app-canvas select-none">
+    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-transparent select-none">
       ${renderHeaderBreadcrumb('Bug Reports')}
 
       <div class="p-8 max-w-[850px] mx-auto w-full flex flex-col gap-5">

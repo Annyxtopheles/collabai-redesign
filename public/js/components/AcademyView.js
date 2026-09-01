@@ -1,4 +1,4 @@
-﻿// Academy & Tutorials Screen - Theme Aware
+// Academy & Tutorials Screen - Theme Aware
 function renderAcademyView(state) {
   const lessons = [
     { title: 'Designing High-Throughput Async Pipelines', duration: '8 mins', level: 'Advanced', icon: 'cpu' },
@@ -7,7 +7,7 @@ function renderAcademyView(state) {
   ];
 
   return `
-    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-app-canvas select-none">
+    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-transparent select-none">
       ${renderHeaderBreadcrumb('Academy')}
 
       <div class="p-8 max-w-[900px] mx-auto w-full flex flex-col gap-6 animate-fade-in">

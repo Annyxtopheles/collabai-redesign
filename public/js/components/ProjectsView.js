@@ -1,10 +1,10 @@
-﻿// Projects Workspace Screen - Theme-Aware Tokens & Functional List/Grid view toggle
+// Projects Workspace Screen - Theme-Aware Tokens & Functional List/Grid view toggle
 function renderProjectsView(state) {
   const projects = state.projects || [];
   const viewMode = state.projectViewMode || 'list';
 
   return `
-    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-app-canvas select-none">
+    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-transparent select-none">
       ${renderHeaderBreadcrumb('Projects')}
 
       <div class="p-8 max-w-[1100px] mx-auto w-full flex flex-col gap-6">
