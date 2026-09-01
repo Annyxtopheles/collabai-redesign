@@ -1160,20 +1160,20 @@ class AmbientBackgroundManager {
         gl.uniform1f(s.uScale, 1.0);
         gl.uniform2f(s.uGridMul, 2.0, 1.0);
         gl.uniform1f(s.uDigitSize, 1.5);
-        gl.uniform1f(s.uScanlineIntensity, 0.35);
-        gl.uniform1f(s.uGlitchAmount, 1.0);
-        gl.uniform1f(s.uFlickerAmount, 0.8);
-        gl.uniform1f(s.uNoiseAmp, 1.0);
+        gl.uniform1f(s.uScanlineIntensity, 0.16);
+        gl.uniform1f(s.uGlitchAmount, 0.0);
+        gl.uniform1f(s.uFlickerAmount, 0.08);
+        gl.uniform1f(s.uNoiseAmp, 0.60);
         gl.uniform1f(s.uChromaticAberration, 0.0);
         gl.uniform1f(s.uDither, 0.0);
-        gl.uniform1f(s.uCurvature, 0.15);
+        gl.uniform1f(s.uCurvature, 0.08);
         gl.uniform3f(s.uTint, 0.20, 1.0, 0.40); // Phosphor green #33FF66
         gl.uniform2f(s.uMouse, this.mouseX / this.width, 1.0 - (this.mouseY / this.height));
-        gl.uniform1f(s.uMouseStrength, 0.2);
+        gl.uniform1f(s.uMouseStrength, 0.08);
         gl.uniform1f(s.uUseMouse, 1.0);
         gl.uniform1f(s.uPageLoadProgress, 1.0);
         gl.uniform1f(s.uUsePageLoadAnimation, 0.0);
-        gl.uniform1f(s.uBrightness, 0.70);
+        gl.uniform1f(s.uBrightness, 0.24);
         gl.uniform1f(s.uLightMode, 0.0);
 
         gl.drawArrays(gl.TRIANGLES, 0, 6);
