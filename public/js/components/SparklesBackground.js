@@ -409,105 +409,98 @@ class AmbientBackgroundManager {
 
     // Compile CRT FaultyTerminal Shader Program
     const crtFsSource = `
-      precision mediump float;
+      precision highp float;
       uniform vec2 u_resolution;
       uniform vec2 u_mouse;
       uniform float u_time;
 
-      float time;
-
-      float noise(vec2 p) {
-        return sin(p.x * 10.0) * sin(p.y * (3.0 + sin(time * 0.09))) + 0.2; 
-      }
-
-      mat2 rotate(float angle) {
-        float c = cos(angle);
-        float s = sin(angle);
+      mat2 rot(float a) {
+        float c = cos(a);
+        float s = sin(a);
         return mat2(c, -s, s, c);
       }
 
-      float fbm(vec2 p) {
-        p *= 1.1;
+      float hash21(vec2 p) {
+        p = fract(p * vec2(123.34, 456.21));
+        p += dot(p, p + 45.32);
+        return fract(p.x * p.y);
+      }
+
+      float fbmNoise(vec2 p, float t) {
         float f = 0.0;
-        float amp = 0.35;
-        
-        mat2 modify0 = rotate(time * 0.02);
-        f += amp * noise(p);
-        p = modify0 * p * 2.0;
-        amp *= 0.45;
-        
-        mat2 modify1 = rotate(time * 0.02);
-        f += amp * noise(p);
-        p = modify1 * p * 2.0;
-        amp *= 0.45;
-        
-        mat2 modify2 = rotate(time * 0.08);
-        f += amp * noise(p);
-        
+        mat2 m = rot(0.5);
+        f += 0.500 * sin(p.x * 3.5 + t * 0.45) * sin(p.y * 3.5 - t * 0.35);
+        p = m * p * 2.02;
+        f += 0.250 * sin(p.x * 3.5 - t * 0.55) * sin(p.y * 3.5 + t * 0.45);
+        p = m * p * 2.03;
+        f += 0.125 * sin(p.x * 3.5 + t * 0.65) * sin(p.y * 3.5 - t * 0.55);
         return f;
       }
 
-      float digit(vec2 p) {
-        vec2 grid = vec2(40.0, 20.0);
-        vec2 s = floor(p * grid) / grid;
-        p = p * grid;
-        vec2 q = vec2(fbm(s * 0.1 + vec2(1.0)), fbm(s * 0.1 + vec2(1.0)));
-        float intensity = fbm(s * 0.1 + q) * 1.2 - 0.02;
-        
-        vec2 mouseWorld = u_mouse;
-        float distToMouse = distance(s, mouseWorld);
-        float mouseInfluence = exp(-distToMouse * 5.0) * 0.20;
-        intensity += mouseInfluence;
-        
-        float ripple = sin(distToMouse * 20.0 - u_time * 4.0) * 0.06 * mouseInfluence;
-        intensity += ripple;
-        
-        p = fract(p);
-        p *= 1.35;
-        
-        float px5 = p.x * 5.0;
-        float py5 = (1.0 - p.y) * 5.0;
-        float x = fract(px5);
-        float y = fract(py5);
-        
-        float i = floor(py5) - 2.0;
-        float j = floor(px5) - 2.0;
-        float n = i * i + j * j;
-        float f = n * 0.0625;
-        
-        float isOn = step(0.14, intensity - f);
-        float brightness = isOn * (0.15 + y * 0.85) * (0.75 + x * 0.25);
-        
-        return step(0.0, p.x) * step(p.x, 1.0) * step(0.0, p.y) * step(p.y, 1.0) * brightness;
-      }
-
-      vec2 barrel(vec2 uv) {
+      vec2 barrelDistort(vec2 uv, float k) {
         vec2 c = uv * 2.0 - 1.0;
         float r2 = dot(c, c);
-        c *= 1.0 + 0.08 * r2;
+        c *= 1.0 + k * r2;
         return c * 0.5 + 0.5;
       }
 
+      // 5x5 Cyber character matrix raster glyph
+      float charMatrix(vec2 uv, float t) {
+        vec2 grid = vec2(56.0, 28.0);
+        vec2 cell = floor(uv * grid);
+        vec2 subUv = fract(uv * grid);
+
+        float cellRand = hash21(cell + floor(t * 2.0) * 0.06);
+        float noiseVal = fbmNoise(cell * 0.07, t);
+        float activeState = step(0.38, cellRand + noiseVal * 0.28);
+
+        // 5x5 sub-pixel dot matrix raster
+        vec2 dotPos = floor(subUv * 5.0);
+        float dotRand = hash21(cell * 17.0 + dotPos);
+        float isPixelOn = step(0.42, dotRand) * activeState;
+
+        // Soft sub-pixel square profile
+        vec2 dotUv = fract(subUv * 5.0) - 0.5;
+        float dotShape = smoothstep(0.46, 0.20, max(abs(dotUv.x), abs(dotUv.y)));
+
+        return isPixelOn * dotShape;
+      }
+
       void main() {
-        time = u_time * 0.333;
         vec2 uv = gl_FragCoord.xy / u_resolution.xy;
         uv.y = 1.0 - uv.y;
-        uv = barrel(uv);
 
-        float d = digit(uv);
-        const float off = 0.002;
-        float sum = digit(uv + vec2(-off, -off)) + digit(uv + vec2(0.0, -off)) + digit(uv + vec2(off, -off)) +
-                    digit(uv + vec2(-off, 0.0)) + digit(uv + vec2(0.0, 0.0)) + digit(uv + vec2(off, 0.0)) +
-                    digit(uv + vec2(-off, off)) + digit(uv + vec2(0.0, off)) + digit(uv + vec2(off, off));
+        // CRT Tube Barrel Curvature
+        uv = barrelDistort(uv, 0.07);
 
-        float scanline = step(mod(uv.y * 120.0 + time * 12.0, 1.0), 0.25) * 0.2 + 0.85;
-        vec3 tint = vec3(0.20, 1.0, 0.40);
-        vec3 col = (vec3(0.85) * d + sum * 0.06 * scanline) * tint * 0.16;
+        if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
+          gl_FragColor = vec4(0.0);
+          return;
+        }
 
-        float vig = 1.0 - smoothstep(0.4, 1.4, length(uv * 2.0 - 1.0));
-        col *= vig;
+        float t = u_time * 0.75;
 
-        gl_FragColor = vec4(col, clamp(length(col) * 1.5, 0.0, 1.0));
+        // Interactive mouse magnetic ripple wave
+        vec2 mUv = u_mouse;
+        float dMouse = distance(uv, mUv);
+        float mouseWave = sin(dMouse * 35.0 - t * 5.0) * exp(-dMouse * 4.5) * 0.12;
+        vec2 warpedUv = uv + mouseWave * normalize(uv - mUv + 1e-4);
+
+        // Render digital FaultyTerminal phosphor matrix glyphs
+        float chars = charMatrix(warpedUv, t);
+
+        // CRT Scanline Raster lines
+        float scanline = sin(uv.y * u_resolution.y * 0.75 + t * 3.5) * 0.22 + 0.78;
+        
+        // Phosphor Green CRT Palette
+        vec3 phosphorTint = vec3(0.20, 1.0, 0.40); // Classic P1 Green
+        vec3 terminalColor = phosphorTint * (chars * 0.55 + 0.035) * scanline;
+
+        // Outer Vignette falloff
+        float vig = 1.0 - smoothstep(0.45, 1.40, length(uv * 2.0 - 1.0));
+        terminalColor *= vig;
+
+        gl_FragColor = vec4(terminalColor, clamp(length(terminalColor) * 1.6, 0.0, 1.0));
       }
     `;
 
@@ -878,7 +871,7 @@ class AmbientBackgroundManager {
         // Fuse FaultyTerminal WebGL CRT Shader with 2D Analog Cathode Sweep
         if (this.gl && this.crtShader && this.webglCanvas) {
           this.webglCanvas.style.display = 'block';
-          this.webglCanvas.style.opacity = '0.70';
+          this.webglCanvas.style.opacity = '1';
         }
         if (this.canvas) {
           this.canvas.style.display = 'block';
