@@ -1,4 +1,4 @@
-// SparklesBackground.js - Ambient Background Manager: Neural Vortex (Dark), Glyph Matrix (Dark/Light), Starfield (Dark), & Sakura (Pink)
+// SparklesBackground.js - Ambient Background Manager: CRT Raster (CRT), Neural Vortex (Dark), Glyph Matrix (Dark/Light), Starfield (Dark), & Sakura (Pink)
 class AmbientBackgroundManager {
   constructor() {
     this.canvas = null;
@@ -6,9 +6,11 @@ class AmbientBackgroundManager {
     this.stars = [];
     this.petals = [];
     this.vortexParticles = [];
+    this.crtPhosphorParticles = [];
+    this.crtBeamY = 0;
     this.matrixGrid = [];
     this.matrixLastMutation = 0;
-    this.currentMode = null; // 'dark_vortex' | 'dark_matrix' | 'dark_stars' | 'light_matrix' | 'pink_sakura' | 'none'
+    this.currentMode = null; // 'crt_raster' | 'dark_vortex' | 'dark_matrix' | 'dark_stars' | 'light_matrix' | 'pink_sakura' | 'none'
     this.animationFrameId = null;
     this.isRunning = false;
     this.width = window.innerWidth;
@@ -36,7 +38,8 @@ class AmbientBackgroundManager {
 
     window.addEventListener('resize', () => {
       this.resize();
-      if (this.currentMode === 'dark_vortex') this.createVortex();
+      if (this.currentMode === 'crt_raster') this.createCRT();
+      else if (this.currentMode === 'dark_vortex') this.createVortex();
       else if (this.currentMode === 'dark_stars') this.createStars();
       else if (this.currentMode === 'dark_matrix' || this.currentMode === 'light_matrix') this.createMatrix();
       else if (this.currentMode === 'pink_sakura') this.createPetals();
@@ -56,6 +59,24 @@ class AmbientBackgroundManager {
     this.height = window.innerHeight;
     this.canvas.width = this.width;
     this.canvas.height = this.height;
+  }
+
+  // --- CRT THEME: Cathode Ray Scanline Sweep & Analog Phosphor Static ---
+  createCRT() {
+    this.crtPhosphorParticles = [];
+    const numParticles = Math.max(35, Math.min(Math.floor((this.width * this.height) / 22000), 75));
+    for (let i = 0; i < numParticles; i++) {
+      this.crtPhosphorParticles.push({
+        x: Math.random() * this.width,
+        y: Math.random() * this.height,
+        size: Math.random() * 0.7 + 0.6,
+        baseAlpha: Math.random() * 0.12 + 0.06,
+        flickerSpeed: Math.random() * 0.006 + 0.002,
+        flickerOffset: Math.random() * Math.PI * 2,
+        vy: -(Math.random() * 0.04 + 0.01)
+      });
+    }
+    this.crtBeamY = -40;
   }
 
   // --- DARK THEME: Interactive Synaptic Neural Vortex ---
@@ -223,10 +244,13 @@ class AmbientBackgroundManager {
     const isDark = document.documentElement.classList.contains('dark');
     const isLight = document.documentElement.classList.contains('light');
     const isPink = document.documentElement.classList.contains('pink');
+    const isCRT = document.documentElement.classList.contains('crt');
 
     let targetMode = 'none';
     if (isAmbientEnabled) {
-      if (isDark) {
+      if (isCRT) {
+        targetMode = 'crt_raster';
+      } else if (isDark) {
         const darkStyle = (typeof appStore !== 'undefined' && appStore.state?.darkAmbientStyle) || localStorage.getItem('collab_dark_ambient') || 'vortex';
         if (darkStyle === 'stars') targetMode = 'dark_stars';
         else if (darkStyle === 'matrix') targetMode = 'dark_matrix';
@@ -242,7 +266,14 @@ class AmbientBackgroundManager {
 
     this.currentMode = targetMode;
 
-    if (targetMode === 'dark_vortex') {
+    if (targetMode === 'crt_raster') {
+      this.createCRT();
+      this.start();
+      if (this.canvas) {
+        this.canvas.style.opacity = '1';
+        this.canvas.style.display = 'block';
+      }
+    } else if (targetMode === 'dark_vortex') {
       this.createVortex();
       this.start();
       if (this.canvas) {
@@ -325,7 +356,38 @@ class AmbientBackgroundManager {
 
       this.ctx.clearRect(0, 0, this.width, this.height);
 
-      if (this.currentMode === 'dark_vortex') {
+      if (this.currentMode === 'crt_raster') {
+        // Render Cathode Ray Scanline Sweep & Analog Phosphor Shimmer
+        this.crtBeamY += 0.70;
+        if (this.crtBeamY > this.height + 60) {
+          this.crtBeamY = -60;
+        }
+
+        // Horizontal Cathode Beam Scanline Sweep
+        const beamGrad = this.ctx.createLinearGradient(0, this.crtBeamY - 35, 0, this.crtBeamY + 35);
+        beamGrad.addColorStop(0, 'rgba(51, 255, 102, 0)');
+        beamGrad.addColorStop(0.5, 'rgba(51, 255, 102, 0.038)');
+        beamGrad.addColorStop(1, 'rgba(51, 255, 102, 0)');
+        this.ctx.fillStyle = beamGrad;
+        this.ctx.fillRect(0, this.crtBeamY - 35, this.width, 70);
+
+        // Analog Phosphor Particles Shimmer
+        if (this.crtPhosphorParticles) {
+          for (let i = 0; i < this.crtPhosphorParticles.length; i++) {
+            const p = this.crtPhosphorParticles[i];
+            p.y += p.vy;
+            if (p.y < 0) p.y = this.height;
+
+            const pulse = Math.sin(time * p.flickerSpeed + p.flickerOffset);
+            const alpha = Math.max(0.02, Math.min(0.24, p.baseAlpha + pulse * 0.06));
+
+            this.ctx.fillStyle = `rgba(51, 255, 102, ${alpha.toFixed(3)})`;
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            this.ctx.fill();
+          }
+        }
+      } else if (this.currentMode === 'dark_vortex') {
         // Render Interactive Synaptic Neural Vortex Swarm
         const cx = this.width / 2;
         const cy = this.height / 2;

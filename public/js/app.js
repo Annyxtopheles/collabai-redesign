@@ -128,19 +128,21 @@ function renderUserMenuContent() {
           <span class="text-app-textSecondary capitalize font-semibold">${escapeHtml(activeThemeMeta.name || currentTheme)}</span>
         </div>
 
-        <!-- Dynamically Scaled Theme Grid -->
-        <div class="grid grid-cols-${Math.min(themes.length, 3)} gap-1.5 bg-app-input p-1.5 rounded-xl border border-app-borderSubtle text-[11.5px]">
+        <!-- Dynamically Scaled Theme Grid (Supports 4 Themes: Dark, Light, Pink, CRT) -->
+        <div class="grid grid-cols-4 gap-1.5 bg-app-input p-1.5 rounded-xl border border-app-borderSubtle text-[11px]">
           ${themes.map(t => {
             const isActive = currentTheme === t.id;
             let activeStyle = 'bg-app-surface text-app-textPrimary shadow-sm font-semibold';
             if (t.id === 'pink' && isActive) {
               activeStyle = 'bg-[#FF5DA2] text-black border border-black shadow-sm font-bold';
+            } else if (t.id === 'crt' && isActive) {
+              activeStyle = 'bg-[#163016] text-[#33FF66] border border-[#33FF66] font-semibold shadow-[0_0_8px_rgba(51,255,102,0.25)]';
             }
             return `
               <button 
                 onclick="switchTheme('${t.id}')" 
                 title="${escapeHtml(t.description || t.name)}"
-                class="flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg transition-all ${isActive ? activeStyle : 'text-app-textMuted hover:text-app-textPrimary hover:bg-app-hover'}">
+                class="flex items-center justify-center gap-1 py-2 px-1 rounded-lg transition-all ${isActive ? activeStyle : 'text-app-textMuted hover:text-app-textPrimary hover:bg-app-hover'}">
                 <i data-lucide="${t.icon || 'palette'}" class="w-3.5 h-3.5"></i>
                 <span class="truncate">${escapeHtml(t.shortName || t.name)}</span>
               </button>
@@ -148,11 +150,11 @@ function renderUserMenuContent() {
           }).join('')}
         </div>
 
-        <!-- Theme Ambient Background Effects Control (Neural Vortex/Glyph/Stars in Dark, Glyph in Light, Sakura in Pink) -->
+        <!-- Theme Ambient Background Effects Control (CRT Raster, Vortex/Glyph/Stars, Sakura) -->
         <div class="flex flex-col gap-1.5 pt-1.5 border-t border-app-borderSubtle text-[11.5px]">
           <div class="flex items-center justify-between px-0.5">
             <div class="flex items-center gap-1.5 text-app-textSecondary">
-              <i data-lucide="${currentTheme === 'pink' ? 'flower-2' : (currentTheme === 'dark' ? (appStore.state.darkAmbientStyle === 'stars' ? 'sparkles' : (appStore.state.darkAmbientStyle === 'matrix' ? 'binary' : 'orbit')) : 'binary')}" class="w-3.5 h-3.5 ${ambientEnabled ? (currentTheme === 'pink' ? 'text-pink-400' : 'text-emerald-400') : 'text-app-textMuted'}"></i>
+              <i data-lucide="${currentTheme === 'crt' ? 'tv' : (currentTheme === 'pink' ? 'flower-2' : (currentTheme === 'dark' ? (appStore.state.darkAmbientStyle === 'stars' ? 'sparkles' : (appStore.state.darkAmbientStyle === 'matrix' ? 'binary' : 'orbit')) : 'binary'))}" class="w-3.5 h-3.5 ${ambientEnabled ? (currentTheme === 'crt' ? 'text-emerald-400' : (currentTheme === 'pink' ? 'text-pink-400' : 'text-emerald-400')) : 'text-app-textMuted'}"></i>
               <span class="font-medium text-app-textPrimary">Ambient Background</span>
             </div>
             <button 

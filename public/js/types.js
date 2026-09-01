@@ -52,6 +52,23 @@ const THEMES_CONFIG = [
     ambientStyles: [
       { id: 'sakura', name: 'Falling Sakura', icon: 'flower-2', desc: 'Multi-depth Japanese sakura petals' }
     ]
+  },
+  {
+    id: 'crt',
+    name: 'CRT Terminal',
+    shortName: 'CRT',
+    icon: 'terminal',
+    description: 'Retro 80s phosphor green CRT monitor with scanlines',
+    badge: 'Retro',
+    previewBg: '#060A06',
+    previewBorder: '#33FF66',
+    previewText: '#33FF66',
+    previewAccent: '#33FF66',
+    ambientEffectName: 'Cathode Raster',
+    ambientEffectDesc: 'Cathode ray beam scan sweep & analog phosphor static',
+    ambientStyles: [
+      { id: 'raster', name: 'Cathode Raster', icon: 'tv', desc: 'Horizontal scanline sweep & phosphor shimmer' }
+    ]
   }
 ];
 

@@ -74,7 +74,7 @@ function renderSettingsView(state) {
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-xl bg-app-hoverSubtle border border-app-borderSubtle flex items-center justify-center text-app-textPrimary">
-                  <i data-lucide="${currentTheme === 'pink' ? 'flower-2' : (currentTheme === 'dark' ? (state.darkAmbientStyle === 'stars' ? 'sparkles' : (state.darkAmbientStyle === 'matrix' ? 'binary' : 'orbit')) : 'binary')}" class="w-4 h-4 ${ambientEnabled ? (currentTheme === 'pink' ? 'text-pink-400' : 'text-emerald-400') : 'text-app-textMuted'}"></i>
+                  <i data-lucide="${currentTheme === 'crt' ? 'tv' : (currentTheme === 'pink' ? 'flower-2' : (currentTheme === 'dark' ? (state.darkAmbientStyle === 'stars' ? 'sparkles' : (state.darkAmbientStyle === 'matrix' ? 'binary' : 'orbit')) : 'binary'))}" class="w-4 h-4 ${ambientEnabled ? (currentTheme === 'crt' ? 'text-emerald-400' : (currentTheme === 'pink' ? 'text-pink-400' : 'text-emerald-400')) : 'text-app-textMuted'}"></i>
                 </div>
                 <div class="flex flex-col">
                   <div class="flex items-center gap-2">
@@ -84,9 +84,11 @@ function renderSettingsView(state) {
                     </span>
                   </div>
                   <span class="text-[12px] text-app-textMuted">
-                    ${currentTheme === 'dark' 
-                      ? (state.darkAmbientStyle === 'stars' ? 'Micro-pinpoint glittering starfield gently twinkling behind UI' : (state.darkAmbientStyle === 'matrix' ? 'Stationary cyber ASCII symbol grid with gentle breathing glow & soft fading pulses' : 'Interactive synaptic neural vortex swarm slowly swirling & reacting to motion')) 
-                      : (currentTheme === 'light' ? 'Stationary subtle slate ASCII symbol grid with soft breathing glow & dimming' : 'Multi-depth Japanese cherry blossom (Sakura) leaves slowly drifting in spring breeze')}
+                    ${currentTheme === 'crt'
+                      ? 'Horizontal cathode ray beam scan sweep & analog phosphor static shimmer'
+                      : (currentTheme === 'dark' 
+                        ? (state.darkAmbientStyle === 'stars' ? 'Micro-pinpoint glittering starfield gently twinkling behind UI' : (state.darkAmbientStyle === 'matrix' ? 'Stationary cyber ASCII symbol grid with gentle breathing glow & soft fading pulses' : 'Interactive synaptic neural vortex swarm slowly swirling & reacting to motion')) 
+                        : (currentTheme === 'light' ? 'Stationary subtle slate ASCII symbol grid with soft breathing glow & dimming' : 'Multi-depth Japanese cherry blossom (Sakura) leaves slowly drifting in spring breeze'))}
                   </span>
                 </div>
               </div>
