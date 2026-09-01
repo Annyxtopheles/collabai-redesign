@@ -68,6 +68,7 @@ function renderApp() {
   `;
 
   lucide.createIcons();
+  initSpecularCards();
 }
 
 // Functioning Profile Dropdown Menu with Scalable Multi-Theme Switcher & Ambient Toggle
@@ -245,6 +246,7 @@ function renderUserMenuContent() {
 function switchTheme(themeName) {
   appStore.setTheme(themeName);
   renderUserMenuContent();
+  initSpecularCards();
 }
 
 function toggleAmbientFromMenu() {
@@ -328,6 +330,9 @@ window.addEventListener('keydown', (e) => {
 appStore.subscribe((state, meta) => {
   // If the change is purely theme or ambient particles, avoid tearing down and rebuilding the whole app DOM!
   if (meta && (meta.type === 'theme' || meta.type === 'ambient')) {
+    if (meta.type === 'theme') {
+      initSpecularCards();
+    }
     if (state.currentRoute === '/settings') {
       const contentArea = document.querySelector('.content-area');
       if (contentArea) {
@@ -383,7 +388,285 @@ function initBorderGlowPhysics() {
   }, { passive: true });
 }
 
+// ==========================================================================
+// Specular Card Effect (for messaging type card component across dark, crt, synthwave, saas)
+// ==========================================================================
+let activeSpecularCards = [];
+
+function cleanupSpecularCards() {
+  activeSpecularCards.forEach(item => {
+    if (item.cleanup) item.cleanup();
+  });
+  activeSpecularCards = [];
+}
+
+function initSpecularCards() {
+  cleanupSpecularCards();
+
+  const theme = appStore.state.theme;
+  // Exclude light and pink themes explicitly
+  if (theme === 'light' || theme === 'pink') {
+    return;
+  }
+
+  // Theme-specific color palettes
+  const THEME_SPECULAR_PALETTES = {
+    dark: {
+      lineColor: [0.063, 0.725, 0.506], // Emerald Accent #10B981
+      baseColor: [0.137, 0.165, 0.231], // Dark Slate #232A3B
+      intensity: 1.0,
+      radius: 16
+    },
+    crt: {
+      lineColor: [0.200, 1.000, 0.400], // Phosphor Green #33FF66
+      baseColor: [0.086, 0.188, 0.086], // Deep Phosphor CRT Green #163016
+      intensity: 1.15,
+      radius: 16
+    },
+    synthwave: {
+      lineColor: [1.000, 0.165, 0.522], // Neon Magenta #FF2A85
+      baseColor: [0.165, 0.063, 0.157], // Synthwave Plum #2A1028
+      intensity: 1.1,
+      radius: 16
+    },
+    saas: {
+      lineColor: [0.192, 0.369, 1.000], // Royal Indigo #315EFF
+      baseColor: [0.086, 0.125, 0.220], // Indigo Navy #162038
+      intensity: 1.1,
+      radius: 16
+    }
+  };
+
+  const palette = THEME_SPECULAR_PALETTES[theme] || THEME_SPECULAR_PALETTES.dark;
+
+  const cardElements = document.querySelectorAll('.specular-card');
+  if (!cardElements.length) return;
+
+  const PAD = 20;
+  const VERT = `
+    attribute vec2 position;
+    void main() {
+      gl_Position = vec4(position, 0.0, 1.0);
+    }
+  `;
+
+  const FRAG = `
+    precision highp float;
+
+    uniform vec2 uCenter;
+    uniform vec2 uHalfSize;
+    uniform float uRadius;
+    uniform float uAngle;
+    uniform float uPx;
+    uniform vec3 uLineColor;
+    uniform vec3 uBaseColor;
+    uniform float uIntensity;
+    uniform float uShineSize;
+    uniform float uShineFade;
+    uniform float uThickness;
+    uniform float uBaseWidth;
+
+    float sdRoundedRect(vec2 p, vec2 b, float r) {
+      vec2 q = abs(p) - b + r;
+      return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
+    }
+
+    float shapeSDF(vec2 p) { return sdRoundedRect(p, uHalfSize, uRadius); }
+
+    float gaussianLine(float d, float sigma) {
+      float x = d / (sigma + 1e-6);
+      float k = mix(1.0, 1.6, smoothstep(0.0, 1.5, x));
+      return exp(-k * x * x);
+    }
+
+    void main() {
+      vec2 p = gl_FragCoord.xy - uCenter;
+      float d = shapeSDF(p);
+      vec2 L = vec2(cos(uAngle), sin(uAngle));
+
+      // Dark base stroke hugging the edge for a sense of thickness
+      float base = (1.0 - smoothstep(0.0, uBaseWidth, abs(d))) * 0.45;
+
+      // Symmetric specular: the edges facing toward/away from the light both catch a streak
+      vec2 nEll = normalize(p / (uHalfSize * uHalfSize) + 1e-6);
+      float phi = acos(clamp(abs(dot(nEll, L)), 0.0, 1.0));
+      float rim = 1.0 - smoothstep(uShineSize - uShineFade, uShineSize + uShineFade + 1e-4, phi);
+      float line = gaussianLine(d, uThickness);
+      float edgeClamp = 1.0 - smoothstep(0.5 * uPx, 3.0 * uPx, abs(d));
+      float hi = line * rim * edgeClamp * uIntensity;
+
+      vec3 col = uBaseColor * base + uLineColor * hi;
+      float a = clamp(base + hi, 0.0, 1.0);
+      gl_FragColor = vec4(col, a);
+    }
+  `;
+
+  cardElements.forEach(card => {
+    let fx = card.querySelector('.specular-card__fx');
+    if (!fx) {
+      fx = document.createElement('span');
+      fx.className = 'specular-card__fx';
+      fx.setAttribute('aria-hidden', 'true');
+      card.prepend(fx);
+    }
+
+    const canvas = document.createElement('canvas');
+    fx.appendChild(canvas);
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: true });
+    if (!gl) return;
+
+    gl.clearColor(0, 0, 0, 0);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+    // Vertex shader
+    const vs = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vs, VERT);
+    gl.compileShader(vs);
+
+    // Fragment shader
+    const fs = gl.createShader(gl.FRAGMENT_SHADER, FRAG);
+    gl.shaderSource(fs, FRAG);
+    gl.compileShader(fs);
+
+    const program = gl.createProgram();
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
+
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      return;
+    }
+
+    const posAttr = gl.getAttribLocation(program, 'position');
+    const uCenter = gl.getUniformLocation(program, 'uCenter');
+    const uHalfSize = gl.getUniformLocation(program, 'uHalfSize');
+    const uRadius = gl.getUniformLocation(program, 'uRadius');
+    const uAngle = gl.getUniformLocation(program, 'uAngle');
+    const uPx = gl.getUniformLocation(program, 'uPx');
+    const uLineColor = gl.getUniformLocation(program, 'uLineColor');
+    const uBaseColor = gl.getUniformLocation(program, 'uBaseColor');
+    const uIntensity = gl.getUniformLocation(program, 'uIntensity');
+    const uShineSize = gl.getUniformLocation(program, 'uShineSize');
+    const uShineFade = gl.getUniformLocation(program, 'uShineFade');
+    const uThickness = gl.getUniformLocation(program, 'uThickness');
+    const uBaseWidth = gl.getUniformLocation(program, 'uBaseWidth');
+
+    const quadBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+      -1, -1,
+       1, -1,
+      -1,  1,
+      -1,  1,
+       1, -1,
+       1,  1
+    ]), gl.STATIC_DRAW);
+
+    let sizeW = card.offsetWidth;
+    let sizeH = card.offsetHeight;
+
+    const resize = () => {
+      const rect = card.getBoundingClientRect();
+      sizeW = rect.width;
+      sizeH = rect.height;
+      const targetW = Math.round((sizeW + PAD * 2) * dpr);
+      const targetH = Math.round((sizeH + PAD * 2) * dpr);
+      if (canvas.width !== targetW || canvas.height !== targetH) {
+        canvas.width = targetW;
+        canvas.height = targetH;
+      }
+      gl.viewport(0, 0, targetW, targetH);
+    };
+
+    const ro = new ResizeObserver(resize);
+    ro.observe(card);
+    resize();
+
+    let pointerAngle = null;
+    let proximityT = 0;
+    const proximity = 250;
+
+    const onPointerMove = e => {
+      const rect = card.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = Math.max(rect.left - e.clientX, 0, e.clientX - rect.right);
+      const dy = Math.max(rect.top - e.clientY, 0, e.clientY - rect.bottom);
+      const dist = Math.hypot(dx, dy);
+
+      if (dist === 0) {
+        const nx = (e.clientX - cx) / (rect.width / 2);
+        const ny = (cy - e.clientY) / (rect.height / 2);
+        pointerAngle = Math.atan2(2 / rect.height, -2 / rect.width) + nx * 0.3 + ny * 0.15;
+      } else {
+        pointerAngle = Math.atan2(cy - e.clientY, e.clientX - cx);
+      }
+      const t = Math.max(0, 1 - dist / Math.max(proximity, 1));
+      proximityT = t * t * (3 - 2 * t);
+    };
+
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
+
+    let angle = 2.4;
+    let idleAngle = 2.4;
+    let bright = 0;
+    let last = performance.now();
+    let raf = 0;
+
+    const update = now => {
+      raf = requestAnimationFrame(update);
+      const dt = Math.min((now - last) / 1000, 0.05);
+      last = now;
+
+      idleAngle += 0.35 * dt;
+      const steer = pointerAngle != null;
+      const target = steer ? pointerAngle : idleAngle;
+      const diff = ((target - angle + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+      angle += diff * (1 - Math.exp(-dt * 7));
+
+      const brightTarget = proximityT > 0 ? proximityT : 0.25;
+      bright += (brightTarget - bright) * (1 - Math.exp(-dt * 8));
+
+      gl.useProgram(program);
+      gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+      gl.enableVertexAttribArray(posAttr);
+      gl.vertexAttribPointer(posAttr, 2, gl.FLOAT, false, 0, 0);
+
+      gl.uniform2f(uCenter, (PAD + sizeW / 2) * dpr, (PAD + sizeH / 2) * dpr);
+      gl.uniform2f(uHalfSize, (sizeW / 2) * dpr, (sizeH / 2) * dpr);
+      gl.uniform1f(uRadius, Math.min(palette.radius, Math.min(sizeW, sizeH) / 2) * dpr);
+      gl.uniform1f(uAngle, angle);
+      gl.uniform1f(uPx, dpr);
+      gl.uniform3fv(uLineColor, palette.lineColor);
+      gl.uniform3fv(uBaseColor, palette.baseColor);
+      gl.uniform1f(uIntensity, palette.intensity * bright);
+      gl.uniform1f(uShineSize, (12 * Math.PI) / 180);
+      gl.uniform1f(uShineFade, (45 * Math.PI) / 180);
+      gl.uniform1f(uThickness, 1.2 * dpr);
+      gl.uniform1f(uBaseWidth, 1.0 * dpr);
+
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+    };
+
+    raf = requestAnimationFrame(update);
+
+    activeSpecularCards.push({
+      cleanup: () => {
+        cancelAnimationFrame(raf);
+        ro.disconnect();
+        window.removeEventListener('pointermove', onPointerMove);
+        if (canvas.parentNode === fx) fx.removeChild(canvas);
+        gl.getExtension('WEBGL_lose_context')?.loseContext();
+      }
+    });
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   renderApp();
   initBorderGlowPhysics();
+  initSpecularCards();
 });

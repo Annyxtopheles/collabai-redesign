@@ -924,6 +924,46 @@ html.saas textarea {
   cursor: text !important;
 }
 
+/* SaaS Text Input Placeholder Palette */
+html.saas input::placeholder,
+html.saas textarea::placeholder {
+  color: #64748B !important;
+}
+
+/* ==========================================================================
+   Specular Border Shader Card Effect (Dark, CRT, Synthwave, SaaS themes)
+   ========================================================================== */
+.specular-card {
+  position: relative;
+}
+
+.specular-card__fx {
+  position: absolute;
+  inset: -20px;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
+  overflow: visible;
+}
+
+.specular-card__fx canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.specular-card > :not(.specular-card__fx) {
+  position: relative;
+  z-index: 2;
+}
+
+/* Exclude Light and Pink themes from specular shader rendering */
+html.light .specular-card__fx,
+html.pink .specular-card__fx {
+  display: none !important;
+}
+
 html.saas ::selection {
   background-color: #315EFF;
   color: #FFFFFF;
