@@ -930,56 +930,95 @@ html.saas textarea::placeholder {
   color: #64748B !important;
 }
 
-/* ==========================================================================
-   Specular Border Shader Card Effect (Dark, CRT, Synthwave, SaaS themes)
-   ========================================================================== */
-.specular-card {
-  position: relative;
-}
-
-.specular-card__fx {
-  position: absolute;
-  inset: -20px;
-  pointer-events: none;
-  z-index: 1;
-  border-radius: inherit;
-  overflow: visible;
-}
-
-.specular-card__fx canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.specular-card > :not(.specular-card__fx) {
-  position: relative;
-  z-index: 2;
-}
-
-/* Exclude Light and Pink themes from specular shader rendering */
-html.light .specular-card__fx,
-html.pink .specular-card__fx {
-  display: none !important;
-}
-
 html.saas ::selection {
   background-color: #315EFF;
   color: #FFFFFF;
 }
 
 /* =========================================================
-   REACT BITS - BORDER GLOW COMPONENT CSS (SaaS Exclusive)
+   REACT BITS - BORDER GLOW COMPONENT CSS (All Dark Themes)
    ========================================================= */
-html.saas .border-glow-card {
+.border-glow-card {
   --edge-proximity: 0;
   --cursor-angle: 45deg;
   --edge-sensitivity: 25;
   --color-sensitivity: calc(var(--edge-sensitivity) + 15);
   --border-radius: 18px;
-  --glow-padding: 32px;
+  --glow-padding: 36px;
   --cone-spread: 25;
+
+  position: relative;
+  border-radius: var(--border-radius);
+  isolation: isolate;
+  transform: translate3d(0, 0, 0.01px);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+  background: var(--card-bg, var(--bg-surface));
+  overflow: visible;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.28);
+}
+
+/* --- Dark Minimal Theme: Pure Crisp White Glow --- */
+html.dark .border-glow-card {
+  --glow-color: hsl(0deg 0% 100% / 100%);
+  --glow-color-60: hsl(0deg 0% 100% / 60%);
+  --glow-color-50: hsl(0deg 0% 100% / 50%);
+  --glow-color-40: hsl(0deg 0% 100% / 40%);
+  --glow-color-30: hsl(0deg 0% 100% / 30%);
+  --glow-color-20: hsl(0deg 0% 100% / 20%);
+  --glow-color-10: hsl(0deg 0% 100% / 10%);
+
+  --gradient-one: radial-gradient(at 80% 55%, #FFFFFF 0px, transparent 50%);
+  --gradient-two: radial-gradient(at 69% 34%, #E2E8F0 0px, transparent 50%);
+  --gradient-three: radial-gradient(at 8% 6%, #CBD5E1 0px, transparent 50%);
+  --gradient-four: radial-gradient(at 41% 38%, #FFFFFF 0px, transparent 50%);
+  --gradient-five: radial-gradient(at 86% 85%, #E2E8F0 0px, transparent 50%);
+  --gradient-six: radial-gradient(at 82% 18%, #CBD5E1 0px, transparent 50%);
+  --gradient-seven: radial-gradient(at 51% 4%, #94A3B8 0px, transparent 50%);
+  --gradient-base: linear-gradient(#FFFFFF 0 100%);
+}
+
+/* --- CRT Terminal Theme: Phosphor Green Glow --- */
+html.crt .border-glow-card {
+  --glow-color: hsl(135deg 100% 60% / 100%);
+  --glow-color-60: hsl(135deg 100% 60% / 60%);
+  --glow-color-50: hsl(135deg 100% 60% / 50%);
+  --glow-color-40: hsl(135deg 100% 60% / 40%);
+  --glow-color-30: hsl(135deg 100% 60% / 30%);
+  --glow-color-20: hsl(135deg 100% 60% / 20%);
+  --glow-color-10: hsl(135deg 100% 60% / 10%);
+
+  --gradient-one: radial-gradient(at 80% 55%, #33FF66 0px, transparent 50%);
+  --gradient-two: radial-gradient(at 69% 34%, #00FF41 0px, transparent 50%);
+  --gradient-three: radial-gradient(at 8% 6%, #00CC33 0px, transparent 50%);
+  --gradient-four: radial-gradient(at 41% 38%, #33FF66 0px, transparent 50%);
+  --gradient-five: radial-gradient(at 86% 85%, #00FF41 0px, transparent 50%);
+  --gradient-six: radial-gradient(at 82% 18%, #00CC33 0px, transparent 50%);
+  --gradient-seven: radial-gradient(at 51% 4%, #00AA22 0px, transparent 50%);
+  --gradient-base: linear-gradient(#33FF66 0 100%);
+}
+
+/* --- Synthwave 80s Theme: Neon Magenta & Laser Cyan Glow --- */
+html.synthwave .border-glow-card {
+  --glow-color: hsl(333deg 100% 58% / 100%);
+  --glow-color-60: hsl(333deg 100% 58% / 60%);
+  --glow-color-50: hsl(333deg 100% 58% / 50%);
+  --glow-color-40: hsl(333deg 100% 58% / 40%);
+  --glow-color-30: hsl(333deg 100% 58% / 30%);
+  --glow-color-20: hsl(333deg 100% 58% / 20%);
+  --glow-color-10: hsl(333deg 100% 58% / 10%);
+
+  --gradient-one: radial-gradient(at 80% 55%, #FF2A85 0px, transparent 50%);
+  --gradient-two: radial-gradient(at 69% 34%, #00F0FF 0px, transparent 50%);
+  --gradient-three: radial-gradient(at 8% 6%, #BD00FF 0px, transparent 50%);
+  --gradient-four: radial-gradient(at 41% 38%, #FF2A85 0px, transparent 50%);
+  --gradient-five: radial-gradient(at 86% 85%, #00F0FF 0px, transparent 50%);
+  --gradient-six: radial-gradient(at 82% 18%, #BD00FF 0px, transparent 50%);
+  --gradient-seven: radial-gradient(at 51% 4%, #FF0055 0px, transparent 50%);
+  --gradient-base: linear-gradient(#FF2A85 0 100%);
+}
+
+/* --- Modern SaaS Theme: Royal Indigo & Sky Cyan Glow --- */
+html.saas .border-glow-card {
   --glow-color: hsl(225deg 100% 60% / 100%);
   --glow-color-60: hsl(225deg 100% 60% / 60%);
   --glow-color-50: hsl(225deg 100% 60% / 50%);
@@ -996,17 +1035,18 @@ html.saas .border-glow-card {
   --gradient-six: radial-gradient(at 82% 18%, #38BDF8 0px, transparent 50%);
   --gradient-seven: radial-gradient(at 51% 4%, #6366F1 0px, transparent 50%);
   --gradient-base: linear-gradient(#315EFF 0 100%);
-
-  position: relative;
-  border-radius: var(--border-radius);
-  isolation: isolate;
-  transform: translate3d(0, 0, 0.01px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: var(--card-bg, rgba(18, 24, 43, 0.85));
-  overflow: visible;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
+/* Border Glow Layer Elements for active dark themes */
+html.dark .border-glow-card::before,
+html.dark .border-glow-card::after,
+html.dark .border-glow-card > .edge-light,
+html.crt .border-glow-card::before,
+html.crt .border-glow-card::after,
+html.crt .border-glow-card > .edge-light,
+html.synthwave .border-glow-card::before,
+html.synthwave .border-glow-card::after,
+html.synthwave .border-glow-card > .edge-light,
 html.saas .border-glow-card::before,
 html.saas .border-glow-card::after,
 html.saas .border-glow-card > .edge-light {
@@ -1015,9 +1055,20 @@ html.saas .border-glow-card > .edge-light {
   inset: 0;
   border-radius: inherit;
   transition: opacity 0.25s ease-out;
-  z-index: -1;
+  z-index: 1;
+  pointer-events: none;
 }
 
+/* Hide glow on inactive hover */
+html.dark .border-glow-card:not(:hover):not(.sweep-active)::before,
+html.dark .border-glow-card:not(:hover):not(.sweep-active)::after,
+html.dark .border-glow-card:not(:hover):not(.sweep-active) > .edge-light,
+html.crt .border-glow-card:not(:hover):not(.sweep-active)::before,
+html.crt .border-glow-card:not(:hover):not(.sweep-active)::after,
+html.crt .border-glow-card:not(:hover):not(.sweep-active) > .edge-light,
+html.synthwave .border-glow-card:not(:hover):not(.sweep-active)::before,
+html.synthwave .border-glow-card:not(:hover):not(.sweep-active)::after,
+html.synthwave .border-glow-card:not(:hover):not(.sweep-active) > .edge-light,
 html.saas .border-glow-card:not(:hover):not(.sweep-active)::before,
 html.saas .border-glow-card:not(:hover):not(.sweep-active)::after,
 html.saas .border-glow-card:not(:hover):not(.sweep-active) > .edge-light {
@@ -1025,11 +1076,14 @@ html.saas .border-glow-card:not(:hover):not(.sweep-active) > .edge-light {
   transition: opacity 0.75s ease-in-out;
 }
 
-/* colored mesh-gradient border */
+/* Colored mesh-gradient border */
+html.dark .border-glow-card::before,
+html.crt .border-glow-card::before,
+html.synthwave .border-glow-card::before,
 html.saas .border-glow-card::before {
   border: 1.5px solid transparent;
   background:
-    linear-gradient(var(--card-bg, rgba(18, 24, 43, 0.95)) 0 100%) padding-box,
+    linear-gradient(var(--card-bg, var(--bg-surface)) 0 100%) padding-box,
     linear-gradient(rgb(255 255 255 / 0%) 0% 100%) border-box,
     var(--gradient-one) border-box,
     var(--gradient-two) border-box,
@@ -1060,7 +1114,10 @@ html.saas .border-glow-card::before {
     );
 }
 
-/* colored mesh-gradient background fill near edges */
+/* Colored mesh-gradient background fill near edges */
+html.dark .border-glow-card::after,
+html.crt .border-glow-card::after,
+html.synthwave .border-glow-card::after,
 html.saas .border-glow-card::after {
   border: 1px solid transparent;
   background:
@@ -1088,7 +1145,10 @@ html.saas .border-glow-card::after {
   mix-blend-mode: soft-light;
 }
 
-/* outer glow layer */
+/* Outer Edge Light Glow Layer */
+html.dark .border-glow-card > .edge-light,
+html.crt .border-glow-card > .edge-light,
+html.synthwave .border-glow-card > .edge-light,
 html.saas .border-glow-card > .edge-light {
   inset: calc(var(--glow-padding) * -1);
   pointer-events: none;
@@ -1107,20 +1167,33 @@ html.saas .border-glow-card > .edge-light {
   mix-blend-mode: plus-lighter;
 }
 
+html.dark .border-glow-card > .edge-light::before,
+html.crt .border-glow-card > .edge-light::before,
+html.synthwave .border-glow-card > .edge-light::before,
 html.saas .border-glow-card > .edge-light::before {
   content: "";
   position: absolute;
   inset: var(--glow-padding);
   border-radius: inherit;
   box-shadow:
-    inset 0 0 0 1px var(--glow-color, #315EFF),
-    inset 0 0 1px 0 var(--glow-color-60, rgba(49, 94, 255, 0.6)),
-    inset 0 0 3px 0 var(--glow-color-50, rgba(49, 94, 255, 0.5)),
-    inset 0 0 6px 0 var(--glow-color-40, rgba(49, 94, 255, 0.4)),
-    inset 0 0 15px 0 var(--glow-color-30, rgba(49, 94, 255, 0.3)),
-    0 0 1px 0 var(--glow-color-60, rgba(49, 94, 255, 0.6)),
-    0 0 3px 0 var(--glow-color-50, rgba(49, 94, 255, 0.5)),
-    0 0 6px 0 var(--glow-color-40, rgba(49, 94, 255, 0.4)),
-    0 0 15px 0 var(--glow-color-30, rgba(49, 94, 255, 0.3)),
-    0 0 30px 2px var(--glow-color-20, rgba(49, 94, 255, 0.2));
+    inset 0 0 0 1px var(--glow-color),
+    inset 0 0 1px 0 var(--glow-color-60),
+    inset 0 0 3px 0 var(--glow-color-50),
+    inset 0 0 6px 0 var(--glow-color-40),
+    inset 0 0 15px 0 var(--glow-color-30),
+    0 0 1px 0 var(--glow-color-60),
+    0 0 3px 0 var(--glow-color-50),
+    0 0 6px 0 var(--glow-color-40),
+    0 0 15px 0 var(--glow-color-30),
+    0 0 25px 2px var(--glow-color-20);
+}
+
+/* Light and Pink Themes: Standard Clean Borders without glow */
+html.light .border-glow-card::before,
+html.light .border-glow-card::after,
+html.light .border-glow-card > .edge-light,
+html.pink .border-glow-card::before,
+html.pink .border-glow-card::after,
+html.pink .border-glow-card > .edge-light {
+  display: none !important;
 }

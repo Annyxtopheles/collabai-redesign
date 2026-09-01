@@ -26,8 +26,7 @@ function renderDashboardView(state) {
         </div>
 
         <!-- Global Chat Shortcut Composer (High z-index z-30) -->
-        <div id="dashboard-prompt-card" class="specular-card w-full border-glow-card bg-app-surface border border-app-borderSubtle rounded-2xl p-3.5 flex flex-col gap-3 relative z-30">
-          <span class="specular-card__fx" aria-hidden="true"></span>
+        <div id="dashboard-prompt-card" class="w-full border-glow-card bg-app-surface border border-app-borderSubtle rounded-2xl p-3.5 flex flex-col gap-3 relative z-30">
           <span class="edge-light"></span>
 
           <!-- Main Input Line -->
