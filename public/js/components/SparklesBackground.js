@@ -409,98 +409,205 @@ class AmbientBackgroundManager {
 
     // Compile CRT FaultyTerminal Shader Program
     const crtFsSource = `
-      precision highp float;
-      uniform vec2 u_resolution;
-      uniform vec2 u_mouse;
-      uniform float u_time;
+      precision mediump float;
 
-      mat2 rot(float a) {
-        float c = cos(a);
-        float s = sin(a);
-        return mat2(c, -s, s, c);
-      }
+      uniform float iTime;
+      uniform vec3  iResolution;
+      uniform float uScale;
 
-      float hash21(vec2 p) {
-        p = fract(p * vec2(123.34, 456.21));
-        p += dot(p, p + 45.32);
+      uniform vec2  uGridMul;
+      uniform float uDigitSize;
+      uniform float uScanlineIntensity;
+      uniform float uGlitchAmount;
+      uniform float uFlickerAmount;
+      uniform float uNoiseAmp;
+      uniform float uChromaticAberration;
+      uniform float uDither;
+      uniform float uCurvature;
+      uniform vec3  uTint;
+      uniform vec2  uMouse;
+      uniform float uMouseStrength;
+      uniform float uUseMouse;
+      uniform float uPageLoadProgress;
+      uniform float uUsePageLoadAnimation;
+      uniform float uBrightness;
+      uniform float uLightMode;
+
+      float time;
+
+      float hash21(vec2 p){
+        p = fract(p * 234.56);
+        p += dot(p, p + 34.56);
         return fract(p.x * p.y);
       }
 
-      float fbmNoise(vec2 p, float t) {
+      float noise(vec2 p)
+      {
+        return sin(p.x * 10.0) * sin(p.y * (3.0 + sin(time * 0.090909))) + 0.2; 
+      }
+
+      mat2 rotate(float angle)
+      {
+        float c = cos(angle);
+        float s = sin(angle);
+        return mat2(c, -s, s, c);
+      }
+
+      float fbm(vec2 p)
+      {
+        p *= 1.1;
         float f = 0.0;
-        mat2 m = rot(0.5);
-        f += 0.500 * sin(p.x * 3.5 + t * 0.45) * sin(p.y * 3.5 - t * 0.35);
-        p = m * p * 2.02;
-        f += 0.250 * sin(p.x * 3.5 - t * 0.55) * sin(p.y * 3.5 + t * 0.45);
-        p = m * p * 2.03;
-        f += 0.125 * sin(p.x * 3.5 + t * 0.65) * sin(p.y * 3.5 - t * 0.55);
+        float amp = 0.5 * uNoiseAmp;
+        
+        mat2 modify0 = rotate(time * 0.02);
+        f += amp * noise(p);
+        p = modify0 * p * 2.0;
+        amp *= 0.454545;
+        
+        mat2 modify1 = rotate(time * 0.02);
+        f += amp * noise(p);
+        p = modify1 * p * 2.0;
+        amp *= 0.454545;
+        
+        mat2 modify2 = rotate(time * 0.08);
+        f += amp * noise(p);
+        
         return f;
       }
 
-      vec2 barrelDistort(vec2 uv, float k) {
+      float pattern(vec2 p, out vec2 q, out vec2 r) {
+        vec2 offset1 = vec2(1.0);
+        vec2 offset0 = vec2(0.0);
+        mat2 rot01 = rotate(0.1 * time);
+        mat2 rot1 = rotate(0.1);
+        
+        q = vec2(fbm(p + offset1), fbm(rot01 * p + offset1));
+        r = vec2(fbm(rot1 * q + offset0), fbm(q + offset0));
+        return fbm(p + r);
+      }
+
+      float digit(vec2 p){
+          vec2 grid = uGridMul * 15.0;
+          vec2 s = floor(p * grid) / grid;
+          p = p * grid;
+          vec2 q, r;
+          float intensity = pattern(s * 0.1, q, r) * 1.3 - 0.03;
+          
+          if(uUseMouse > 0.5){
+              vec2 mouseWorld = uMouse * uScale;
+              float distToMouse = distance(s, mouseWorld);
+              float mouseInfluence = exp(-distToMouse * 8.0) * uMouseStrength * 10.0;
+              intensity += mouseInfluence;
+              
+              float ripple = sin(distToMouse * 20.0 - iTime * 5.0) * 0.1 * mouseInfluence;
+              intensity += ripple;
+          }
+          
+          if(uUsePageLoadAnimation > 0.5){
+              float cellRandom = fract(sin(dot(s, vec2(12.9898, 78.233))) * 43758.5453);
+              float cellDelay = cellRandom * 0.8;
+              float cellProgress = clamp((uPageLoadProgress - cellDelay) / 0.2, 0.0, 1.0);
+              
+              float fadeAlpha = smoothstep(0.0, 1.0, cellProgress);
+              intensity *= fadeAlpha;
+          }
+          
+          p = fract(p);
+          p *= uDigitSize;
+          
+          float px5 = p.x * 5.0;
+          float py5 = (1.0 - p.y) * 5.0;
+          float x = fract(px5);
+          float y = fract(py5);
+          
+          float i = floor(py5) - 2.0;
+          float j = floor(px5) - 2.0;
+          float n = i * i + j * j;
+          float f = n * 0.0625;
+          
+          float isOn = step(0.1, intensity - f);
+          float brightness = isOn * (0.2 + y * 0.8) * (0.75 + x * 0.25);
+          
+          return step(0.0, p.x) * step(p.x, 1.0) * step(0.0, p.y) * step(p.y, 1.0) * brightness;
+      }
+
+      float onOff(float a, float b, float c)
+      {
+        return step(c, sin(iTime + a * cos(iTime * b))) * uFlickerAmount;
+      }
+
+      float displace(vec2 look)
+      {
+          float y = look.y - mod(iTime * 0.25, 1.0);
+          float window = 1.0 / (1.0 + 50.0 * y * y);
+          return sin(look.y * 20.0 + iTime) * 0.0125 * onOff(4.0, 2.0, 0.8) * (1.0 + cos(iTime * 60.0)) * window;
+      }
+
+      vec3 getColor(vec2 p){
+          
+          float bar = step(mod(p.y + time * 20.0, 1.0), 0.2) * 0.4 + 1.0;
+          bar *= uScanlineIntensity;
+          
+          float displacement = displace(p);
+          p.x += displacement;
+
+          if (uGlitchAmount != 1.0) {
+            float extra = displacement * (uGlitchAmount - 1.0);
+            p.x += extra;
+          }
+
+          float middle = digit(p);
+          
+          const float off = 0.002;
+          float sum = digit(p + vec2(-off, -off)) + digit(p + vec2(0.0, -off)) + digit(p + vec2(off, -off)) +
+                      digit(p + vec2(-off, 0.0)) + digit(p + vec2(0.0, 0.0)) + digit(p + vec2(off, 0.0)) +
+                      digit(p + vec2(-off, off)) + digit(p + vec2(0.0, off)) + digit(p + vec2(off, off));
+          
+          vec3 baseColor = vec3(0.9) * middle + sum * 0.1 * vec3(1.0) * bar;
+          return baseColor;
+      }
+
+      vec2 barrel(vec2 uv){
         vec2 c = uv * 2.0 - 1.0;
         float r2 = dot(c, c);
-        c *= 1.0 + k * r2;
+        c *= 1.0 + uCurvature * r2;
         return c * 0.5 + 0.5;
       }
 
-      // 5x5 Cyber character matrix raster glyph
-      float charMatrix(vec2 uv, float t) {
-        vec2 grid = vec2(56.0, 28.0);
-        vec2 cell = floor(uv * grid);
-        vec2 subUv = fract(uv * grid);
-
-        float cellRand = hash21(cell + floor(t * 2.0) * 0.06);
-        float noiseVal = fbmNoise(cell * 0.07, t);
-        float activeState = step(0.38, cellRand + noiseVal * 0.28);
-
-        // 5x5 sub-pixel dot matrix raster
-        vec2 dotPos = floor(subUv * 5.0);
-        float dotRand = hash21(cell * 17.0 + dotPos);
-        float isPixelOn = step(0.42, dotRand) * activeState;
-
-        // Soft sub-pixel square profile
-        vec2 dotUv = fract(subUv * 5.0) - 0.5;
-        float dotShape = smoothstep(0.46, 0.20, max(abs(dotUv.x), abs(dotUv.y)));
-
-        return isPixelOn * dotShape;
-      }
-
       void main() {
-        vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-        uv.y = 1.0 - uv.y;
+          time = iTime * 0.333333;
+          vec2 uv = gl_FragCoord.xy / iResolution.xy;
+          uv.y = 1.0 - uv.y;
 
-        // CRT Tube Barrel Curvature
-        uv = barrelDistort(uv, 0.07);
+          if(uCurvature != 0.0){
+            uv = barrel(uv);
+          }
+          
+          vec2 p = uv * uScale;
+          vec3 col = getColor(p);
 
-        if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
-          gl_FragColor = vec4(0.0);
-          return;
-        }
+          if(uChromaticAberration != 0.0){
+            vec2 ca = vec2(uChromaticAberration) / iResolution.xy;
+            col.r = getColor(p + ca).r;
+            col.b = getColor(p - ca).b;
+          }
 
-        float t = u_time * 0.75;
+          col *= uTint;
+          col *= uBrightness;
 
-        // Interactive mouse magnetic ripple wave
-        vec2 mUv = u_mouse;
-        float dMouse = distance(uv, mUv);
-        float mouseWave = sin(dMouse * 35.0 - t * 5.0) * exp(-dMouse * 4.5) * 0.12;
-        vec2 warpedUv = uv + mouseWave * normalize(uv - mUv + 1e-4);
+          if(uDither > 0.0){
+            float rnd = hash21(gl_FragCoord.xy);
+            col += (rnd - 0.5) * (uDither * 0.003922);
+          }
 
-        // Render digital FaultyTerminal phosphor matrix glyphs
-        float chars = charMatrix(warpedUv, t);
+          if (uLightMode > 0.5) {
+            float energy = max(max(col.r, col.g), col.b);
+            float coverage = clamp(smoothstep(0.0, 0.72, energy) * 0.9, 0.0, 0.9);
+            vec3 ink = clamp(col * 0.42, 0.0, 0.76);
+            col = mix(vec3(1.0), ink, coverage);
+          }
 
-        // CRT Scanline Raster lines
-        float scanline = sin(uv.y * u_resolution.y * 0.75 + t * 3.5) * 0.22 + 0.78;
-        
-        // Phosphor Green CRT Palette
-        vec3 phosphorTint = vec3(0.20, 1.0, 0.40); // Classic P1 Green
-        vec3 terminalColor = phosphorTint * (chars * 0.55 + 0.035) * scanline;
-
-        // Outer Vignette falloff
-        float vig = 1.0 - smoothstep(0.45, 1.40, length(uv * 2.0 - 1.0));
-        terminalColor *= vig;
-
-        gl_FragColor = vec4(terminalColor, clamp(length(terminalColor) * 1.6, 0.0, 1.0));
+          gl_FragColor = vec4(col, 1.0);
       }
     `;
 
@@ -514,9 +621,26 @@ class AmbientBackgroundManager {
         this.crtShader = {
           program: crtProgram,
           pos: gl.getAttribLocation(crtProgram, 'position'),
-          res: gl.getUniformLocation(crtProgram, 'u_resolution'),
-          time: gl.getUniformLocation(crtProgram, 'u_time'),
-          mouse: gl.getUniformLocation(crtProgram, 'u_mouse')
+          iTime: gl.getUniformLocation(crtProgram, 'iTime'),
+          iResolution: gl.getUniformLocation(crtProgram, 'iResolution'),
+          uScale: gl.getUniformLocation(crtProgram, 'uScale'),
+          uGridMul: gl.getUniformLocation(crtProgram, 'uGridMul'),
+          uDigitSize: gl.getUniformLocation(crtProgram, 'uDigitSize'),
+          uScanlineIntensity: gl.getUniformLocation(crtProgram, 'uScanlineIntensity'),
+          uGlitchAmount: gl.getUniformLocation(crtProgram, 'uGlitchAmount'),
+          uFlickerAmount: gl.getUniformLocation(crtProgram, 'uFlickerAmount'),
+          uNoiseAmp: gl.getUniformLocation(crtProgram, 'uNoiseAmp'),
+          uChromaticAberration: gl.getUniformLocation(crtProgram, 'uChromaticAberration'),
+          uDither: gl.getUniformLocation(crtProgram, 'uDither'),
+          uCurvature: gl.getUniformLocation(crtProgram, 'uCurvature'),
+          uTint: gl.getUniformLocation(crtProgram, 'uTint'),
+          uMouse: gl.getUniformLocation(crtProgram, 'uMouse'),
+          uMouseStrength: gl.getUniformLocation(crtProgram, 'uMouseStrength'),
+          uUseMouse: gl.getUniformLocation(crtProgram, 'uUseMouse'),
+          uPageLoadProgress: gl.getUniformLocation(crtProgram, 'uPageLoadProgress'),
+          uUsePageLoadAnimation: gl.getUniformLocation(crtProgram, 'uUsePageLoadAnimation'),
+          uBrightness: gl.getUniformLocation(crtProgram, 'uBrightness'),
+          uLightMode: gl.getUniformLocation(crtProgram, 'uLightMode')
         };
       }
     }
@@ -1017,10 +1141,10 @@ class AmbientBackgroundManager {
         return;
       }
 
-      // If CRT mode, render WebGL FaultyTerminal raster under 2D canvas
+      // If CRT mode, render FaultyTerminal WebGL Shader under 2D canvas
       if (this.currentMode === 'crt_raster' && this.gl && this.crtShader) {
-        this.mouseX += (this.targetMouseX - this.mouseX) * 0.05;
-        this.mouseY += (this.targetMouseY - this.mouseY) * 0.05;
+        this.mouseX += (this.targetMouseX - this.mouseX) * 0.08;
+        this.mouseY += (this.targetMouseY - this.mouseY) * 0.08;
 
         const gl = this.gl;
         const s = this.crtShader;
@@ -1031,9 +1155,26 @@ class AmbientBackgroundManager {
         gl.enableVertexAttribArray(s.pos);
         gl.vertexAttribPointer(s.pos, 2, gl.FLOAT, false, 0, 0);
 
-        gl.uniform2f(s.res, this.width, this.height);
-        gl.uniform2f(s.mouse, this.mouseX / this.width, 1.0 - (this.mouseY / this.height));
-        gl.uniform1f(s.time, time * 0.001);
+        gl.uniform1f(s.iTime, time * 0.001);
+        gl.uniform3f(s.iResolution, this.width, this.height, this.width / this.height);
+        gl.uniform1f(s.uScale, 1.0);
+        gl.uniform2f(s.uGridMul, 2.0, 1.0);
+        gl.uniform1f(s.uDigitSize, 1.5);
+        gl.uniform1f(s.uScanlineIntensity, 0.35);
+        gl.uniform1f(s.uGlitchAmount, 1.0);
+        gl.uniform1f(s.uFlickerAmount, 0.8);
+        gl.uniform1f(s.uNoiseAmp, 1.0);
+        gl.uniform1f(s.uChromaticAberration, 0.0);
+        gl.uniform1f(s.uDither, 0.0);
+        gl.uniform1f(s.uCurvature, 0.15);
+        gl.uniform3f(s.uTint, 0.20, 1.0, 0.40); // Phosphor green #33FF66
+        gl.uniform2f(s.uMouse, this.mouseX / this.width, 1.0 - (this.mouseY / this.height));
+        gl.uniform1f(s.uMouseStrength, 0.2);
+        gl.uniform1f(s.uUseMouse, 1.0);
+        gl.uniform1f(s.uPageLoadProgress, 1.0);
+        gl.uniform1f(s.uUsePageLoadAnimation, 0.0);
+        gl.uniform1f(s.uBrightness, 0.70);
+        gl.uniform1f(s.uLightMode, 0.0);
 
         gl.drawArrays(gl.TRIANGLES, 0, 6);
       }
