@@ -930,9 +930,9 @@ html.saas ::selection {
 }
 
 /* =========================================================
-   REACT BITS - BORDER GLOW COMPONENT CSS
+   REACT BITS - BORDER GLOW COMPONENT CSS (SaaS Exclusive)
    ========================================================= */
-.border-glow-card {
+html.saas .border-glow-card {
   --edge-proximity: 0;
   --cursor-angle: 45deg;
   --edge-sensitivity: 25;
@@ -967,9 +967,9 @@ html.saas ::selection {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
-.border-glow-card::before,
-.border-glow-card::after,
-.border-glow-card > .edge-light {
+html.saas .border-glow-card::before,
+html.saas .border-glow-card::after,
+html.saas .border-glow-card > .edge-light {
   content: "";
   position: absolute;
   inset: 0;
@@ -978,15 +978,15 @@ html.saas ::selection {
   z-index: -1;
 }
 
-.border-glow-card:not(:hover):not(.sweep-active)::before,
-.border-glow-card:not(:hover):not(.sweep-active)::after,
-.border-glow-card:not(:hover):not(.sweep-active) > .edge-light {
+html.saas .border-glow-card:not(:hover):not(.sweep-active)::before,
+html.saas .border-glow-card:not(:hover):not(.sweep-active)::after,
+html.saas .border-glow-card:not(:hover):not(.sweep-active) > .edge-light {
   opacity: 0;
   transition: opacity 0.75s ease-in-out;
 }
 
 /* colored mesh-gradient border */
-.border-glow-card::before {
+html.saas .border-glow-card::before {
   border: 1.5px solid transparent;
   background:
     linear-gradient(var(--card-bg, rgba(18, 24, 43, 0.95)) 0 100%) padding-box,
@@ -1021,7 +1021,7 @@ html.saas ::selection {
 }
 
 /* colored mesh-gradient background fill near edges */
-.border-glow-card::after {
+html.saas .border-glow-card::after {
   border: 1px solid transparent;
   background:
     var(--gradient-one) padding-box,
@@ -1049,7 +1049,7 @@ html.saas ::selection {
 }
 
 /* outer glow layer */
-.border-glow-card > .edge-light {
+html.saas .border-glow-card > .edge-light {
   inset: calc(var(--glow-padding) * -1);
   pointer-events: none;
   z-index: 1;
@@ -1067,7 +1067,7 @@ html.saas ::selection {
   mix-blend-mode: plus-lighter;
 }
 
-.border-glow-card > .edge-light::before {
+html.saas .border-glow-card > .edge-light::before {
   content: "";
   position: absolute;
   inset: var(--glow-padding);

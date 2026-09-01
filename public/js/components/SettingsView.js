@@ -105,31 +105,37 @@ function renderSettingsView(state) {
               </button>
             </div>
 
-            <!-- Dark Mode Multi-Style Selector (Aurora vs Glyph Matrix vs Stars) -->
+            <!-- Dark Mode Multi-Style Selector (Aurora vs Pixel Snow vs Glyph Matrix vs Stars) -->
             ${ambientEnabled && currentTheme === 'dark' ? `
               <div class="flex items-center justify-between p-3 rounded-xl bg-app-input border border-app-borderSubtle text-[12.5px]">
                 <div class="flex flex-col">
                   <span class="font-medium text-app-textPrimary">Dark Mode Ambient Style</span>
-                  <span class="text-[11.5px] text-app-textMuted">Choose between Celestial Aurora, Cyber Glyphs, or Serene Stars</span>
+                  <span class="text-[11.5px] text-app-textMuted">Choose between Celestial Aurora, Pixel Snow, Cyber Glyphs, or Serene Stars</span>
                 </div>
-                <div class="flex items-center gap-1.5 bg-app-surface p-1 rounded-lg border border-app-borderSubtle">
+                <div class="flex items-center gap-1 bg-app-surface p-1 rounded-lg border border-app-borderSubtle">
                   <button 
                     onclick="appStore.setDarkAmbientStyle('aurora')"
-                    class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11.5px] transition-all ${state.darkAmbientStyle === 'aurora' ? 'bg-app-elevated border border-app-borderActive text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
+                    class="flex items-center gap-1.5 px-2 py-1 rounded-md text-[11.5px] transition-all ${state.darkAmbientStyle === 'aurora' ? 'bg-app-elevated border border-app-borderActive text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
                     <i data-lucide="sun-dim" class="w-3.5 h-3.5 text-amber-400"></i>
-                    <span>Celestial Aurora</span>
+                    <span>Aurora</span>
+                  </button>
+                  <button 
+                    onclick="appStore.setDarkAmbientStyle('snow')"
+                    class="flex items-center gap-1.5 px-2 py-1 rounded-md text-[11.5px] transition-all ${state.darkAmbientStyle === 'snow' ? 'bg-app-elevated border border-app-borderActive text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
+                    <i data-lucide="snowflake" class="w-3.5 h-3.5 text-sky-300"></i>
+                    <span>Pixel Snow</span>
                   </button>
                   <button 
                     onclick="appStore.setDarkAmbientStyle('matrix')"
-                    class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11.5px] transition-all ${state.darkAmbientStyle === 'matrix' ? 'bg-app-elevated border border-app-borderActive text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
+                    class="flex items-center gap-1.5 px-2 py-1 rounded-md text-[11.5px] transition-all ${state.darkAmbientStyle === 'matrix' ? 'bg-app-elevated border border-app-borderActive text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
                     <i data-lucide="binary" class="w-3.5 h-3.5 text-emerald-400"></i>
-                    <span>Glyph Matrix</span>
+                    <span>Glyphs</span>
                   </button>
                   <button 
                     onclick="appStore.setDarkAmbientStyle('stars')"
-                    class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11.5px] transition-all ${state.darkAmbientStyle === 'stars' ? 'bg-app-elevated border border-app-borderActive text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
+                    class="flex items-center gap-1.5 px-2 py-1 rounded-md text-[11.5px] transition-all ${state.darkAmbientStyle === 'stars' ? 'bg-app-elevated border border-app-borderActive text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
                     <i data-lucide="sparkles" class="w-3.5 h-3.5 text-cyan-300"></i>
-                    <span>Glittering Stars</span>
+                    <span>Stars</span>
                   </button>
                 </div>
               </div>

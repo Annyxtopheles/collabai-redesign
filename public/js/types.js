@@ -11,10 +11,11 @@ const THEMES_CONFIG = [
     previewBorder: '#232A3B',
     previewText: '#E6EDF3',
     previewAccent: '#10B981',
-    ambientEffectName: 'Aurora, Matrix & Stars',
-    ambientEffectDesc: 'Volumetric celestial aurora rays, cyber ASCII matrix, or pinpoint starfield',
+    ambientEffectName: 'Aurora, Snow, Glyphs & Stars',
+    ambientEffectDesc: 'Celestial aurora, retro pixel snowfall, cyber glyphs, or starfield',
     ambientStyles: [
       { id: 'aurora', name: 'Celestial Aurora', icon: 'sun-dim', desc: 'Volumetric golden amber and sky blue celestial side rays' },
+      { id: 'snow', name: 'Pixel Snow', icon: 'snowflake', desc: 'Retro pixelated drifting snowfall with depth & wind physics' },
       { id: 'matrix', name: 'Glyph Matrix', icon: 'binary', desc: 'Stationary cyber ASCII symbol grid with breathing glow' },
       { id: 'stars', name: 'Starfield', icon: 'sparkles', desc: 'Pinpoint glittering stars gently twinkling in deep space' }
     ]

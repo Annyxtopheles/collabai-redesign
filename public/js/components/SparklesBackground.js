@@ -200,17 +200,22 @@ class AmbientBackgroundManager {
     const fs = createShader(gl.FRAGMENT_SHADER, fsSource);
     if (!vs || !fs) return false;
 
-    const program = gl.createProgram();
-    gl.attachShader(program, vs);
-    gl.attachShader(program, fs);
-    gl.linkProgram(program);
+    const saasProgram = gl.createProgram();
+    gl.attachShader(saasProgram, vs);
+    gl.attachShader(saasProgram, fs);
+    gl.linkProgram(saasProgram);
 
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      console.error('Program link error:', gl.getProgramInfoLog(program));
+    if (!gl.getProgramParameter(saasProgram, gl.LINK_STATUS)) {
+      console.error('SaaS Program link error:', gl.getProgramInfoLog(saasProgram));
       return false;
     }
 
-    this.shaderProgram = program;
+    this.saasShader = {
+      program: saasProgram,
+      pos: gl.getAttribLocation(saasProgram, 'position'),
+      res: gl.getUniformLocation(saasProgram, 'u_resolution'),
+      time: gl.getUniformLocation(saasProgram, 'u_time')
+    };
 
     // Compile Dark Mode Celestial Aurora SideRays Shader Program
     const auroraFsSource = `
@@ -231,7 +236,7 @@ class AmbientBackgroundManager {
       void main() {
         vec2 fragCoord = gl_FragCoord.xy;
         vec2 coord = vec2(fragCoord.x, u_resolution.y - fragCoord.y);
-        vec2 rayPos = vec2(u_resolution.x * 1.1, -0.5 * u_resolution.y);
+        vec2 rayPos = vec2(u_resolution.x * 0.95, -0.2 * u_resolution.y);
 
         vec2 rel = coord - rayPos;
         vec2 tiltedCoord = rel + rayPos;
@@ -240,8 +245,8 @@ class AmbientBackgroundManager {
         vec2 rayRefDir1 = normalize(vec2(cos(0.785398 + halfSpread), sin(0.785398 + halfSpread)));
         vec2 rayRefDir2 = normalize(vec2(cos(0.785398 - halfSpread), sin(0.785398 - halfSpread)));
 
-        vec3 rayColor1 = vec3(0.92, 0.70, 0.03); // #EAB308 Golden Amber
-        vec3 rayColor2 = vec3(0.59, 0.78, 1.0);  // #96C8FF Celestial Sky Blue
+        vec3 rayColor1 = vec3(0.95, 0.75, 0.10); // #EAB308 Golden Amber
+        vec3 rayColor2 = vec3(0.55, 0.78, 1.0);  // #96C8FF Celestial Sky Blue
 
         vec4 rays1 = vec4(rayColor1, 1.0) * rayStrength(rayPos, rayRefDir1, tiltedCoord, 36.2214, 21.11349, 1.2);
         vec4 rays2 = vec4(rayColor2, 1.0) * rayStrength(rayPos, rayRefDir2, tiltedCoord, 22.3991, 18.0234, 0.35);
@@ -249,16 +254,16 @@ class AmbientBackgroundManager {
         vec4 color = rays1 * 0.35 + rays2 * 0.65;
 
         float distanceToLight = length(fragCoord.xy - vec2(rayPos.x, u_resolution.y - rayPos.y)) / u_resolution.y;
-        float brightness = 0.85 / pow(max(distanceToLight, 0.001), 1.4);
+        float brightness = 1.2 / pow(max(distanceToLight, 0.001), 1.25);
         color.rgb *= brightness;
 
         float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
         color.rgb = mix(vec3(gray), color.rgb, 1.4);
 
-        float vig = 1.0 - smoothstep(0.4, 1.4, length(coord / u_resolution.xy - 0.5) * 1.5);
-        color.rgb *= vig * 0.38;
+        float vig = 1.0 - smoothstep(0.4, 1.5, length(coord / u_resolution.xy - 0.5) * 1.4);
+        color.rgb *= vig * 0.65;
 
-        gl_FragColor = vec4(color.rgb, clamp(length(color.rgb) * 1.5, 0.0, 1.0));
+        gl_FragColor = vec4(color.rgb, clamp(length(color.rgb) * 1.8, 0.0, 1.0));
       }
     `;
 
@@ -269,7 +274,136 @@ class AmbientBackgroundManager {
       gl.attachShader(auroraProgram, auroraFs);
       gl.linkProgram(auroraProgram);
       if (gl.getProgramParameter(auroraProgram, gl.LINK_STATUS)) {
-        this.auroraShaderProgram = auroraProgram;
+        this.auroraShader = {
+          program: auroraProgram,
+          pos: gl.getAttribLocation(auroraProgram, 'position'),
+          res: gl.getUniformLocation(auroraProgram, 'u_resolution'),
+          time: gl.getUniformLocation(auroraProgram, 'u_time')
+        };
+      }
+    }
+
+    // Compile Dark Mode Pixel Snow Shader Program
+    const snowFsSource = `
+      precision highp float;
+      uniform vec2 u_resolution;
+      uniform float u_time;
+
+      const vec3 camK = vec3(0.57735027, 0.57735027, 0.57735027);
+      const vec3 camI = vec3(0.70710678, 0.0, -0.70710678);
+      const vec3 camJ = vec3(-0.40824829, 0.81649658, -0.40824829);
+
+      float hash31(vec3 p) {
+        p = fract(p * vec3(443.8975, 397.2973, 491.1871));
+        p += dot(p, p.yzx + 19.19);
+        return fract((p.x + p.y) * p.z);
+      }
+
+      vec3 hash33(vec3 p) {
+        p = fract(p * vec3(443.8975, 397.2973, 491.1871));
+        p += dot(p, p.yzx + 19.19);
+        return fract((p.xxy + p.yxx) * p.zyx);
+      }
+
+      void main() {
+        float uPixelResolution = 190.0;
+        float uFlakeSize = 0.016;
+        float uMinFlakeSize = 1.35;
+        float uSpeed = 1.15;
+        float uDepthFade = 10.0;
+        float uFarPlane = 18.0;
+        float uDensity = 0.28;
+        vec3 uColor = vec3(0.88, 0.94, 1.0);
+
+        float pixelSize = max(1.0, floor(0.5 + u_resolution.x / uPixelResolution));
+        float invPixelSize = 1.0 / pixelSize;
+        
+        vec2 fragCoord = floor(gl_FragCoord.xy * invPixelSize);
+        vec2 res = u_resolution * invPixelSize;
+        float invResX = 1.0 / res.x;
+
+        vec3 ray = normalize(vec3((fragCoord - res * 0.5) * invResX, 1.0));
+        ray = ray.x * camI + ray.y * camJ + ray.z * camK;
+
+        float timeSpeed = u_time * uSpeed;
+        float windX = cos(2.18) * 0.4;
+        float windY = sin(2.18) * 0.4;
+        vec3 camPos = (windX * camI + windY * camJ + 0.1 * camK) * timeSpeed;
+        vec3 pos = camPos;
+
+        vec3 absRay = max(abs(ray), vec3(0.001));
+        vec3 strides = 1.0 / absRay;
+        vec3 raySign = step(ray, vec3(0.0));
+        vec3 phase = fract(pos) * strides;
+        phase = mix(strides - phase, phase, raySign);
+
+        float rayDotCamK = dot(ray, camK);
+        float invRayDotCamK = 1.0 / rayDotCamK;
+        float invDepthFade = 1.0 / uDepthFade;
+        float halfInvResX = 0.5 * invResX;
+        vec3 timeAnim = timeSpeed * 0.1 * vec3(7.0, 8.0, 5.0);
+
+        float t = 0.0;
+        for (int i = 0; i < 96; i++) {
+          if (t >= uFarPlane) break;
+          
+          vec3 fpos = floor(pos);
+          float cellHash = hash31(fpos);
+
+          if (cellHash < uDensity) {
+            vec3 h = hash33(fpos);
+            
+            vec3 sinArg1 = fpos.yzx * 0.073;
+            vec3 sinArg2 = fpos.zxy * 0.27;
+            vec3 flakePos = 0.5 - 0.5 * cos(4.0 * sin(sinArg1) + 4.0 * sin(sinArg2) + 2.0 * h + timeAnim);
+            flakePos = flakePos * 0.8 + 0.1 + fpos;
+
+            float toIntersection = dot(flakePos - pos, camK) * invRayDotCamK;
+            
+            if (toIntersection > 0.0) {
+              vec3 testPos = pos + ray * toIntersection - flakePos;
+              float testX = dot(testPos, camI);
+              float testY = dot(testPos, camJ);
+              vec2 testUV = abs(vec2(testX, testY));
+              
+              float depth = dot(flakePos - camPos, camK);
+              float flakeSize = max(uFlakeSize, uMinFlakeSize * depth * halfInvResX);
+              float dist = max(testUV.x, testUV.y);
+
+              if (dist < flakeSize) {
+                float flakeSizeRatio = uFlakeSize / flakeSize;
+                float intensity = exp2(-(t + toIntersection) * invDepthFade) *
+                                 min(1.0, flakeSizeRatio * flakeSizeRatio) * 1.1;
+                gl_FragColor = vec4(uColor * pow(intensity, 0.45), clamp(intensity * 1.5, 0.0, 1.0));
+                return;
+              }
+            }
+          }
+
+          float nextStep = min(min(phase.x, phase.y), phase.z);
+          vec3 sel = step(phase, vec3(nextStep));
+          phase = phase - nextStep + strides * sel;
+          t += nextStep;
+          pos = mix(pos + ray * nextStep, floor(pos + ray * nextStep + 0.5), sel);
+        }
+
+        gl_FragColor = vec4(0.0);
+      }
+    `;
+
+    const snowFs = createShader(gl.FRAGMENT_SHADER, snowFsSource);
+    if (snowFs) {
+      const snowProgram = gl.createProgram();
+      gl.attachShader(snowProgram, vs);
+      gl.attachShader(snowProgram, snowFs);
+      gl.linkProgram(snowProgram);
+      if (gl.getProgramParameter(snowProgram, gl.LINK_STATUS)) {
+        this.snowShader = {
+          program: snowProgram,
+          pos: gl.getAttribLocation(snowProgram, 'position'),
+          res: gl.getUniformLocation(snowProgram, 'u_resolution'),
+          time: gl.getUniformLocation(snowProgram, 'u_time')
+        };
       }
     }
 
@@ -384,7 +518,13 @@ class AmbientBackgroundManager {
       gl.attachShader(crtProgram, crtFs);
       gl.linkProgram(crtProgram);
       if (gl.getProgramParameter(crtProgram, gl.LINK_STATUS)) {
-        this.crtShaderProgram = crtProgram;
+        this.crtShader = {
+          program: crtProgram,
+          pos: gl.getAttribLocation(crtProgram, 'position'),
+          res: gl.getUniformLocation(crtProgram, 'u_resolution'),
+          time: gl.getUniformLocation(crtProgram, 'u_time'),
+          mouse: gl.getUniformLocation(crtProgram, 'u_mouse')
+        };
       }
     }
 
@@ -398,11 +538,7 @@ class AmbientBackgroundManager {
        1, -1,
        1,  1
     ]), gl.STATIC_DRAW);
-
-    this.positionLocation = gl.getAttribLocation(program, 'position');
-    this.resLocation = gl.getUniformLocation(program, 'u_resolution');
-    this.mouseLocation = gl.getUniformLocation(program, 'u_mouse');
-    this.timeLocation = gl.getUniformLocation(program, 'u_time');
+    this.positionBuffer = positionBuffer;
 
     return true;
   }
@@ -675,6 +811,7 @@ class AmbientBackgroundManager {
       } else if (isDark) {
         const darkStyle = (typeof appStore !== 'undefined' && appStore.state?.darkAmbientStyle) || localStorage.getItem('collab_dark_ambient') || 'aurora';
         if (darkStyle === 'aurora') targetMode = 'dark_aurora';
+        else if (darkStyle === 'snow') targetMode = 'dark_snow';
         else if (darkStyle === 'stars') targetMode = 'dark_stars';
         else targetMode = 'dark_matrix';
       } else if (isLight) {
@@ -689,7 +826,7 @@ class AmbientBackgroundManager {
     this.currentMode = targetMode;
 
     if (targetMode === 'saas_aurora') {
-      if (this.gl && this.shaderProgram) {
+      if (this.gl && this.saasShader) {
         if (this.webglCanvas) {
           this.webglCanvas.style.display = 'block';
           this.webglCanvas.style.opacity = '1';
@@ -706,9 +843,16 @@ class AmbientBackgroundManager {
       }
       this.start();
     } else if (targetMode === 'dark_aurora') {
-      if (this.gl && this.auroraShaderProgram && this.webglCanvas) {
+      if (this.gl && this.auroraShader && this.webglCanvas) {
         this.webglCanvas.style.display = 'block';
-        this.webglCanvas.style.opacity = '0.90';
+        this.webglCanvas.style.opacity = '1';
+        if (this.canvas) this.canvas.style.display = 'none';
+      }
+      this.start();
+    } else if (targetMode === 'dark_snow') {
+      if (this.gl && this.snowShader && this.webglCanvas) {
+        this.webglCanvas.style.display = 'block';
+        this.webglCanvas.style.opacity = '1';
         if (this.canvas) this.canvas.style.display = 'none';
       }
       this.start();
@@ -732,7 +876,7 @@ class AmbientBackgroundManager {
         if (this.canvas) this.canvas.style.opacity = '1';
       } else if (targetMode === 'crt_raster') {
         // Fuse FaultyTerminal WebGL CRT Shader with 2D Analog Cathode Sweep
-        if (this.gl && this.crtShaderProgram && this.webglCanvas) {
+        if (this.gl && this.crtShader && this.webglCanvas) {
           this.webglCanvas.style.display = 'block';
           this.webglCanvas.style.opacity = '0.70';
         }
@@ -790,7 +934,7 @@ class AmbientBackgroundManager {
       case 0: // Classic Notched Sakura Petal
         ctx.moveTo(0, -s);
         ctx.bezierCurveTo(s * 0.50, -s * 0.95, s * 0.85, -s * 0.25, s * 0.50, s * 0.70);
-        ctx.bezierCurveTo(s * 0.20, s * 0.98, 0, s, 0, s);
+        ctx.bezierCurveTo(s * 0.20, -s * 0.98, 0, s, 0, s);
         ctx.bezierCurveTo(0, s, -s * 0.20, s * 0.98, -s * 0.50, s * 0.70);
         ctx.bezierCurveTo(-s * 0.85, -s * 0.25, -s * 0.50, -s * 0.95, 0, -s);
         break;
@@ -823,34 +967,57 @@ class AmbientBackgroundManager {
     const render = (time) => {
       if (!this.isRunning) return;
 
-      if (this.currentMode === 'saas_aurora' && this.gl && this.shaderProgram) {
+      if (this.currentMode === 'saas_aurora' && this.gl && this.saasShader) {
         // --- GPU WebGL FloatingLines Autonomous Ambient Waves ---
         const gl = this.gl;
+        const s = this.saasShader;
         gl.viewport(0, 0, this.width, this.height);
-        gl.useProgram(this.shaderProgram);
+        gl.useProgram(s.program);
 
-        gl.enableVertexAttribArray(this.positionLocation);
-        gl.vertexAttribPointer(this.positionLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+        gl.enableVertexAttribArray(s.pos);
+        gl.vertexAttribPointer(s.pos, 2, gl.FLOAT, false, 0, 0);
 
-        gl.uniform2f(this.resLocation, this.width, this.height);
-        gl.uniform1f(this.timeLocation, time * 0.001);
+        gl.uniform2f(s.res, this.width, this.height);
+        gl.uniform1f(s.time, time * 0.001);
 
         gl.drawArrays(gl.TRIANGLES, 0, 6);
         this.animationFrameId = requestAnimationFrame(render);
         return;
       }
 
-      if (this.currentMode === 'dark_aurora' && this.gl && this.auroraShaderProgram) {
+      if (this.currentMode === 'dark_aurora' && this.gl && this.auroraShader) {
         // --- GPU WebGL Celestial Aurora SideRays ---
         const gl = this.gl;
+        const s = this.auroraShader;
         gl.viewport(0, 0, this.width, this.height);
-        gl.useProgram(this.auroraShaderProgram);
+        gl.useProgram(s.program);
 
-        gl.enableVertexAttribArray(this.positionLocation);
-        gl.vertexAttribPointer(this.positionLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+        gl.enableVertexAttribArray(s.pos);
+        gl.vertexAttribPointer(s.pos, 2, gl.FLOAT, false, 0, 0);
 
-        gl.uniform2f(this.resLocation, this.width, this.height);
-        gl.uniform1f(this.timeLocation, time * 0.001);
+        gl.uniform2f(s.res, this.width, this.height);
+        gl.uniform1f(s.time, time * 0.001);
+
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        this.animationFrameId = requestAnimationFrame(render);
+        return;
+      }
+
+      if (this.currentMode === 'dark_snow' && this.gl && this.snowShader) {
+        // --- GPU WebGL Pixel Snow 3D Voxel Flakes ---
+        const gl = this.gl;
+        const s = this.snowShader;
+        gl.viewport(0, 0, this.width, this.height);
+        gl.useProgram(s.program);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+        gl.enableVertexAttribArray(s.pos);
+        gl.vertexAttribPointer(s.pos, 2, gl.FLOAT, false, 0, 0);
+
+        gl.uniform2f(s.res, this.width, this.height);
+        gl.uniform1f(s.time, time * 0.001);
 
         gl.drawArrays(gl.TRIANGLES, 0, 6);
         this.animationFrameId = requestAnimationFrame(render);
@@ -858,20 +1025,22 @@ class AmbientBackgroundManager {
       }
 
       // If CRT mode, render WebGL FaultyTerminal raster under 2D canvas
-      if (this.currentMode === 'crt_raster' && this.gl && this.crtShaderProgram) {
+      if (this.currentMode === 'crt_raster' && this.gl && this.crtShader) {
         this.mouseX += (this.targetMouseX - this.mouseX) * 0.05;
         this.mouseY += (this.targetMouseY - this.mouseY) * 0.05;
 
         const gl = this.gl;
+        const s = this.crtShader;
         gl.viewport(0, 0, this.width, this.height);
-        gl.useProgram(this.crtShaderProgram);
+        gl.useProgram(s.program);
 
-        gl.enableVertexAttribArray(this.positionLocation);
-        gl.vertexAttribPointer(this.positionLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+        gl.enableVertexAttribArray(s.pos);
+        gl.vertexAttribPointer(s.pos, 2, gl.FLOAT, false, 0, 0);
 
-        gl.uniform2f(this.resLocation, this.width, this.height);
-        gl.uniform2f(this.mouseLocation, this.mouseX / this.width, 1.0 - (this.mouseY / this.height));
-        gl.uniform1f(this.timeLocation, time * 0.001);
+        gl.uniform2f(s.res, this.width, this.height);
+        gl.uniform2f(s.mouse, this.mouseX / this.width, 1.0 - (this.mouseY / this.height));
+        gl.uniform1f(s.time, time * 0.001);
 
         gl.drawArrays(gl.TRIANGLES, 0, 6);
       }
