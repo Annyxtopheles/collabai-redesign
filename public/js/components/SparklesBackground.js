@@ -92,95 +92,125 @@ class AmbientBackgroundManager {
       precision highp float;
       uniform vec2 u_resolution;
       uniform float u_time;
+      uniform vec2 u_mouse;
 
-      const vec3 COLOR_INDIGO = vec3(49.0, 94.0, 255.0) / 255.0;  // #315EFF Royal Indigo
-      const vec3 COLOR_VIOLET = vec3(99.0, 102.0, 241.0) / 255.0; // #6366F1 Indigo Violet
-      const vec3 COLOR_CYAN   = vec3(56.0, 189.0, 248.0) / 255.0; // #38BDF8 Sky Cyan
+      // SaaS Signature Palette: Royal Indigo, Indigo Violet, Sky Cyan, Pearl White
+      const vec3 COLOR_NAVY      = vec3(0.04, 0.07, 0.16); // #0A1229
+      const vec3 COLOR_INDIGO    = vec3(0.19, 0.37, 1.00); // #315EFF
+      const vec3 COLOR_VIOLET    = vec3(0.39, 0.40, 0.95); // #6366F1
+      const vec3 COLOR_CYAN      = vec3(0.22, 0.74, 0.97); // #38BDF8
+      const vec3 COLOR_PEARL     = vec3(0.94, 0.97, 1.00); // #F0F8FF
 
-      mat2 rotate(float r) {
-        return mat2(cos(r), sin(r), -sin(r), cos(r));
+      mat2 rot(float a) {
+        float c = cos(a);
+        float s = sin(a);
+        return mat2(c, -s, s, c);
       }
 
-      vec3 getLineColor(float t) {
-        if (t < 0.33) {
-          return mix(COLOR_INDIGO, COLOR_VIOLET, t / 0.33);
-        } else if (t < 0.66) {
-          return mix(COLOR_VIOLET, COLOR_CYAN, (t - 0.33) / 0.33);
-        } else {
-          return mix(COLOR_CYAN, COLOR_INDIGO, (t - 0.66) / 0.34);
-        }
+      float hash12(vec2 p) {
+        vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+        p3 += dot(p3, p3.yzx + 33.33);
+        return fract((p3.x + p3.y) * p3.z);
       }
 
-      float wave(vec2 uv, float offset) {
-        float time = u_time * 0.40;
-
-        float x_offset   = offset;
-        float x_movement = time * 0.10;
-        float amp        = sin(offset + time * 0.18) * 0.26;
-        float y          = sin(uv.x + x_offset + x_movement) * amp;
-
-        float m = uv.y - y;
-        // Softened subtle falloff (eliminating harsh overbright core)
-        return 0.010 / (abs(m) + 0.024);
+      vec3 aces(vec3 x) {
+        float a = 2.51;
+        float b = 0.03;
+        float c = 2.43;
+        float d = 0.59;
+        float e = 0.14;
+        return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
       }
 
       void main() {
-        vec2 baseUv = (2.0 * gl_FragCoord.xy - u_resolution.xy) / u_resolution.y;
-        baseUv.y *= -1.0;
+        vec2 uv = (gl_FragCoord.xy * 2.0 - u_resolution.xy) / min(u_resolution.x, u_resolution.y);
+        uv.y *= -1.0;
+        float t = u_time * 0.28;
+
+        // Subtle interactive mouse perspective
+        vec2 mouseShift = (u_mouse - 0.5) * 0.25;
+        vec3 ro = vec3(mouseShift, -3.2);
+        vec3 rd = normalize(vec3(uv, 1.75));
 
         vec3 col = vec3(0.0);
 
-        // Bottom Waves
-        const int bottomLineCount = 6;
-        for (int i = 0; i < bottomLineCount; ++i) {
+        // Procedural stream of 56 faceted AeroShards along a multi-octave ribbon path
+        for (int i = 0; i < 56; i++) {
           float fi = float(i);
-          float t = fi / float(bottomLineCount - 1);
-          vec3 lineCol = getLineColor(t);
-          
-          float angle = 0.4 * log(length(baseUv) + 1.0);
-          vec2 ruv = baseUv * rotate(angle);
-          col += lineCol * wave(
-            ruv + vec2(0.05 * fi + 2.0, -0.7),
-            1.5 + 0.2 * fi
-          ) * 0.16;
+          float seed = hash12(vec2(fi, 17.38));
+          float seedLane = hash12(vec2(fi, 43.19)) * 2.0 - 1.0;
+          float seedDepth = hash12(vec2(fi, 89.91));
+
+          // Continuous path parameter with looping phase
+          float pathPhase = fract(seed + t * 0.065);
+          float pathAngle = pathPhase * 6.2831853;
+
+          // 3D Stream Bezier Curve trajectory
+          float pathX = sin(pathAngle) * 1.65 + sin(pathAngle * 2.0) * 0.45 + seedLane * 0.38;
+          float pathY = cos(pathAngle * 1.5) * 0.78 + sin(t * 0.4 + seed * 6.28) * 0.20;
+          float pathZ = mix(-1.4, 2.6, pathPhase) + (seedDepth - 0.5) * 0.5;
+
+          vec3 shardPos = vec3(pathX, pathY, pathZ);
+          vec3 shardScale = vec3(0.09, 0.24, 0.035) * (0.65 + 0.65 * seed);
+
+          // Fast ray-sphere bounding test
+          vec3 toShard = shardPos - ro;
+          float proj = dot(toShard, rd);
+          if (proj > 0.0 && proj < 6.5) {
+            vec3 closestPoint = ro + rd * proj;
+            float dist = length(closestPoint - shardPos);
+            float boundRadius = length(shardScale) * 1.8;
+
+            if (dist < boundRadius) {
+              // 3D Faceted Diamond Normals with Roll Rotation
+              float roll = pathPhase * 14.0 + seed * 6.28;
+              vec3 localOffset = closestPoint - shardPos;
+              localOffset.xz *= rot(roll);
+              localOffset.xy *= rot(roll * 0.4);
+
+              // Calculate facet normal based on diamond ridge crease
+              float facetSign = localOffset.x > 0.0 ? 1.0 : -1.0;
+              vec3 facetNormal = normalize(vec3(facetSign * 0.42, localOffset.y * 0.15, 0.90));
+              facetNormal.xy *= rot(-roll * 0.4);
+              facetNormal.xz *= rot(-roll);
+
+              // Lighting vectors
+              vec3 viewDir = -rd;
+              vec3 lightDir = normalize(vec3(-0.40, 0.60, -0.68));
+              vec3 halfDir = normalize(lightDir + viewDir);
+
+              // Facet shading, specular highlight, and Fresnel rim
+              float diffuse = max(dot(facetNormal, lightDir), 0.0);
+              float specular = pow(max(dot(facetNormal, halfDir), 0.0), 28.0);
+              float fresnel = pow(1.0 - max(dot(facetNormal, viewDir), 0.0), 3.0);
+              float ridgeCrease = 1.0 - smoothstep(0.0, 0.05, abs(localOffset.x));
+
+              // Material Palette Layering (Satin Pearl, Royal Indigo, Sky Cyan)
+              vec3 baseShardCol = mix(COLOR_INDIGO, COLOR_VIOLET, seed);
+              vec3 shardCol = baseShardCol * (0.25 + diffuse * 0.45);
+              shardCol += COLOR_CYAN * (fresnel * 0.60 + ridgeCrease * 0.35);
+              shardCol += COLOR_PEARL * (specular * 1.25 + ridgeCrease * 0.70);
+
+              // Smooth edge coverage and depth fog
+              float coverage = smoothstep(boundRadius, boundRadius * 0.15, dist);
+              float depthFog = smoothstep(6.0, 0.6, proj);
+
+              col += shardCol * coverage * depthFog * 0.48;
+            }
+          }
         }
 
-        // Middle Waves
-        const int middleLineCount = 7;
-        for (int i = 0; i < middleLineCount; ++i) {
-          float fi = float(i);
-          float t = fi / float(middleLineCount - 1);
-          vec3 lineCol = getLineColor(t);
-          
-          float angle = 0.2 * log(length(baseUv) + 1.0);
-          vec2 ruv = baseUv * rotate(angle);
-          col += lineCol * wave(
-            ruv + vec2(0.05 * fi + 5.0, 0.0),
-            2.0 + 0.15 * fi
-          ) * 0.48;
-        }
+        // Soft Volumetric Ambient Shard Atmosphere & Glow
+        float flowWave = sin(uv.x * 2.2 + t * 0.5) * cos(uv.y * 2.2 - t * 0.35);
+        vec3 ambientGlow = mix(COLOR_INDIGO * 0.12, COLOR_CYAN * 0.16, uv.y * 0.5 + 0.5) * (0.35 + 0.15 * flowWave);
+        col += ambientGlow;
 
-        // Top Waves
-        const int topLineCount = 5;
-        for (int i = 0; i < topLineCount; ++i) {
-          float fi = float(i);
-          float t = fi / float(topLineCount - 1);
-          vec3 lineCol = getLineColor(t);
-          
-          float angle = -0.4 * log(length(baseUv) + 1.0);
-          vec2 ruv = baseUv * rotate(angle);
-          ruv.x *= -1.0;
-          col += lineCol * wave(
-            ruv + vec2(0.05 * fi + 10.0, 0.5),
-            1.0 + 0.2 * fi
-          ) * 0.14;
-        }
-
-        // Smooth atmospheric vignette and clamp peak exposure
-        float vig = 1.0 - smoothstep(0.6, 1.8, length(baseUv));
+        // Soft Vignette and Tone-mapping
+        float vig = 1.0 - smoothstep(0.55, 1.85, length(uv));
         col *= vig;
+        col = aces(col * 1.12);
 
-        gl_FragColor = vec4(col, clamp(length(col) * 0.85, 0.0, 1.0));
+        gl_FragColor = vec4(col, clamp(length(col) * 1.25, 0.0, 1.0));
       }
     `;
 
@@ -214,7 +244,8 @@ class AmbientBackgroundManager {
       program: saasProgram,
       pos: gl.getAttribLocation(saasProgram, 'position'),
       res: gl.getUniformLocation(saasProgram, 'u_resolution'),
-      time: gl.getUniformLocation(saasProgram, 'u_time')
+      time: gl.getUniformLocation(saasProgram, 'u_time'),
+      mouse: gl.getUniformLocation(saasProgram, 'u_mouse')
     };
 
     // Compile Dark Mode Celestial Aurora SideRays Shader Program
@@ -1085,7 +1116,10 @@ class AmbientBackgroundManager {
       if (!this.isRunning) return;
 
       if (this.currentMode === 'saas_aurora' && this.gl && this.saasShader) {
-        // --- GPU WebGL FloatingLines Autonomous Ambient Waves ---
+        // --- GPU WebGL AeroShards 3D Procedural Faceted Shard Stream ---
+        this.mouseX += (this.targetMouseX - this.mouseX) * 0.05;
+        this.mouseY += (this.targetMouseY - this.mouseY) * 0.05;
+
         const gl = this.gl;
         const s = this.saasShader;
         gl.viewport(0, 0, this.width, this.height);
@@ -1097,6 +1131,9 @@ class AmbientBackgroundManager {
 
         gl.uniform2f(s.res, this.width, this.height);
         gl.uniform1f(s.time, time * 0.001);
+        if (s.mouse) {
+          gl.uniform2f(s.mouse, this.mouseX / this.width, 1.0 - (this.mouseY / this.height));
+        }
 
         gl.drawArrays(gl.TRIANGLES, 0, 6);
         this.animationFrameId = requestAnimationFrame(render);
