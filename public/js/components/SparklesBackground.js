@@ -101,8 +101,8 @@ class AmbientBackgroundManager {
       uniform vec4 u_highlightColor;
       uniform vec4 u_accentColor;
 
-      out vec4 v_baseAlpha;
-      out vec3 v_creaseColor;
+      flat out vec4 v_baseAlpha;
+      flat out vec3 v_creaseColor;
       out vec2 v_localCoord;
 
       uint hashU32(uint value) {
@@ -483,62 +483,56 @@ class AmbientBackgroundManager {
         vec2 ndc = world.xy * u_viewport.z / vec2(aspect, 1.0) * perspective;
         float depth = clamp(0.56 - world.z * 0.24, 0.03, 0.97);
         uint triangle = vertexIndex / 3u;
-        uint corner = vertexIndex % 3u;
-        vec3 mapped = vec3(0.0);
-        vec3 mappedCrease = vec3(0.0);
-        float shardAlpha = 0.0;
 
-        if (corner == 0u) {
-          float facetSide = (triangle == 1u) ? 1.0 : -1.0;
-          vec3 localNormal = vec3(facetSide * 0.394903, 0.0, 0.918723);
-          vec3 normal = bankedSide * localNormal.x + bankedFacing * localNormal.z;
-          vec3 viewDirection = normalize(vec3(-renderPosition.xy * 0.08, 1.0));
-          vec2 pointerShift = vec2(u_light.w, u_shape.w);
-          vec3 keyDirection = u_light.xyz;
-          vec3 halfDirection = normalize(keyDirection + viewDirection);
-          float roughness = clamp(u_material.x, 0.04, 0.96);
-          float materialKind = u_material.y;
-          float glow = u_material.w;
-          vec3 reflection = reflect(-viewDirection, normal);
-          float broad = softbox(
-            reflection,
-            vec2(-0.34, 0.28) + pointerShift * 0.36,
-            vec2(0.52, 0.22) + roughness * 0.3
-          );
-          float strip = softbox(
-            reflection,
-            vec2(0.48, -0.08) - pointerShift * 0.2,
-            vec2(0.12, 0.72)
-          );
-          float diffuse = max(dot(normal, keyDirection), 0.0);
-          float specularPower = mix(92.0, 9.0, roughness);
-          float specular = pow(max(dot(normal, halfDirection), 0.0), specularPower);
-          float fresnelBase = 1.0 - max(dot(normal, viewDirection), 0.0);
-          float fresnelSquared = fresnelBase * fresnelBase;
-          float fresnel = fresnelSquared * fresnelSquared;
-          float facet = mix(0.76, 1.0, smoothstep(-0.08, 0.08, normal.x));
-          float depthFog = smoothstep(-0.68, 0.58, renderPosition.z);
-          vec3 depthTint = mix(u_accentColor.rgb * 0.52, u_baseColor.rgb, depthFog);
-          vec3 color = depthTint * (0.1 + diffuse * 0.3) * facet;
-          color += u_highlightColor.rgb * (broad * mix(0.3, 0.86, 1.0 - roughness)) * (1.0 + glow * 0.14);
-          color += u_accentColor.rgb * strip * (0.12 + fresnel * 0.42);
-          color += u_highlightColor.rgb * specular * mix(0.82, 1.0, seedDepth);
-          color += mix(u_baseColor.rgb, u_accentColor.rgb, seedLane) * fresnel * (0.15 + glow * 0.16);
-          color += u_accentColor.rgb * (broad * 0.045 + fresnel * 0.075) * glow;
-          vec3 creaseCol = color + u_highlightColor.rgb * (0.08 + specular * 0.22);
+        float facetSide = (triangle == 1u) ? 1.0 : -1.0;
+        vec3 localNormal = vec3(facetSide * 0.394903, 0.0, 0.918723);
+        vec3 normal = bankedSide * localNormal.x + bankedFacing * localNormal.z;
+        vec3 viewDirection = normalize(vec3(-renderPosition.xy * 0.08, 1.0));
+        vec2 pointerShift = vec2(u_light.w, u_shape.w);
+        vec3 keyDirection = u_light.xyz;
+        vec3 halfDirection = normalize(keyDirection + viewDirection);
+        float roughness = clamp(u_material.x, 0.04, 0.96);
+        float materialKind = u_material.y;
+        float glow = u_material.w;
+        vec3 reflection = reflect(-viewDirection, normal);
+        float broad = softbox(
+          reflection,
+          vec2(-0.34, 0.28) + pointerShift * 0.36,
+          vec2(0.52, 0.22) + roughness * 0.3
+        );
+        float strip = softbox(
+          reflection,
+          vec2(0.48, -0.08) - pointerShift * 0.2,
+          vec2(0.12, 0.72)
+        );
+        float diffuse = max(dot(normal, keyDirection), 0.0);
+        float specularPower = mix(92.0, 9.0, roughness);
+        float specular = pow(max(dot(normal, halfDirection), 0.0), specularPower);
+        float fresnelBase = 1.0 - max(dot(normal, viewDirection), 0.0);
+        float fresnelSquared = fresnelBase * fresnelBase;
+        float fresnel = fresnelSquared * fresnelSquared;
+        float facet = mix(0.76, 1.0, smoothstep(-0.08, 0.08, normal.x));
+        float depthFog = smoothstep(-0.68, 0.58, renderPosition.z);
+        vec3 depthTint = mix(u_accentColor.rgb * 0.52, u_baseColor.rgb, depthFog);
+        vec3 color = depthTint * (0.1 + diffuse * 0.3) * facet;
+        color += u_highlightColor.rgb * (broad * mix(0.3, 0.86, 1.0 - roughness)) * (1.0 + glow * 0.14);
+        color += u_accentColor.rgb * strip * (0.12 + fresnel * 0.42);
+        color += u_highlightColor.rgb * specular * mix(0.82, 1.0, seedDepth);
+        color += mix(u_baseColor.rgb, u_accentColor.rgb, seedLane) * fresnel * (0.15 + glow * 0.16);
+        color += u_accentColor.rgb * (broad * 0.045 + fresnel * 0.075) * glow;
+        vec3 creaseCol = color + u_highlightColor.rgb * (0.08 + specular * 0.22);
 
-          float fill = (0.38 + diffuse * 0.12) * facet * u_environment.x;
-          color += mix(u_accentColor.rgb, u_baseColor.rgb, depthFog) * fill;
-          creaseCol += mix(u_accentColor.rgb, u_baseColor.rgb, depthFog) * fill;
+        float fill = (0.38 + diffuse * 0.12) * facet * u_environment.x;
+        color += mix(u_accentColor.rgb, u_baseColor.rgb, depthFog) * fill;
+        creaseCol += mix(u_accentColor.rgb, u_baseColor.rgb, depthFog) * fill;
 
-          float fog = mix(0.42, 1.0, depthFog);
-          float exposure = fog * u_material.z * u_effects.w;
-          mapped = aces(color * exposure);
-          mappedCrease = aces(creaseCol * exposure);
-          shardAlpha = mix(0.58, 0.97, depthFog);
-          float seam = smoothstep(0.0, 0.035, path.phase) * (1.0 - smoothstep(0.965, 1.0, path.phase));
-          shardAlpha *= mix(1.0, seam, u_transport.y * u_formation.x * (1.0 - u_gather.z));
-        }
+        float fog = mix(0.42, 1.0, depthFog);
+        float exposure = fog * u_material.z * u_effects.w;
+        vec3 mapped = aces(color * exposure);
+        vec3 mappedCrease = aces(creaseCol * exposure);
+        float shardAlpha = mix(0.58, 0.97, depthFog);
+        float seam = smoothstep(0.0, 0.035, path.phase) * (1.0 - smoothstep(0.965, 1.0, path.phase));
+        shardAlpha *= mix(1.0, seam, u_transport.y * u_formation.x * (1.0 - u_gather.z));
 
         gl_Position = vec4(ndc, depth, 1.0);
         v_baseAlpha = vec4(mapped, shardAlpha);
@@ -552,8 +546,8 @@ class AmbientBackgroundManager {
 
       uniform vec4 u_effects; // [spin, edgeSoftness, stretch, exposure]
 
-      in vec4 v_baseAlpha;
-      in vec3 v_creaseColor;
+      flat in vec4 v_baseAlpha;
+      flat in vec3 v_creaseColor;
       in vec2 v_localCoord;
 
       out vec4 fragColor;
@@ -1510,9 +1504,9 @@ class AmbientBackgroundManager {
         const pointerNormX = (this.mouseX / this.width) * 2.0 - 1.0;
         const pointerNormY = 1.0 - (this.mouseY / this.height) * 2.0;
 
-        gl.uniform4f(s.u_viewport, aspect, 0.0132, 1.0, flowDistance);
-        gl.uniform4f(s.u_shape, 1.0, 1.0, 0.36, 0.0);
-        gl.uniform4f(s.u_effects, 1.0, 2.0, 1.0, 1.12);
+        gl.uniform4f(s.u_viewport, aspect, 0.012, 1.0, flowDistance);
+        gl.uniform4f(s.u_shape, 0.88, 0.92, 0.36, 0.0);
+        gl.uniform4f(s.u_effects, 1.0, 1.6, 1.0, 1.12);
         gl.uniform4f(s.u_composition, 0.0, 0.0, 0.0, 1.0); // full placement stream
         gl.uniform4f(s.u_transport, travelPhase, 0.0, 0.0, 0.0);
         gl.uniform4f(s.u_formation, 1.0, 0.0, 0.0, 0.0); // stream flow
