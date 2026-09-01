@@ -767,45 +767,71 @@ html.synthwave ::selection {
 
 /* =========================================================
    MODERN SAAS GLASSMORPHISM THEME ENHANCEMENTS (#315EFF)
+   (Inspired by React Bits GlassSurface)
    ========================================================= */
 
 /* SaaS Frosted Glass Surfaces */
 html.saas .bg-app-surface {
-  background: linear-gradient(135deg, rgba(18, 24, 43, 0.75) 0%, rgba(13, 17, 32, 0.85) 100%) !important;
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.15), 0 8px 32px 0 rgba(0, 0, 0, 0.35) !important;
+  background: linear-gradient(135deg, rgba(18, 24, 43, 0.72) 0%, rgba(13, 17, 32, 0.82) 100%) !important;
+  backdrop-filter: blur(20px) saturate(200%) brightness(1.08);
+  -webkit-backdrop-filter: blur(20px) saturate(200%) brightness(1.08);
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.25),
+    inset 0 -1px 0 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 12px 1px rgba(255, 255, 255, 0.04),
+    0 8px 32px 0 rgba(0, 0, 0, 0.40),
+    0 2px 16px 0 rgba(31, 38, 135, 0.15) !important;
 }
 
-html.saas .bg-app-elevated {
-  background: linear-gradient(135deg, rgba(24, 33, 58, 0.70) 0%, rgba(16, 22, 40, 0.80) 100%) !important;
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.20), 0 12px 40px 0 rgba(0, 0, 0, 0.45) !important;
+html.saas .bg-app-elevated,
+html.saas .glass-surface {
+  background: linear-gradient(135deg, rgba(25, 34, 60, 0.72) 0%, rgba(17, 23, 42, 0.84) 100%) !important;
+  backdrop-filter: blur(22px) saturate(210%) brightness(1.12);
+  -webkit-backdrop-filter: blur(22px) saturate(210%) brightness(1.12);
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 16px 2px rgba(255, 255, 255, 0.06),
+    0 12px 40px 0 rgba(0, 0, 0, 0.45),
+    0 4px 20px 0 rgba(31, 38, 135, 0.20) !important;
 }
 
 html.saas .bg-app-input {
   background: rgba(10, 15, 29, 0.65) !important;
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.10) !important;
 }
 
-/* SaaS Glassmorphic Primary Buttons with Glow & Inner Highlight Bevel */
+/* SaaS Glassmorphic Primary Buttons (New Chat, Send, Actions) */
 html.saas .btn-primary {
-  background: linear-gradient(135deg, rgba(49, 94, 255, 0.92) 0%, rgba(30, 68, 219, 0.98) 100%) !important;
+  background: linear-gradient(135deg, rgba(49, 94, 255, 0.90) 0%, rgba(30, 68, 219, 0.96) 100%) !important;
   color: #FFFFFF !important;
-  border: 1px solid rgba(255, 255, 255, 0.35) !important;
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.45), 0 0 24px rgba(49, 94, 255, 0.45), 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.40) !important;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.65),
+    inset 0 -1px 0 0 rgba(255, 255, 255, 0.20),
+    inset 0 0 8px 1px rgba(255, 255, 255, 0.20),
+    0 8px 28px rgba(49, 94, 255, 0.45),
+    0 2px 10px rgba(0, 0, 0, 0.35) !important;
   font-weight: 600 !important;
-  backdrop-filter: blur(12px);
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  backdrop-filter: blur(14px) saturate(200%) brightness(1.10);
+  -webkit-backdrop-filter: blur(14px) saturate(200%) brightness(1.10);
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 html.saas .btn-primary:hover {
-  background: linear-gradient(135deg, #4873FF 0%, #315EFF 100%) !important;
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.60), 0 0 30px rgba(49, 94, 255, 0.65), 0 6px 16px rgba(0, 0, 0, 0.4) !important;
+  background: linear-gradient(135deg, #4F78FF 0%, #315EFF 100%) !important;
+  border-color: rgba(255, 255, 255, 0.60) !important;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.85),
+    inset 0 -1px 0 0 rgba(255, 255, 255, 0.30),
+    inset 0 0 12px 2px rgba(255, 255, 255, 0.30),
+    0 10px 36px rgba(49, 94, 255, 0.65),
+    0 4px 14px rgba(0, 0, 0, 0.40) !important;
   transform: translateY(-1px);
 }
 
@@ -813,41 +839,47 @@ html.saas .btn-primary:active {
   transform: translateY(1px);
 }
 
-/* SaaS Secondary Glass Buttons */
+/* SaaS Secondary Glass Buttons & Tool Pills */
 html.saas button.border,
-html.saas .wireframe-btn {
-  background: rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.10) !important;
+html.saas .wireframe-btn,
+html.saas button[class*="rounded-full"][class*="border"],
+html.saas button[class*="rounded-xl"][class*="border"],
+html.saas button[class*="rounded-2xl"][class*="border"] {
+  background: rgba(255, 255, 255, 0.06) !important;
+  backdrop-filter: blur(14px) saturate(190%) brightness(1.15);
+  -webkit-backdrop-filter: blur(14px) saturate(190%) brightness(1.15);
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 0 rgba(255, 255, 255, 0.10),
+    0 4px 16px 0 rgba(0, 0, 0, 0.25) !important;
   color: #F8FAFC !important;
-  transition: all 0.15s ease !important;
+  transition: all 0.18s ease !important;
 }
 
 html.saas button.border:hover,
-html.saas .wireframe-btn:hover {
-  background: rgba(255, 255, 255, 0.10) !important;
-  border-color: rgba(49, 94, 255, 0.5) !important;
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.20), 0 0 16px rgba(49, 94, 255, 0.25) !important;
+html.saas .wireframe-btn:hover,
+html.saas button[class*="rounded-full"][class*="border"]:hover,
+html.saas button[class*="rounded-xl"][class*="border"]:hover,
+html.saas button[class*="rounded-2xl"][class*="border"]:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(49, 94, 255, 0.65) !important;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.50),
+    inset 0 -1px 0 0 rgba(255, 255, 255, 0.20),
+    0 0 20px rgba(49, 94, 255, 0.35),
+    0 6px 20px rgba(0, 0, 0, 0.35) !important;
+  transform: translateY(-1px);
 }
 
-/* SaaS Glowing Message Box Card */
-html.saas .prompt-input-wrapper,
-html.saas #dashboard-prompt-card,
-html.saas .chat-composer-container,
-html.saas div[class*="rounded-3xl"][class*="border"] {
-  border: 1px solid rgba(49, 94, 255, 0.45) !important;
-  box-shadow: 0 0 24px rgba(49, 94, 255, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  transition: all 0.2s ease !important;
-}
-
-html.saas .prompt-input-wrapper:focus-within,
-html.saas #dashboard-prompt-card:focus-within,
-html.saas div[class*="rounded-3xl"][class*="border"]:focus-within {
-  border-color: #315EFF !important;
-  box-shadow: 0 0 32px rgba(49, 94, 255, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+/* SaaS Suggestion Action Cards (e.g., "Draft async architecture") */
+html.saas .prompt-suggestion-btn,
+html.saas div[class*="rounded-2xl"][class*="border"] button {
+  backdrop-filter: blur(14px) saturate(190%) brightness(1.12);
+  -webkit-backdrop-filter: blur(14px) saturate(190%) brightness(1.12);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.30),
+    0 4px 16px 0 rgba(0, 0, 0, 0.20);
 }
 
 /* SaaS Modern Logo - Pure Crisp White */
