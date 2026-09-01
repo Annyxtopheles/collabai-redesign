@@ -328,6 +328,50 @@ appStore.subscribe((state, meta) => {
   renderApp();
 });
 
+// React Bits - Border Glow Pointer Physics Handler
+function initBorderGlowPhysics() {
+  document.addEventListener('pointermove', (e) => {
+    const cards = document.querySelectorAll('.border-glow-card');
+    if (!cards.length) return;
+
+    cards.forEach(card => {
+      const rect = card.getBoundingClientRect();
+      // Check if cursor is within bounding box + 150px proximity
+      if (
+        e.clientX < rect.left - 150 || e.clientX > rect.right + 150 ||
+        e.clientY < rect.top - 150 || e.clientY > rect.bottom + 150
+      ) {
+        card.style.setProperty('--edge-proximity', '0');
+        return;
+      }
+
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+      const dx = x - cx;
+      const dy = y - cy;
+
+      let kx = Infinity;
+      let ky = Infinity;
+      if (dx !== 0) kx = cx / Math.abs(dx);
+      if (dy !== 0) ky = cy / Math.abs(dy);
+      const edge = Math.min(Math.max(1 / Math.min(kx, ky), 0), 1);
+
+      let degrees = 0;
+      if (dx !== 0 || dy !== 0) {
+        const radians = Math.atan2(dy, dx);
+        degrees = radians * (180 / Math.PI) + 90;
+        if (degrees < 0) degrees += 360;
+      }
+
+      card.style.setProperty('--edge-proximity', (edge * 100).toFixed(3));
+      card.style.setProperty('--cursor-angle', `${degrees.toFixed(3)}deg`);
+    });
+  }, { passive: true });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   renderApp();
+  initBorderGlowPhysics();
 });

@@ -1,4 +1,4 @@
-﻿// DashboardView.js - High Z-Index Layering, In-Place Templates Popover (Zero Lightbox), Direct Anchoring
+// DashboardView.js - High Z-Index Layering, In-Place Templates Popover (Zero Lightbox), Direct Anchoring
 let dashboardComposerMode = 'chat'; // 'chat' | 'search'
 
 function renderDashboardView(state) {
@@ -26,10 +26,11 @@ function renderDashboardView(state) {
         </div>
 
         <!-- Global Chat Shortcut Composer (High z-index z-30) -->
-        <div class="w-full bg-app-surface border border-app-borderSubtle rounded-2xl p-3.5 flex flex-col gap-3 relative z-30">
+        <div id="dashboard-prompt-card" class="w-full border-glow-card bg-app-surface border border-app-borderSubtle rounded-2xl p-3.5 flex flex-col gap-3 relative z-30">
+          <span class="edge-light"></span>
 
           <!-- Main Input Line -->
-          <div class="flex items-center gap-2.5">
+          <div class="flex items-center gap-2.5 relative z-10">
             
             <!-- Gemini-style Plus (+) Button with Directly Anchored Dropdown -->
             <div class="relative shrink-0 z-50">

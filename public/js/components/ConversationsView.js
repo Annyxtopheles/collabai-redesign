@@ -1,4 +1,4 @@
-﻿// ConversationsView.js - Solid Opaque Surfaces, Background-Only Ambient Stars
+// ConversationsView.js - Solid Opaque Surfaces, Background-Only Ambient Stars
 let isStreamingActive = false;
 
 function renderConversationsView(state) {
@@ -59,10 +59,11 @@ function renderConversationsView(state) {
       <!-- Bottom Chat Composer Area -->
       <div class="p-4 sm:px-12 md:px-20 lg:px-32 max-w-4xl mx-auto w-full flex flex-col gap-1.5 relative z-20 select-none">
 
-        <!-- Composer Box (Solid Opaque Surface) -->
-        <div class="bg-app-surface border border-app-borderSubtle rounded-2xl p-3 flex flex-col gap-2 focus-within:border-app-borderActive transition-colors relative z-20">
+        <!-- Composer Box (Solid Opaque Surface with Border Glow) -->
+        <div id="chat-prompt-card" class="border-glow-card bg-app-surface border border-app-borderSubtle rounded-2xl p-3 flex flex-col gap-2 focus-within:border-app-borderActive transition-colors relative z-20">
+          <span class="edge-light"></span>
           
-          <div class="flex items-center gap-2.5">
+          <div class="flex items-center gap-2.5 relative z-10">
             
             <!-- Gemini-style Plus (+) Button with Directly Anchored Dropdown (Opens Upwards) -->
             <div class="relative shrink-0">

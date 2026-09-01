@@ -98,8 +98,8 @@ class AmbientBackgroundManager {
         for (int i = 1; i <= 4; i++) {
           float fi = float(i);
           p += vec2(
-            sin(p.y * 1.6 + t * 0.35 + fi * 0.7) * 0.4,
-            cos(p.x * 1.4 - t * 0.30 + fi * 0.9) * 0.4
+            sin(p.y * 2.2 + t * 0.25 + fi * 0.7) * 0.35,
+            cos(p.x * 1.8 - t * 0.20 + fi * 0.9) * 0.35
           ) / fi;
         }
         return p;
@@ -110,27 +110,30 @@ class AmbientBackgroundManager {
         vec2 mouse = (u_mouse - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
         mouse.y = -mouse.y;
 
-        float t = u_time * 0.35;
+        float t = u_time * 0.28;
 
-        // 1. Swirling Volumetric Silk Caustic Beam
+        // 1. Wispy Electric Silk Filaments
         vec2 p = uv;
-        vec2 warped = domainWarp(p * 1.8 + vec2(t * 0.12, -t * 0.09), t);
+        vec2 warped = domainWarp(p * 2.0 + vec2(t * 0.08, -t * 0.06), t);
 
-        float ribbonDist = abs(warped.y - warped.x * 0.65 + sin(warped.x * 2.2 + t) * 0.32);
-        float ribbonGlow = 0.055 / (ribbonDist + 0.038);
-        float filaments = 0.025 / (abs(sin(warped.x * 3.8 + warped.y * 2.8 + t * 0.9)) + 0.055);
+        // Thin flowing caustic ribbon
+        float ribbonDist = abs(warped.y - warped.x * 0.60 + sin(warped.x * 2.8 + t) * 0.25);
+        float ribbonGlow = 0.018 / (ribbonDist + 0.022);
+        
+        // Fine delicate filaments
+        float filaments = 0.009 / (abs(sin(warped.x * 4.5 + warped.y * 3.2 + t * 0.7)) + 0.045);
 
-        // 2. Interactive Singularity Starburst at Mouse Position
+        // 2. Compact 4-Point Caustic Starburst at Cursor
         vec2 toMouse = uv - mouse;
         float distMouse = length(toMouse);
 
         float ang = atan(toMouse.y, toMouse.x);
-        float flareRays = pow(abs(cos(ang * 2.0 + t * 0.15)), 6.0) + pow(abs(sin(ang * 2.0 + t * 0.15)), 6.0) * 0.7;
-        float starburst = (0.045 / (distMouse + 0.025)) * (0.35 + flareRays * 0.65);
+        // Sharp 4-point diamond rays
+        float flareRays = pow(abs(cos(ang * 2.0 + 0.785)), 12.0) + pow(abs(sin(ang * 2.0 + 0.785)), 12.0);
+        float starburst = (0.015 / (distMouse + 0.015)) * (0.2 + flareRays * 0.8) * smoothstep(0.4, 0.0, distMouse);
 
-        float whiteCore = 0.035 / (distMouse * distMouse * 10.0 + 0.012);
-        float pull = exp(-distMouse * 3.2);
-        ribbonGlow += pull * 0.45;
+        // Crisp compact white point core
+        float whiteCore = 0.008 / (distMouse * distMouse * 45.0 + 0.006);
 
         // 3. Electric Royal Indigo Palette
         vec3 bgCol = vec3(0.02, 0.035, 0.08);
@@ -138,15 +141,16 @@ class AmbientBackgroundManager {
         vec3 cyanHighlight = vec3(0.45, 0.78, 1.0);
         vec3 whiteCoreColor = vec3(1.0, 1.0, 1.0);
 
-        vec3 color = bgCol * 0.3;
-        color += deepIndigo * (ribbonGlow * 0.9 + filaments * 0.45);
-        color += cyanHighlight * (starburst * 0.75 + filaments * 0.3);
-        color += whiteCoreColor * (whiteCore * 0.95 + starburst * 0.4);
+        vec3 color = bgCol * 0.2;
+        color += deepIndigo * (ribbonGlow * 0.75 + filaments * 0.4);
+        color += cyanHighlight * (starburst * 0.7 + filaments * 0.25);
+        color += whiteCoreColor * (whiteCore * 0.9 + starburst * 0.35);
 
-        float vig = 1.0 - smoothstep(0.45, 1.6, length(uv));
+        // Atmospheric vignette
+        float vig = 1.0 - smoothstep(0.5, 1.6, length(uv));
         color *= vig;
 
-        gl_FragColor = vec4(color, clamp(length(color) * 0.85, 0.0, 1.0));
+        gl_FragColor = vec4(color, clamp(length(color) * 0.75, 0.0, 1.0));
       }
     `;
 
