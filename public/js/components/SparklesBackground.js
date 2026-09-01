@@ -513,24 +513,24 @@ class AmbientBackgroundManager {
         float fresnel = fresnelSquared * fresnelSquared;
         float facet = mix(0.76, 1.0, smoothstep(-0.08, 0.08, normal.x));
         float depthFog = smoothstep(-0.68, 0.58, renderPosition.z);
-        vec3 depthTint = mix(u_accentColor.rgb * 0.52, u_baseColor.rgb, depthFog);
-        vec3 color = depthTint * (0.1 + diffuse * 0.3) * facet;
-        color += u_highlightColor.rgb * (broad * mix(0.3, 0.86, 1.0 - roughness)) * (1.0 + glow * 0.14);
-        color += u_accentColor.rgb * strip * (0.12 + fresnel * 0.42);
-        color += u_highlightColor.rgb * specular * mix(0.82, 1.0, seedDepth);
-        color += mix(u_baseColor.rgb, u_accentColor.rgb, seedLane) * fresnel * (0.15 + glow * 0.16);
-        color += u_accentColor.rgb * (broad * 0.045 + fresnel * 0.075) * glow;
-        vec3 creaseCol = color + u_highlightColor.rgb * (0.08 + specular * 0.22);
+        vec3 depthTint = mix(u_accentColor.rgb * 0.85, u_baseColor.rgb * 1.35, depthFog);
+        vec3 color = depthTint * (0.28 + diffuse * 0.48) * facet;
+        color += u_highlightColor.rgb * (broad * mix(0.35, 0.90, 1.0 - roughness)) * (1.0 + glow * 0.18);
+        color += u_baseColor.rgb * strip * (0.20 + fresnel * 0.55);
+        color += u_highlightColor.rgb * specular * mix(0.90, 1.15, seedDepth);
+        color += mix(u_baseColor.rgb, u_accentColor.rgb, seedLane) * fresnel * (0.25 + glow * 0.22);
+        color += u_baseColor.rgb * (broad * 0.08 + fresnel * 0.12) * glow;
+        vec3 creaseCol = color + u_highlightColor.rgb * (0.12 + specular * 0.35);
 
         float fill = (0.38 + diffuse * 0.12) * facet * u_environment.x;
         color += mix(u_accentColor.rgb, u_baseColor.rgb, depthFog) * fill;
         creaseCol += mix(u_accentColor.rgb, u_baseColor.rgb, depthFog) * fill;
 
         float fog = mix(0.42, 1.0, depthFog);
-        float exposure = fog * u_material.z * u_effects.w * 0.78;
+        float exposure = fog * u_material.z * u_effects.w * 1.15;
         vec3 mapped = aces(color * exposure);
         vec3 mappedCrease = aces(creaseCol * exposure);
-        float shardAlpha = mix(0.40, 0.85, depthFog);
+        float shardAlpha = mix(0.70, 0.98, depthFog);
         float seam = smoothstep(0.0, 0.035, path.phase) * (1.0 - smoothstep(0.965, 1.0, path.phase));
         shardAlpha *= mix(1.0, seam, u_transport.y * u_formation.x * (1.0 - u_gather.z));
 
@@ -562,7 +562,7 @@ class AmbientBackgroundManager {
           coverage = smoothstep(0.0, edgeWidth, diamondDistance);
         }
         vec3 mapped = v_baseAlpha.rgb + v_creaseColor * crease;
-        float coveredAlpha = v_baseAlpha.a * coverage * 0.46;
+        float coveredAlpha = v_baseAlpha.a * coverage * 0.88;
         fragColor = vec4(mapped * coveredAlpha, coveredAlpha);
       }
     `;
