@@ -431,9 +431,9 @@ html.pink .modal-container {
   box-shadow: 5px 5px 0px #231C18 !important;
 }
 
-/* Pink mode logo - crisp solid black with subtle drop */
+/* Pink mode logo - crisp clean solid dark */
 html.pink .logo-img {
-  filter: invert(1) brightness(0) drop-shadow(1px 1px 0px #FF5DA2);
+  filter: invert(1) brightness(0);
 }
 
 /* Light mode logo - crisp solid black */
@@ -441,7 +441,7 @@ html.light .logo-img {
   filter: invert(1) brightness(0);
 }
 
-/* Pink Theme Font Family - Sniglet */
+/* Pink Theme Clean & Highly Legible Typography */
 html.pink,
 html.pink body,
 html.pink button,
@@ -450,8 +450,8 @@ html.pink textarea,
 html.pink select,
 html.pink [role='button'],
 html.pink .font-sans {
-  font-family: 'Sniglet', cursive, sans-serif !important;
-  letter-spacing: 0.01em;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  letter-spacing: normal;
 }
 
 /* Cute Marshmallow Scrollbar for Pink Theme */
