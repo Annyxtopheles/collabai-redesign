@@ -227,43 +227,43 @@ class AmbientBackgroundManager {
         vec2 sourceToCoord = coord - raySource;
         float cosAngle = dot(normalize(sourceToCoord), rayRefDirection);
         return clamp(
-          (0.40 + 0.12 * sin(cosAngle * seedA + u_time * speed)) +
-          (0.25 + 0.15 * cos(-cosAngle * seedB + u_time * speed)),
+          (0.42 + 0.16 * sin(cosAngle * seedA + u_time * speed)) +
+          (0.28 + 0.18 * cos(-cosAngle * seedB + u_time * speed)),
           0.0, 1.0) *
-          clamp((u_resolution.x - length(sourceToCoord)) / u_resolution.x, 0.4, 1.0);
+          clamp((u_resolution.x - length(sourceToCoord)) / u_resolution.x, 0.45, 1.0);
       }
 
       void main() {
         vec2 fragCoord = gl_FragCoord.xy;
         vec2 coord = vec2(fragCoord.x, u_resolution.y - fragCoord.y);
-        vec2 rayPos = vec2(u_resolution.x * 1.12, -0.42 * u_resolution.y);
+        vec2 rayPos = vec2(u_resolution.x * 0.98, -0.15 * u_resolution.y);
 
         vec2 rel = coord - rayPos;
         vec2 tiltedCoord = rel + rayPos;
 
-        float halfSpread = 1.0 * 0.275;
+        float halfSpread = 1.35 * 0.275;
         vec2 rayRefDir1 = normalize(vec2(cos(0.785398 + halfSpread), sin(0.785398 + halfSpread)));
         vec2 rayRefDir2 = normalize(vec2(cos(0.785398 - halfSpread), sin(0.785398 - halfSpread)));
 
-        vec3 rayColor1 = vec3(0.92, 0.70, 0.08); // #EAB308 Subtle Warm Amber
-        vec3 rayColor2 = vec3(0.50, 0.72, 0.98); // #96C8FF Soft Sky Blue
+        vec3 rayColor1 = vec3(0.95, 0.72, 0.12); // #EAB308 Celestial Warm Amber
+        vec3 rayColor2 = vec3(0.48, 0.75, 1.0);  // #96C8FF Luminous Sky Blue
 
-        vec4 rays1 = vec4(rayColor1, 1.0) * rayStrength(rayPos, rayRefDir1, tiltedCoord, 36.2214, 21.11349, 0.9);
-        vec4 rays2 = vec4(rayColor2, 1.0) * rayStrength(rayPos, rayRefDir2, tiltedCoord, 22.3991, 18.0234, 0.28);
+        vec4 rays1 = vec4(rayColor1, 1.0) * rayStrength(rayPos, rayRefDir1, tiltedCoord, 36.2214, 21.11349, 1.0);
+        vec4 rays2 = vec4(rayColor2, 1.0) * rayStrength(rayPos, rayRefDir2, tiltedCoord, 22.3991, 18.0234, 0.30);
 
-        vec4 color = rays1 * 0.30 + rays2 * 0.70;
+        vec4 color = rays1 * 0.32 + rays2 * 0.68;
 
         float distanceToLight = length(fragCoord.xy - vec2(rayPos.x, u_resolution.y - rayPos.y)) / u_resolution.y;
-        float brightness = 0.38 / pow(max(distanceToLight, 0.001), 1.50);
+        float brightness = 0.78 / pow(max(distanceToLight, 0.001), 1.12);
         color.rgb *= brightness;
 
         float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
-        color.rgb = mix(vec3(gray), color.rgb, 1.3);
+        color.rgb = mix(vec3(gray), color.rgb, 1.35);
 
-        float vig = 1.0 - smoothstep(0.3, 1.4, length(coord / u_resolution.xy - 0.5) * 1.4);
-        color.rgb *= vig * 0.32;
+        float vig = 1.0 - smoothstep(0.35, 1.55, length(coord / u_resolution.xy - 0.5) * 1.35);
+        color.rgb *= vig * 0.48;
 
-        gl_FragColor = vec4(color.rgb, clamp(length(color.rgb) * 0.85, 0.0, 1.0));
+        gl_FragColor = vec4(color.rgb, clamp(length(color.rgb) * 1.25, 0.0, 1.0));
       }
     `;
 
