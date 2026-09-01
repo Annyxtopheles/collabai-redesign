@@ -23,9 +23,13 @@ class AmbientBackgroundManager {
     this.mouseY = window.innerHeight / 2;
     this.targetMouseX = this.mouseX;
     this.targetMouseY = this.mouseY;
+    this.webglCanvas = null;
+    this.gl = null;
+    this.shaderProgram = null;
   }
 
   init() {
+    // 1. Initialize 2D Canvas for Classic Themes
     let canvas = document.getElementById('ambient-sparkles-canvas');
     if (!canvas) {
       canvas = document.createElement('canvas');
@@ -35,17 +39,18 @@ class AmbientBackgroundManager {
       canvas.style.zIndex = '0';
       document.body.prepend(canvas);
     }
-
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
+
+    // 2. Initialize WebGL Canvas for GPU Neural Vortex Shader
+    this.initWebGLShader();
+
     this.resize();
 
     window.addEventListener('resize', () => {
       this.resize();
-      if (this.currentMode === 'saas_aurora') this.createSaaS();
-      else if (this.currentMode === 'synthwave_grid') this.createSynthwave();
+      if (this.currentMode === 'synthwave_grid') this.createSynthwave();
       else if (this.currentMode === 'crt_raster') this.createCRT();
-      else if (this.currentMode === 'dark_vortex') this.createVortex();
       else if (this.currentMode === 'dark_stars') this.createStars();
       else if (this.currentMode === 'dark_matrix' || this.currentMode === 'light_matrix') this.createMatrix();
       else if (this.currentMode === 'pink_sakura') this.createPetals();
@@ -59,12 +64,151 @@ class AmbientBackgroundManager {
     this.checkThemeState();
   }
 
+  initWebGLShader() {
+    let glCanvas = document.getElementById('ambient-webgl-canvas');
+    if (!glCanvas) {
+      glCanvas = document.createElement('canvas');
+      glCanvas.id = 'ambient-webgl-canvas';
+      glCanvas.className = 'fixed inset-0 pointer-events-none z-0 transition-opacity duration-700';
+      glCanvas.style.opacity = '0';
+      glCanvas.style.zIndex = '0';
+      glCanvas.style.display = 'none';
+      document.body.prepend(glCanvas);
+    }
+    this.webglCanvas = glCanvas;
+
+    const gl = glCanvas.getContext('webgl', { alpha: true, antialias: true, premultipliedAlpha: false });
+    if (!gl) return false;
+    this.gl = gl;
+
+    const vsSource = `
+      attribute vec2 position;
+      void main() {
+        gl_Position = vec4(position, 0.0, 1.0);
+      }
+    `;
+
+    const fsSource = `
+      precision highp float;
+      uniform vec2 u_resolution;
+      uniform vec2 u_mouse;
+      uniform float u_time;
+
+      vec2 domainWarp(vec2 p, float t) {
+        for (int i = 1; i <= 4; i++) {
+          float fi = float(i);
+          p += vec2(
+            sin(p.y * 1.6 + t * 0.35 + fi * 0.7) * 0.4,
+            cos(p.x * 1.4 - t * 0.30 + fi * 0.9) * 0.4
+          ) / fi;
+        }
+        return p;
+      }
+
+      void main() {
+        vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
+        vec2 mouse = (u_mouse - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
+        mouse.y = -mouse.y;
+
+        float t = u_time * 0.35;
+
+        // 1. Swirling Volumetric Silk Caustic Beam
+        vec2 p = uv;
+        vec2 warped = domainWarp(p * 1.8 + vec2(t * 0.12, -t * 0.09), t);
+
+        float ribbonDist = abs(warped.y - warped.x * 0.65 + sin(warped.x * 2.2 + t) * 0.32);
+        float ribbonGlow = 0.055 / (ribbonDist + 0.038);
+        float filaments = 0.025 / (abs(sin(warped.x * 3.8 + warped.y * 2.8 + t * 0.9)) + 0.055);
+
+        // 2. Interactive Singularity Starburst at Mouse Position
+        vec2 toMouse = uv - mouse;
+        float distMouse = length(toMouse);
+
+        float ang = atan(toMouse.y, toMouse.x);
+        float flareRays = pow(abs(cos(ang * 2.0 + t * 0.15)), 6.0) + pow(abs(sin(ang * 2.0 + t * 0.15)), 6.0) * 0.7;
+        float starburst = (0.045 / (distMouse + 0.025)) * (0.35 + flareRays * 0.65);
+
+        float whiteCore = 0.035 / (distMouse * distMouse * 10.0 + 0.012);
+        float pull = exp(-distMouse * 3.2);
+        ribbonGlow += pull * 0.45;
+
+        // 3. Electric Royal Indigo Palette
+        vec3 bgCol = vec3(0.02, 0.035, 0.08);
+        vec3 deepIndigo = vec3(0.12, 0.28, 0.98);
+        vec3 cyanHighlight = vec3(0.45, 0.78, 1.0);
+        vec3 whiteCoreColor = vec3(1.0, 1.0, 1.0);
+
+        vec3 color = bgCol * 0.3;
+        color += deepIndigo * (ribbonGlow * 0.9 + filaments * 0.45);
+        color += cyanHighlight * (starburst * 0.75 + filaments * 0.3);
+        color += whiteCoreColor * (whiteCore * 0.95 + starburst * 0.4);
+
+        float vig = 1.0 - smoothstep(0.45, 1.6, length(uv));
+        color *= vig;
+
+        gl_FragColor = vec4(color, clamp(length(color) * 0.85, 0.0, 1.0));
+      }
+    `;
+
+    const createShader = (type, source) => {
+      const shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.error('Shader compile error:', gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+        return null;
+      }
+      return shader;
+    };
+
+    const vs = createShader(gl.VERTEX_SHADER, vsSource);
+    const fs = createShader(gl.FRAGMENT_SHADER, fsSource);
+    if (!vs || !fs) return false;
+
+    const program = gl.createProgram();
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
+
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.error('Program link error:', gl.getProgramInfoLog(program));
+      return false;
+    }
+
+    this.shaderProgram = program;
+
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+      -1, -1,
+       1, -1,
+      -1,  1,
+      -1,  1,
+       1, -1,
+       1,  1
+    ]), gl.STATIC_DRAW);
+
+    this.positionLocation = gl.getAttribLocation(program, 'position');
+    this.resLocation = gl.getUniformLocation(program, 'u_resolution');
+    this.mouseLocation = gl.getUniformLocation(program, 'u_mouse');
+    this.timeLocation = gl.getUniformLocation(program, 'u_time');
+
+    return true;
+  }
+
   resize() {
-    if (!this.canvas) return;
     this.width = window.innerWidth;
     this.height = window.innerHeight;
-    this.canvas.width = this.width;
-    this.canvas.height = this.height;
+    if (this.canvas) {
+      this.canvas.width = this.width;
+      this.canvas.height = this.height;
+    }
+    if (this.webglCanvas) {
+      this.webglCanvas.width = this.width;
+      this.webglCanvas.height = this.height;
+      if (this.gl) this.gl.viewport(0, 0, this.width, this.height);
+    }
   }
 
   // --- SAAS THEME: Interactive Neural Vortex Background ---
@@ -334,64 +478,62 @@ class AmbientBackgroundManager {
     this.currentMode = targetMode;
 
     if (targetMode === 'saas_aurora') {
-      this.createSaaS();
-      this.start();
-      if (this.canvas) {
-        this.canvas.style.opacity = '1';
-        this.canvas.style.display = 'block';
+      if (this.gl && this.shaderProgram) {
+        if (this.webglCanvas) {
+          this.webglCanvas.style.display = 'block';
+          this.webglCanvas.style.opacity = '1';
+        }
+        if (this.canvas) {
+          this.canvas.style.display = 'none';
+        }
+      } else {
+        this.createSaaS();
+        if (this.canvas) {
+          this.canvas.style.opacity = '1';
+          this.canvas.style.display = 'block';
+        }
       }
-    } else if (targetMode === 'synthwave_grid') {
-      this.createSynthwave();
       this.start();
-      if (this.canvas) {
-        this.canvas.style.opacity = '1';
-        this.canvas.style.display = 'block';
-      }
-    } else if (targetMode === 'crt_raster') {
-      this.createCRT();
-      this.start();
-      if (this.canvas) {
-        this.canvas.style.opacity = '1';
-        this.canvas.style.display = 'block';
-      }
-    } else if (targetMode === 'dark_vortex') {
-      this.createVortex();
-      this.start();
-      if (this.canvas) {
-        this.canvas.style.opacity = '1';
-        this.canvas.style.display = 'block';
-      }
-    } else if (targetMode === 'dark_stars') {
-      this.createStars();
-      this.start();
-      if (this.canvas) {
-        this.canvas.style.opacity = '1';
-        this.canvas.style.display = 'block';
-      }
-    } else if (targetMode === 'dark_matrix' || targetMode === 'light_matrix') {
-      this.createMatrix();
-      this.start();
-      if (this.canvas) {
-        this.canvas.style.opacity = '1';
-        this.canvas.style.display = 'block';
-      }
-    } else if (targetMode === 'pink_sakura') {
-      this.createPetals();
-      this.start();
-      if (this.canvas) {
-        this.canvas.style.opacity = '1';
-        this.canvas.style.display = 'block';
-      }
     } else {
-      if (this.canvas) {
-        this.canvas.style.opacity = '0';
-        setTimeout(() => {
-          if (this.currentMode === 'none' && this.canvas) {
-            this.canvas.style.display = 'none';
-          }
-        }, 400);
+      if (this.webglCanvas) {
+        this.webglCanvas.style.opacity = '0';
+        this.webglCanvas.style.display = 'none';
       }
-      this.stop();
+      if (this.canvas) {
+        this.canvas.style.display = 'block';
+      }
+
+      if (targetMode === 'synthwave_grid') {
+        this.createSynthwave();
+        this.start();
+        if (this.canvas) this.canvas.style.opacity = '1';
+      } else if (targetMode === 'crt_raster') {
+        this.createCRT();
+        this.start();
+        if (this.canvas) this.canvas.style.opacity = '1';
+      } else if (targetMode === 'dark_stars') {
+        this.createStars();
+        this.start();
+        if (this.canvas) this.canvas.style.opacity = '1';
+      } else if (targetMode === 'dark_matrix' || targetMode === 'light_matrix') {
+        this.createMatrix();
+        this.start();
+        if (this.canvas) this.canvas.style.opacity = '1';
+      } else if (targetMode === 'pink_sakura') {
+        this.createPetals();
+        this.start();
+        if (this.canvas) this.canvas.style.opacity = '1';
+      } else {
+        if (this.canvas) {
+          this.canvas.style.opacity = '0';
+          setTimeout(() => {
+            if (this.currentMode === 'none' && this.canvas) {
+              this.canvas.style.display = 'none';
+            }
+          }, 400);
+        }
+        this.stop();
+      }
     }
   }
 
@@ -435,18 +577,37 @@ class AmbientBackgroundManager {
     const render = (time) => {
       if (!this.isRunning) return;
 
+      if (this.currentMode === 'saas_aurora' && this.gl && this.shaderProgram) {
+        // --- GPU WebGL Interactive Neural Vortex Fragment Shader ---
+        this.mouseX += (this.targetMouseX - this.mouseX) * 0.05;
+        this.mouseY += (this.targetMouseY - this.mouseY) * 0.05;
+
+        const gl = this.gl;
+        gl.viewport(0, 0, this.width, this.height);
+        gl.useProgram(this.shaderProgram);
+
+        gl.enableVertexAttribArray(this.positionLocation);
+        gl.vertexAttribPointer(this.positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+        gl.uniform2f(this.resLocation, this.width, this.height);
+        gl.uniform2f(this.mouseLocation, this.mouseX, this.mouseY);
+        gl.uniform1f(this.timeLocation, time * 0.001);
+
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        this.animationFrameId = requestAnimationFrame(render);
+        return;
+      }
+
       this.ctx.clearRect(0, 0, this.width, this.height);
 
       if (this.currentMode === 'saas_aurora') {
-        // --- Render Interactive Neural Vortex Background (Matching 21st.dev Component) ---
-        // Smooth cursor attraction towards mouse position
+        // Fallback 2D Canvas Neural Vortex
         this.mouseX += (this.targetMouseX - this.mouseX) * 0.045;
         this.mouseY += (this.targetMouseY - this.mouseY) * 0.045;
 
         const vX = this.mouseX;
         const vY = this.mouseY;
 
-        // 1. Deep Celestial Plasma Fog Behind Vortex
         const plasmaGrad = this.ctx.createRadialGradient(vX, vY, 10, vX, vY, Math.max(this.width, this.height) * 0.75);
         plasmaGrad.addColorStop(0, 'rgba(49, 94, 255, 0.16)');
         plasmaGrad.addColorStop(0.3, 'rgba(30, 64, 210, 0.08)');
