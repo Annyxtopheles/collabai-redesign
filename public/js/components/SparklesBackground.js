@@ -227,43 +227,43 @@ class AmbientBackgroundManager {
         vec2 sourceToCoord = coord - raySource;
         float cosAngle = dot(normalize(sourceToCoord), rayRefDirection);
         return clamp(
-          (0.45 + 0.15 * sin(cosAngle * seedA + u_time * speed)) +
-          (0.3 + 0.2 * cos(-cosAngle * seedB + u_time * speed)),
+          (0.40 + 0.12 * sin(cosAngle * seedA + u_time * speed)) +
+          (0.25 + 0.15 * cos(-cosAngle * seedB + u_time * speed)),
           0.0, 1.0) *
-          clamp((u_resolution.x - length(sourceToCoord)) / u_resolution.x, 0.5, 1.0);
+          clamp((u_resolution.x - length(sourceToCoord)) / u_resolution.x, 0.4, 1.0);
       }
 
       void main() {
         vec2 fragCoord = gl_FragCoord.xy;
         vec2 coord = vec2(fragCoord.x, u_resolution.y - fragCoord.y);
-        vec2 rayPos = vec2(u_resolution.x * 0.95, -0.2 * u_resolution.y);
+        vec2 rayPos = vec2(u_resolution.x * 1.12, -0.42 * u_resolution.y);
 
         vec2 rel = coord - rayPos;
         vec2 tiltedCoord = rel + rayPos;
 
-        float halfSpread = 2.0 * 0.275;
+        float halfSpread = 1.0 * 0.275;
         vec2 rayRefDir1 = normalize(vec2(cos(0.785398 + halfSpread), sin(0.785398 + halfSpread)));
         vec2 rayRefDir2 = normalize(vec2(cos(0.785398 - halfSpread), sin(0.785398 - halfSpread)));
 
-        vec3 rayColor1 = vec3(0.95, 0.75, 0.10); // #EAB308 Golden Amber
-        vec3 rayColor2 = vec3(0.55, 0.78, 1.0);  // #96C8FF Celestial Sky Blue
+        vec3 rayColor1 = vec3(0.92, 0.70, 0.08); // #EAB308 Subtle Warm Amber
+        vec3 rayColor2 = vec3(0.50, 0.72, 0.98); // #96C8FF Soft Sky Blue
 
-        vec4 rays1 = vec4(rayColor1, 1.0) * rayStrength(rayPos, rayRefDir1, tiltedCoord, 36.2214, 21.11349, 1.2);
-        vec4 rays2 = vec4(rayColor2, 1.0) * rayStrength(rayPos, rayRefDir2, tiltedCoord, 22.3991, 18.0234, 0.35);
+        vec4 rays1 = vec4(rayColor1, 1.0) * rayStrength(rayPos, rayRefDir1, tiltedCoord, 36.2214, 21.11349, 0.9);
+        vec4 rays2 = vec4(rayColor2, 1.0) * rayStrength(rayPos, rayRefDir2, tiltedCoord, 22.3991, 18.0234, 0.28);
 
-        vec4 color = rays1 * 0.35 + rays2 * 0.65;
+        vec4 color = rays1 * 0.30 + rays2 * 0.70;
 
         float distanceToLight = length(fragCoord.xy - vec2(rayPos.x, u_resolution.y - rayPos.y)) / u_resolution.y;
-        float brightness = 1.2 / pow(max(distanceToLight, 0.001), 1.25);
+        float brightness = 0.38 / pow(max(distanceToLight, 0.001), 1.50);
         color.rgb *= brightness;
 
         float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
-        color.rgb = mix(vec3(gray), color.rgb, 1.4);
+        color.rgb = mix(vec3(gray), color.rgb, 1.3);
 
-        float vig = 1.0 - smoothstep(0.4, 1.5, length(coord / u_resolution.xy - 0.5) * 1.4);
-        color.rgb *= vig * 0.65;
+        float vig = 1.0 - smoothstep(0.3, 1.4, length(coord / u_resolution.xy - 0.5) * 1.4);
+        color.rgb *= vig * 0.32;
 
-        gl_FragColor = vec4(color.rgb, clamp(length(color.rgb) * 1.8, 0.0, 1.0));
+        gl_FragColor = vec4(color.rgb, clamp(length(color.rgb) * 0.85, 0.0, 1.0));
       }
     `;
 
@@ -306,14 +306,14 @@ class AmbientBackgroundManager {
       }
 
       void main() {
-        float uPixelResolution = 190.0;
-        float uFlakeSize = 0.016;
-        float uMinFlakeSize = 1.35;
-        float uSpeed = 1.15;
-        float uDepthFade = 10.0;
+        float uPixelResolution = 360.0;
+        float uFlakeSize = 0.006;
+        float uMinFlakeSize = 0.65;
+        float uSpeed = 1.05;
+        float uDepthFade = 11.0;
         float uFarPlane = 18.0;
-        float uDensity = 0.28;
-        vec3 uColor = vec3(0.88, 0.94, 1.0);
+        float uDensity = 0.26;
+        vec3 uColor = vec3(0.85, 0.92, 1.0);
 
         float pixelSize = max(1.0, floor(0.5 + u_resolution.x / uPixelResolution));
         float invPixelSize = 1.0 / pixelSize;
@@ -373,8 +373,8 @@ class AmbientBackgroundManager {
               if (dist < flakeSize) {
                 float flakeSizeRatio = uFlakeSize / flakeSize;
                 float intensity = exp2(-(t + toIntersection) * invDepthFade) *
-                                 min(1.0, flakeSizeRatio * flakeSizeRatio) * 1.1;
-                gl_FragColor = vec4(uColor * pow(intensity, 0.45), clamp(intensity * 1.5, 0.0, 1.0));
+                                 min(1.0, flakeSizeRatio * flakeSizeRatio) * 0.85;
+                gl_FragColor = vec4(uColor * pow(intensity, 0.5), clamp(intensity * 1.1, 0.0, 1.0));
                 return;
               }
             }
