@@ -469,8 +469,8 @@ class AmbientBackgroundManager {
         float rollCos = cos(roll);
         vec3 bankedSide = side * rollCos + facing * rollSin;
         vec3 bankedFacing = facing * rollCos - side * rollSin;
-        float depthScale = mix(0.56, 1.58, clamp(renderPosition.z * 0.62 + 0.5, 0.0, 1.0));
-        float scaleShape = 0.46 + seedScale * 0.58 + pow(seedScale, 12.0) * 1.55;
+        float depthScale = mix(0.70, 1.15, clamp(renderPosition.z * 0.5 + 0.5, 0.0, 1.0));
+        float scaleShape = mix(0.55, 1.05, seedScale);
         float size = u_viewport.y * scaleShape * depthScale * (1.0 - u_gather.z * 0.3);
         float width = size * 0.72;
         float lengthScale = size * 1.26 * u_effects.z;
@@ -609,7 +609,7 @@ class AmbientBackgroundManager {
       u_baseColor: gl.getUniformLocation(saasProgram, 'u_baseColor'),
       u_highlightColor: gl.getUniformLocation(saasProgram, 'u_highlightColor'),
       u_accentColor: gl.getUniformLocation(saasProgram, 'u_accentColor'),
-      instanceCount: 3200
+      instanceCount: 4200
     };
 
     // Compile Dark Mode Celestial Aurora SideRays Shader Program
@@ -1504,8 +1504,8 @@ class AmbientBackgroundManager {
         const pointerNormX = (this.mouseX / this.width) * 2.0 - 1.0;
         const pointerNormY = 1.0 - (this.mouseY / this.height) * 2.0;
 
-        gl.uniform4f(s.u_viewport, aspect, 0.012, 1.0, flowDistance);
-        gl.uniform4f(s.u_shape, 1.45, 1.2, 0.42, 0.0); // Increased spread
+        gl.uniform4f(s.u_viewport, aspect, 0.0075, 1.0, flowDistance);
+        gl.uniform4f(s.u_shape, 1.55, 1.25, 0.42, 0.0); // Increased spread
         gl.uniform4f(s.u_effects, 1.0, 1.6, 1.0, 1.12);
         gl.uniform4f(s.u_composition, 0.0, 0.0, 0.0, 1.0); // full placement stream
         gl.uniform4f(s.u_transport, travelPhase, 0.0, 0.0, 0.0);
