@@ -58,34 +58,34 @@ html.light {
 }
 
 html.pink {
-  /* Warm Cream & Bubblegum Pink Wireframe Theme (Exact match to reference images) */
+  /* Warm Japanese Washi Cream & Sakura Blossom Neo-Brutalist Wireframe Theme */
   --bg-canvas: #FAF6F0;
-  --bg-sidebar: #F4EFE6;
+  --bg-sidebar: #F5EFE6;
   --bg-surface: #FFFFFF;
-  --bg-elevated: #FFFBF5;
+  --bg-elevated: #FFFBF7;
   --bg-input: #FFFFFF;
-  --bg-hover: #F0E8DC;
+  --bg-hover: #F2E9DC;
   --bg-hover-subtle: rgba(255, 93, 162, 0.12);
-  --border-subtle: #E8DECF;
-  --border-med: #1A1A1A;
+  --border-subtle: #E8DDCF;
+  --border-med: #231C18;
   --border-active: #FF5DA2;
-  --text-primary: #111111;
-  --text-secondary: #524B43;
+  --text-primary: #231C18;
+  --text-secondary: #5C5248;
   --text-muted: #968A7D;
   
-  /* Cartoonish Wireframe Neo-Brutalist Pink Styling */
+  /* Neo-Brutalist Sakura Wireframe Tokens */
   --btn-primary-bg: #FF5DA2;
-  --btn-primary-text: #000000;
+  --btn-primary-text: #111111;
   --btn-primary-hover: #FF4092;
   --code-bg: #FFF5F9;
   --code-text: #D81B60;
   --inline-code-bg: #FFEBF3;
   --badge-bg: #FFEBF3;
-  --badge-border: #FFBFDB;
+  --badge-border: #231C18;
   --icon-invert: 1;
-  --shadow-color: rgba(0, 0, 0, 0.12);
-  --btn-border: 2px solid #000000;
-  --btn-shadow: 3px 3px 0px #000000;
+  --shadow-color: rgba(35, 28, 24, 0.15);
+  --btn-border: 2px solid #231C18;
+  --btn-shadow: 3px 3px 0px #231C18;
 }
 
 html.crt {
@@ -337,45 +337,103 @@ body, aside, nav, .content-area, .sidebar-panel,
   background-color: var(--btn-primary-hover);
 }
 
-/* Cartoonish Wireframe Neo-Brutalist Button Styling for Pink Theme */
+/* =========================================================
+   SAKURA BLOSSOM & NEO-BRUTALIST WIREFRAME THEME ENHANCEMENTS
+   ========================================================= */
+
+/* Neo-Brutalist Wireframe Cards & Panels */
+html.pink .bg-app-surface,
+html.pink .bg-app-elevated {
+  border: 1.5px solid #231C18 !important;
+  box-shadow: 3px 3px 0px #231C18 !important;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover Lift on Interactive Cards */
+html.pink .bg-app-surface.hover\:border-app-borderMed:hover,
+html.pink .bg-app-surface.cursor-pointer:hover,
+html.pink .bg-app-surface:hover {
+  box-shadow: 4px 4px 0px #231C18 !important;
+  transform: translate(-1px, -1px);
+}
+
+/* Neo-Brutalist Inputs, Textarea, and Search Bars */
+html.pink input[type='text'],
+html.pink input[type='password'],
+html.pink input[type='search'],
+html.pink textarea,
+html.pink select {
+  border: 1.5px solid #231C18 !important;
+  box-shadow: 2px 2px 0px #231C18 !important;
+  background-color: #FFFFFF !important;
+  color: #231C18 !important;
+  transition: all 0.12s ease !important;
+}
+html.pink input:focus,
+html.pink textarea:focus,
+html.pink select:focus {
+  box-shadow: 3px 3px 0px #FF5DA2 !important;
+  border-color: #231C18 !important;
+  outline: none !important;
+}
+
+/* Neo-Brutalist Tactile Primary Buttons */
 html.pink .btn-primary {
   background-color: #FF5DA2 !important;
-  color: #000000 !important;
-  font-weight: 600 !important;
-  border: 2px solid #000000 !important;
-  box-shadow: 3px 3px 0px #000000 !important;
+  color: #111111 !important;
+  font-weight: 700 !important;
+  border: 2px solid #231C18 !important;
+  box-shadow: 3px 3px 0px #231C18 !important;
+  letter-spacing: 0.02em;
   transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.1s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s ease !important;
 }
-
 html.pink .btn-primary:hover {
-  background-color: #FF4092 !important;
+  background-color: #FF75B3 !important;
   transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0px #000000 !important;
+  box-shadow: 4px 4px 0px #231C18 !important;
 }
-
 html.pink .btn-primary:active {
   transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px #000000 !important;
+  box-shadow: 1px 1px 0px #231C18 !important;
 }
 
-/* Cartoonish Wireframe Buttons & Badges for Pink Theme */
-html.pink .wireframe-btn {
-  border: 2px solid #000000 !important;
-  box-shadow: 2.5px 2.5px 0px #000000 !important;
+/* Secondary & Wireframe Buttons */
+html.pink .wireframe-btn,
+html.pink button.border {
+  border: 1.5px solid #231C18 !important;
+  box-shadow: 2px 2px 0px #231C18 !important;
   font-weight: 600 !important;
+  transition: all 0.12s ease !important;
 }
-html.pink .wireframe-btn:hover {
+html.pink .wireframe-btn:hover,
+html.pink button.border:hover {
   transform: translate(-1px, -1px);
-  box-shadow: 3.5px 3.5px 0px #000000 !important;
+  box-shadow: 3px 3px 0px #231C18 !important;
 }
-html.pink .wireframe-btn:active {
+html.pink .wireframe-btn:active,
+html.pink button.border:active {
   transform: translate(2px, 2px);
-  box-shadow: 0.5px 0.5px 0px #000000 !important;
+  box-shadow: 0.5px 0.5px 0px #231C18 !important;
 }
 
-/* Pink mode logo - crisp solid black */
+/* Sticker-Style Badges & Pills */
+html.pink span[class*="rounded-full"][class*="border"] {
+  border: 1.5px solid #231C18 !important;
+  box-shadow: 1.5px 1.5px 0px #231C18 !important;
+  font-weight: 700 !important;
+}
+
+/* Popover & Dialog Windows */
+html.pink #user-menu-popover,
+html.pink [role="dialog"],
+html.pink .modal-container {
+  border: 2px solid #231C18 !important;
+  box-shadow: 5px 5px 0px #231C18 !important;
+}
+
+/* Pink mode logo - crisp solid black with subtle drop */
 html.pink .logo-img {
-  filter: invert(1) brightness(0);
+  filter: invert(1) brightness(0) drop-shadow(1px 1px 0px #FF5DA2);
 }
 
 /* Light mode logo - crisp solid black */
@@ -393,6 +451,24 @@ html.pink select,
 html.pink [role='button'],
 html.pink .font-sans {
   font-family: 'Sniglet', cursive, sans-serif !important;
+  letter-spacing: 0.01em;
+}
+
+/* Cute Marshmallow Scrollbar for Pink Theme */
+html.pink ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+html.pink ::-webkit-scrollbar-track {
+  background: #FAF6F0;
+}
+html.pink ::-webkit-scrollbar-thumb {
+  background: #FFB3CD;
+  border: 1.5px solid #231C18;
+  border-radius: 9999px;
+}
+html.pink ::-webkit-scrollbar-thumb:hover {
+  background: #FF7FA9;
 }
 
 /* --- Pink Theme Custom Cursor with Soft Rounded Curves & Pastel Border --- */
@@ -434,7 +510,7 @@ html.pink textarea {
 
 html.pink ::selection {
   background-color: #FF7FA9;
-  color: #000000;
+  color: #111111;
 }
 
 /* Fade In Animation */
