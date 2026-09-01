@@ -8,10 +8,10 @@
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/assets/collab-ai-icon.svg" />
   
-  <!-- Inter & Cousine Fonts -->
+  <!-- Inter, Cousine, Sniglet, VT323 & Orbitron Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cousine:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cousine:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Sniglet:wght@400;800&family=VT323&display=swap" rel="stylesheet">
 
   <!-- Tailwind CSS Play CDN with CSS Variable-driven Theme Tokens -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -22,7 +22,10 @@
         extend: {
           fontFamily: {
             sans: ['Inter', 'sans-serif'],
-            mono: ['Cousine', 'monospace']
+            mono: ['Cousine', 'monospace'],
+            sniglet: ['Sniglet', 'cursive', 'sans-serif'],
+            vt323: ['VT323', 'monospace'],
+            orbitron: ['Orbitron', 'sans-serif']
           },
           colors: {
             app: {

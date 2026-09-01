@@ -383,6 +383,18 @@ html.light .logo-img {
   filter: invert(1) brightness(0);
 }
 
+/* Pink Theme Font Family - Sniglet */
+html.pink,
+html.pink body,
+html.pink button,
+html.pink input,
+html.pink textarea,
+html.pink select,
+html.pink [role='button'],
+html.pink .font-sans {
+  font-family: 'Sniglet', cursive, sans-serif !important;
+}
+
 /* --- Pink Theme Custom Cursor with Soft Rounded Curves & Pastel Border --- */
 html.pink,
 html.pink body,
@@ -459,6 +471,25 @@ html.crt .font-mono {
   text-shadow: 0 0 3px rgba(51, 255, 102, 0.40), 0 0 8px rgba(51, 255, 102, 0.12);
 }
 
+/* CRT Theme Font Family - VT323 */
+html.crt,
+html.crt body,
+html.crt button,
+html.crt input,
+html.crt textarea,
+html.crt select,
+html.crt [role='button'],
+html.crt .font-sans,
+html.crt .font-mono,
+html.crt code,
+html.crt pre {
+  font-family: 'VT323', monospace !important;
+  letter-spacing: 0.04em;
+}
+html.crt h1, html.crt h2, html.crt h3 {
+  letter-spacing: 0.06em;
+}
+
 /* CRT Logo - Phosphor Green Hue with Soft Glow */
 html.crt .logo-img {
   filter: invert(56%) sepia(98%) saturate(1400%) hue-rotate(90deg) brightness(1.25) drop-shadow(0 0 3px #33FF66);
@@ -470,8 +501,8 @@ html.crt .btn-primary {
   color: #33FF66 !important;
   border: 1px solid #33FF66 !important;
   box-shadow: 0 0 8px rgba(51, 255, 102, 0.20) !important;
-  font-family: 'Cousine', monospace !important;
-  letter-spacing: 0.03em !important;
+  font-family: 'VT323', monospace !important;
+  letter-spacing: 0.05em !important;
   transition: all 0.15s ease !important;
 }
 html.crt .btn-primary:hover {
@@ -529,6 +560,19 @@ html.crt ::selection {
 /* =========================================================
    CYBERPUNK SYNTHWAVE NEON THEME ENHANCEMENTS
    ========================================================= */
+
+/* Cyberpunk Synthwave Font Family - Orbitron */
+html.synthwave,
+html.synthwave body,
+html.synthwave button,
+html.synthwave input,
+html.synthwave textarea,
+html.synthwave select,
+html.synthwave [role='button'],
+html.synthwave .font-sans {
+  font-family: 'Orbitron', sans-serif !important;
+  letter-spacing: 0.02em;
+}
 
 /* Synthwave Neon Glow on Headings & Badges */
 html.synthwave h1,
