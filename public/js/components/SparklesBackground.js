@@ -67,86 +67,40 @@ class AmbientBackgroundManager {
     this.canvas.height = this.height;
   }
 
-  // --- SAAS THEME: Reflective Fractal Glass Facets & Prismatic Ambient Refraction ---
+  // --- SAAS THEME: Interactive Neural Vortex Background ---
   createSaaS() {
-    this.saasFacets = [];
-    this.saasNodes = [];
+    this.vortexCenter = {
+      x: this.width * 0.48,
+      y: this.height * 0.28
+    };
 
-    const cols = Math.max(7, Math.ceil(this.width / 160));
-    const rows = Math.max(5, Math.ceil(this.height / 160));
-    const cellW = this.width / (cols - 1);
-    const cellH = this.height / (rows - 1);
-
-    // 1. Generate Jittered Grid Nodes
-    const grid = [];
-    for (let r = 0; r < rows; r++) {
-      grid[r] = [];
-      for (let c = 0; c < cols; c++) {
-        // Keep outer boundaries pinned, jitter inner nodes
-        const isEdge = (r === 0 || r === rows - 1 || c === 0 || c === cols - 1);
-        const jitterX = isEdge ? 0 : (Math.random() - 0.5) * cellW * 0.75;
-        const jitterY = isEdge ? 0 : (Math.random() - 0.5) * cellH * 0.75;
-        const node = {
-          x: c * cellW + jitterX,
-          y: r * cellH + jitterY,
-          baseX: c * cellW + jitterX,
-          baseY: r * cellH + jitterY,
-          phase: Math.random() * Math.PI * 2,
-          speed: Math.random() * 0.0008 + 0.0004
-        };
-        grid[r][c] = node;
-        this.saasNodes.push(node);
-      }
+    // 1. Generate undulating neural filament streams
+    this.vortexStreams = [];
+    const numStreams = 14;
+    for (let i = 0; i < numStreams; i++) {
+      this.vortexStreams.push({
+        offsetAngle: (i / numStreams) * Math.PI * 2,
+        spread: (i - numStreams / 2) * 24,
+        speed: Math.random() * 0.0015 + 0.0008,
+        freq: Math.random() * 0.004 + 0.002,
+        phase: Math.random() * Math.PI * 2,
+        width: Math.random() * 2.2 + 0.8,
+        color: i % 3 === 0 ? '255, 255, 255' : (i % 2 === 0 ? '120, 175, 255' : '49, 94, 255'),
+        alpha: Math.random() * 0.35 + 0.25
+      });
     }
 
-    // 2. Generate Triangular Fractal Glass Facets
-    const colors = [
-      '49, 94, 255',   // #315EFF Royal Indigo
-      '99, 102, 241',  // #6366F1 Indigo Violet
-      '56, 189, 248',  // #38BDF8 Sky Cyan
-      '79, 70, 229',   // #4F46E5 Deep Cobalt
-      '14, 165, 233'   // #0EA5E9 Vivid Ocean
-    ];
-
-    for (let r = 0; r < rows - 1; r++) {
-      for (let c = 0; c < cols - 1; c++) {
-        const p1 = grid[r][c];
-        const p2 = grid[r][c + 1];
-        const p3 = grid[r + 1][c];
-        const p4 = grid[r + 1][c + 1];
-
-        // Triangle 1: (p1, p2, p3)
-        const angle1 = (Math.random() - 0.5) * 1.6;
-        this.saasFacets.push({
-          nodes: [p1, p2, p3],
-          color: colors[Math.floor(Math.random() * colors.length)],
-          nx: Math.sin(angle1),
-          ny: Math.cos(angle1),
-          baseAlpha: Math.random() * 0.035 + 0.015,
-          shimmerSpeed: Math.random() * 0.0012 + 0.0006,
-          shimmerOffset: Math.random() * Math.PI * 2
-        });
-
-        // Triangle 2: (p2, p4, p3)
-        const angle2 = (Math.random() - 0.5) * 1.6;
-        this.saasFacets.push({
-          nodes: [p2, p4, p3],
-          color: colors[Math.floor(Math.random() * colors.length)],
-          nx: Math.sin(angle2),
-          ny: Math.cos(angle2),
-          baseAlpha: Math.random() * 0.035 + 0.015,
-          shimmerSpeed: Math.random() * 0.0012 + 0.0006,
-          shimmerOffset: Math.random() * Math.PI * 2
-        });
-      }
+    // 2. Travelling neural spark impulses
+    this.vortexPulses = [];
+    for (let i = 0; i < 28; i++) {
+      this.vortexPulses.push({
+        progress: Math.random(),
+        speed: Math.random() * 0.004 + 0.002,
+        streamIndex: Math.floor(Math.random() * numStreams),
+        size: Math.random() * 1.8 + 1.0,
+        alpha: Math.random() * 0.6 + 0.4
+      });
     }
-
-    // 3. Floating Prismatic Light Caustics
-    this.saasCaustics = [
-      { x: this.width * 0.3, y: this.height * 0.4, r: 240, color: '49, 94, 255', vx: 0.0003, vy: 0.0002 },
-      { x: this.width * 0.7, y: this.height * 0.6, r: 280, color: '99, 102, 241', vx: -0.00025, vy: 0.00035 },
-      { x: this.width * 0.5, y: this.height * 0.2, r: 200, color: '56, 189, 248', vx: 0.0002, vy: -0.0003 }
-    ];
   }
 
   // --- SYNTHWAVE THEME: 3D Perspective Horizon Grid & Floating Stardust ---
@@ -365,10 +319,9 @@ class AmbientBackgroundManager {
       } else if (isCRT) {
         targetMode = 'crt_raster';
       } else if (isDark) {
-        const darkStyle = (typeof appStore !== 'undefined' && appStore.state?.darkAmbientStyle) || localStorage.getItem('collab_dark_ambient') || 'vortex';
+        const darkStyle = (typeof appStore !== 'undefined' && appStore.state?.darkAmbientStyle) || localStorage.getItem('collab_dark_ambient') || 'matrix';
         if (darkStyle === 'stars') targetMode = 'dark_stars';
-        else if (darkStyle === 'matrix') targetMode = 'dark_matrix';
-        else targetMode = 'dark_vortex';
+        else targetMode = 'dark_matrix';
       } else if (isLight) {
         targetMode = 'light_matrix';
       } else if (isPink) {
@@ -485,91 +438,138 @@ class AmbientBackgroundManager {
       this.ctx.clearRect(0, 0, this.width, this.height);
 
       if (this.currentMode === 'saas_aurora') {
-        // Render Reflective Fractal Glass Facets & Prismatic Caustics
-        this.mouseX += (this.targetMouseX - this.mouseX) * 0.03;
-        this.mouseY += (this.targetMouseY - this.mouseY) * 0.03;
+        // --- Render Interactive Neural Vortex Background (Matching 21st.dev Component) ---
+        // Smooth cursor attraction towards mouse position
+        this.mouseX += (this.targetMouseX - this.mouseX) * 0.045;
+        this.mouseY += (this.targetMouseY - this.mouseY) * 0.045;
 
-        // 1. Gently animate node vertices with subtle organic breathing
-        if (this.saasNodes) {
-          for (let i = 0; i < this.saasNodes.length; i++) {
-            const nd = this.saasNodes[i];
-            if (nd.baseX > 0 && nd.baseX < this.width && nd.baseY > 0 && nd.baseY < this.height) {
-              nd.x = nd.baseX + Math.sin(time * nd.speed + nd.phase) * 6;
-              nd.y = nd.baseY + Math.cos(time * nd.speed + nd.phase) * 6;
+        const vX = this.mouseX;
+        const vY = this.mouseY;
+
+        // 1. Deep Celestial Plasma Fog Behind Vortex
+        const plasmaGrad = this.ctx.createRadialGradient(vX, vY, 10, vX, vY, Math.max(this.width, this.height) * 0.75);
+        plasmaGrad.addColorStop(0, 'rgba(49, 94, 255, 0.16)');
+        plasmaGrad.addColorStop(0.3, 'rgba(30, 64, 210, 0.08)');
+        plasmaGrad.addColorStop(0.65, 'rgba(10, 18, 48, 0.025)');
+        plasmaGrad.addColorStop(1, 'rgba(9, 13, 22, 0)');
+        this.ctx.fillStyle = plasmaGrad;
+        this.ctx.fillRect(0, 0, this.width, this.height);
+
+        // 2. Sweeping Diagonal Electric Caustic Beam across canvas through the vortex
+        const startX = -120;
+        const startY = -120;
+        const endX = this.width + 120;
+        const endY = this.height + 120;
+
+        // Draw flowing multi-wave neural filament streams
+        if (this.vortexStreams) {
+          for (let i = 0; i < this.vortexStreams.length; i++) {
+            const stream = this.vortexStreams[i];
+            const waveOffset = Math.sin(time * stream.speed + stream.phase);
+
+            this.ctx.beginPath();
+            const segments = 45;
+            for (let s = 0; s <= segments; s++) {
+              const t = s / segments;
+              let px = startX + (endX - startX) * t;
+              let py = startY + (endY - startY) * t;
+
+              // Warp curve gravitationally towards the vortex center (vX, vY)
+              const distToCenter = Math.hypot(px - vX, py - vY);
+              const pull = Math.exp(-distToCenter / (this.width * 0.32));
+              px = px + (vX - px) * pull * 0.78;
+              py = py + (vY - py) * pull * 0.78;
+
+              // Harmonic undulating electric ripple
+              const ripple = Math.sin(t * 14.0 + time * stream.freq + stream.phase) * (24 + stream.spread * 0.45) * (1.0 - pull * 0.5);
+              const perpX = -(endY - startY) / Math.hypot(endX - startX, endY - startY);
+              const perpY = (endX - startX) / Math.hypot(endX - startX, endY - startY);
+
+              px += perpX * (ripple + stream.spread);
+              py += perpY * (ripple + stream.spread);
+
+              if (s === 0) this.ctx.moveTo(px, py);
+              else this.ctx.lineTo(px, py);
             }
-          }
-        }
 
-        // 2. Ambient Floating Light Caustics
-        if (this.saasCaustics) {
-          for (let i = 0; i < this.saasCaustics.length; i++) {
-            const c = this.saasCaustics[i];
-            const cx = c.x + Math.sin(time * c.vx) * (this.width * 0.12);
-            const cy = c.y + Math.cos(time * c.vy) * (this.height * 0.12);
-            const grad = this.ctx.createRadialGradient(cx, cy, 0, cx, cy, c.r);
-            grad.addColorStop(0, `rgba(${c.color}, 0.06)`);
-            grad.addColorStop(0.5, `rgba(${c.color}, 0.02)`);
-            grad.addColorStop(1, `rgba(${c.color}, 0)`);
-            this.ctx.fillStyle = grad;
-            this.ctx.beginPath();
-            this.ctx.arc(cx, cy, c.r, 0, Math.PI * 2);
-            this.ctx.fill();
-          }
-        }
-
-        // 3. Render Reflective Fractal Glass Facets
-        if (this.saasFacets) {
-          const lightAngle = time * 0.0003;
-          const globalLx = Math.cos(lightAngle);
-          const globalLy = Math.sin(lightAngle);
-
-          for (let i = 0; i < this.saasFacets.length; i++) {
-            const facet = this.saasFacets[i];
-            const [p1, p2, p3] = facet.nodes;
-
-            // Facet centroid
-            const fcx = (p1.x + p2.x + p3.x) / 3;
-            const fcy = (p1.y + p2.y + p3.y) / 3;
-
-            // Virtual mouse spotlight vector
-            const mouseDx = (this.mouseX - fcx) / this.width;
-            const mouseDy = (this.mouseY - fcy) / this.height;
-            const mouseDistSq = mouseDx * mouseDx + mouseDy * mouseDy;
-            const mouseReflect = Math.max(0, 1 - Math.sqrt(mouseDistSq) * 2.2);
-
-            // Shimmering ambient light dot product
-            const sweepReflect = Math.max(0, (facet.nx * globalLx + facet.ny * globalLy));
-            const shimmer = Math.sin(time * facet.shimmerSpeed + facet.shimmerOffset) * 0.015;
-
-            // Total specular refraction intensity
-            const spec = (sweepReflect * 0.08) + (mouseReflect * 0.15) + shimmer;
-            const fillAlpha = Math.max(0.012, Math.min(0.18, facet.baseAlpha + spec));
-
-            // Draw Triangular Facet
-            this.ctx.beginPath();
-            this.ctx.moveTo(p1.x, p1.y);
-            this.ctx.lineTo(p2.x, p2.y);
-            this.ctx.lineTo(p3.x, p3.y);
-            this.ctx.closePath();
-
-            // Prismatic Glass Face Fill
-            this.ctx.fillStyle = `rgba(${facet.color}, ${fillAlpha.toFixed(3)})`;
-            this.ctx.fill();
-
-            // Specular Glass Seam Outline
-            const seamAlpha = Math.max(0.03, Math.min(0.24, 0.05 + spec * 0.9));
-            this.ctx.strokeStyle = `rgba(255, 255, 255, ${seamAlpha.toFixed(3)})`;
-            this.ctx.lineWidth = 0.65;
+            this.ctx.strokeStyle = `rgba(${stream.color}, ${(stream.alpha * (0.6 + waveOffset * 0.25)).toFixed(3)})`;
+            this.ctx.lineWidth = stream.width;
+            this.ctx.shadowColor = '#315EFF';
+            this.ctx.shadowBlur = 14;
             this.ctx.stroke();
-
-            // Accent Glowing Seam on High Light
-            if (spec > 0.06) {
-              this.ctx.strokeStyle = `rgba(49, 94, 255, ${(spec * 0.6).toFixed(3)})`;
-              this.ctx.lineWidth = 1.2;
-              this.ctx.stroke();
-            }
           }
+          this.ctx.shadowBlur = 0;
         }
+
+        // 3. Travelling Neural Impulses (Sparks along streams)
+        if (this.vortexPulses) {
+          for (let i = 0; i < this.vortexPulses.length; i++) {
+            const p = this.vortexPulses[i];
+            p.progress += p.speed;
+            if (p.progress > 1) p.progress = 0;
+
+            const t = p.progress;
+            let px = startX + (endX - startX) * t;
+            let py = startY + (endY - startY) * t;
+            const dist = Math.hypot(px - vX, py - vY);
+            const pull = Math.exp(-dist / (this.width * 0.32));
+            px = px + (vX - px) * pull * 0.78;
+            py = py + (vY - py) * pull * 0.78;
+
+            const ripple = Math.sin(t * 14.0 + time * 0.003) * 24;
+            const perpX = -(endY - startY) / Math.hypot(endX - startX, endY - startY);
+            const perpY = (endX - startX) / Math.hypot(endX - startX, endY - startY);
+            px += perpX * ripple;
+            py += perpY * ripple;
+
+            this.ctx.beginPath();
+            this.ctx.arc(px, py, p.size, 0, Math.PI * 2);
+            this.ctx.fillStyle = `rgba(255, 255, 255, ${p.alpha})`;
+            this.ctx.shadowColor = '#85A2FF';
+            this.ctx.shadowBlur = 10;
+            this.ctx.fill();
+          }
+          this.ctx.shadowBlur = 0;
+        }
+
+        // 4. Intense Caustic Starburst Singularity at the Vortex Center (vX, vY)
+        const numRays = 8;
+        for (let r = 0; r < numRays; r++) {
+          const rayAngle = (r * Math.PI / (numRays / 2)) + Math.sin(time * 0.0008) * 0.15;
+          const isPrimary = (r % 2 === 0);
+          const rayLen = isPrimary ? (Math.min(this.width, this.height) * 0.42) : (Math.min(this.width, this.height) * 0.22);
+          const rayWidth = isPrimary ? 22 : 12;
+
+          this.ctx.save();
+          this.ctx.translate(vX, vY);
+          this.ctx.rotate(rayAngle);
+
+          const rayGrad = this.ctx.createRadialGradient(0, 0, 0, 0, 0, rayLen);
+          rayGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+          rayGrad.addColorStop(0.18, 'rgba(140, 190, 255, 0.65)');
+          rayGrad.addColorStop(0.50, 'rgba(49, 94, 255, 0.25)');
+          rayGrad.addColorStop(1, 'rgba(49, 94, 255, 0)');
+
+          this.ctx.fillStyle = rayGrad;
+          this.ctx.beginPath();
+          this.ctx.moveTo(-rayLen, 0);
+          this.ctx.quadraticCurveTo(0, rayWidth, rayLen, 0);
+          this.ctx.quadraticCurveTo(0, -rayWidth, -rayLen, 0);
+          this.ctx.closePath();
+          this.ctx.fill();
+          this.ctx.restore();
+        }
+
+        // 5. Blazing White Core Singularity
+        const coreGrad = this.ctx.createRadialGradient(vX, vY, 0, vX, vY, 50);
+        coreGrad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        coreGrad.addColorStop(0.22, 'rgba(220, 240, 255, 0.92)');
+        coreGrad.addColorStop(0.55, 'rgba(49, 94, 255, 0.55)');
+        coreGrad.addColorStop(1, 'rgba(49, 94, 255, 0)');
+        this.ctx.fillStyle = coreGrad;
+        this.ctx.beginPath();
+        this.ctx.arc(vX, vY, 50, 0, Math.PI * 2);
+        this.ctx.fill();
       } else if (this.currentMode === 'synthwave_grid') {
         // Render 3D Perspective Neon Horizon Grid & Synthwave Stardust
         const horizonY = this.height * 0.60;

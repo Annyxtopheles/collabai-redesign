@@ -85,13 +85,13 @@ function renderSettingsView(state) {
                   </div>
                   <span class="text-[12px] text-app-textMuted">
                     ${currentTheme === 'saas'
-                      ? 'Luminous floating #315EFF royal indigo aurora mesh orbs & ambient light'
+                      ? 'Interactive #315EFF electric blue neural vortex with caustic starburst & fluid plasma reacting to cursor'
                       : (currentTheme === 'synthwave'
                         ? '3D retro perspective neon horizon grid & celestial synthwave stardust'
                         : (currentTheme === 'crt'
                           ? 'Horizontal cathode ray beam scan sweep & analog phosphor static shimmer'
                           : (currentTheme === 'dark' 
-                            ? (state.darkAmbientStyle === 'stars' ? 'Micro-pinpoint glittering starfield gently twinkling behind UI' : (state.darkAmbientStyle === 'matrix' ? 'Stationary cyber ASCII symbol grid with gentle breathing glow & soft fading pulses' : 'Interactive synaptic neural vortex swarm slowly swirling & reacting to motion')) 
+                            ? (state.darkAmbientStyle === 'stars' ? 'Micro-pinpoint glittering starfield gently twinkling behind UI' : 'Stationary cyber ASCII symbol grid with gentle breathing glow & soft fading pulses') 
                             : (currentTheme === 'light' ? 'Stationary subtle slate ASCII symbol grid with soft breathing glow & dimming' : 'Multi-depth Japanese cherry blossom (Sakura) leaves slowly drifting in spring breeze'))))}
                   </span>
                 </div>
@@ -105,20 +105,14 @@ function renderSettingsView(state) {
               </button>
             </div>
 
-            <!-- Dark Mode Multi-Style Selector (Neural Vortex vs Glyph Matrix vs Stars) -->
+            <!-- Dark Mode Multi-Style Selector (Glyph Matrix vs Stars) -->
             ${ambientEnabled && currentTheme === 'dark' ? `
               <div class="flex items-center justify-between p-3 rounded-xl bg-app-input border border-app-borderSubtle text-[12.5px]">
                 <div class="flex flex-col">
                   <span class="font-medium text-app-textPrimary">Dark Mode Ambient Style</span>
-                  <span class="text-[11.5px] text-app-textMuted">Choose between Neural Vortex, Cyber Glyphs, or Serene Stars</span>
+                  <span class="text-[11.5px] text-app-textMuted">Choose between Cyber Glyphs or Serene Stars</span>
                 </div>
                 <div class="flex items-center gap-1.5 bg-app-surface p-1 rounded-lg border border-app-borderSubtle">
-                  <button 
-                    onclick="appStore.setDarkAmbientStyle('vortex')"
-                    class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11.5px] transition-all ${state.darkAmbientStyle === 'vortex' ? 'bg-app-elevated border border-app-borderActive text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
-                    <i data-lucide="orbit" class="w-3.5 h-3.5 text-cyan-400"></i>
-                    <span>Neural Vortex</span>
-                  </button>
                   <button 
                     onclick="appStore.setDarkAmbientStyle('matrix')"
                     class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11.5px] transition-all ${state.darkAmbientStyle === 'matrix' ? 'bg-app-elevated border border-app-borderActive text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">

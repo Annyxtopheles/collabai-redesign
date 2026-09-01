@@ -9,7 +9,8 @@ class CollabStore {
   loadState() {
     const savedTheme = localStorage.getItem('collab_theme') || 'dark';
     const savedAmbientEffects = localStorage.getItem('collab_ambient_effects') !== 'false';
-    const savedDarkAmbient = localStorage.getItem('collab_dark_ambient') || 'vortex';
+    const rawDarkAmbient = localStorage.getItem('collab_dark_ambient');
+    const savedDarkAmbient = (rawDarkAmbient === 'vortex' || !rawDarkAmbient) ? 'matrix' : rawDarkAmbient;
     const savedLightAmbient = localStorage.getItem('collab_light_ambient') || 'matrix';
     const saved = localStorage.getItem('collab_ai_state');
     if (saved) {

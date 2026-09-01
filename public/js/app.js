@@ -169,15 +169,9 @@ function renderUserMenuContent() {
             </button>
           </div>
 
-          <!-- Multi-Style Ambient Pills for Dark Mode (Neural Vortex, Glyph Matrix, Stars) -->
+          <!-- Multi-Style Ambient Pills for Dark Mode (Glyph Matrix, Stars) -->
           ${ambientEnabled && currentTheme === 'dark' ? `
-            <div class="grid grid-cols-3 gap-1 bg-app-input p-1 rounded-lg border border-app-borderSubtle text-[10px]">
-              <button 
-                onclick="selectDarkAmbient('vortex')"
-                class="flex items-center justify-center gap-1 py-1 rounded transition-all ${appStore.state.darkAmbientStyle === 'vortex' ? 'bg-app-surface text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">
-                <i data-lucide="orbit" class="w-3 h-3 text-cyan-400"></i>
-                <span class="truncate">Vortex</span>
-              </button>
+            <div class="grid grid-cols-2 gap-1 bg-app-input p-1 rounded-lg border border-app-borderSubtle text-[10px]">
               <button 
                 onclick="selectDarkAmbient('matrix')"
                 class="flex items-center justify-center gap-1 py-1 rounded transition-all ${appStore.state.darkAmbientStyle === 'matrix' ? 'bg-app-surface text-app-textPrimary font-semibold shadow-xs' : 'text-app-textMuted hover:text-app-textPrimary'}">

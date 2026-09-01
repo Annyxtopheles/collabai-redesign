@@ -5,18 +5,17 @@ const THEMES_CONFIG = [
     name: 'Dark Minimal',
     shortName: 'Dark',
     icon: 'moon',
-    description: 'Pure #111111 dark canvas',
+    description: 'Clean dark slate theme for maximum focus and visual clarity',
     badge: 'Classic',
-    previewBg: '#111111',
-    previewBorder: '#262626',
-    previewText: '#EDEDED',
-    previewAccent: '#EDEDED',
-    ambientEffectName: 'Ambient Animation',
-    ambientEffectDesc: 'Choose between Neural Vortex, Glyph Matrix, or Starfield',
+    previewBg: '#0F121C',
+    previewBorder: '#232A3B',
+    previewText: '#E6EDF3',
+    previewAccent: '#10B981',
+    ambientEffectName: 'Glyph Matrix & Stars',
+    ambientEffectDesc: 'Subtle stationary ASCII matrix or glittering pinpoint starfield',
     ambientStyles: [
-      { id: 'vortex', name: 'Neural Vortex', icon: 'orbit', desc: 'Slow & subtle interactive synaptic neural vortex swarm' },
-      { id: 'matrix', name: 'Glyph Matrix', icon: 'binary', desc: 'Stationary ambient ASCII symbols with gentle breathing glow & fade' },
-      { id: 'stars', name: 'Glittering Stars', icon: 'sparkles', desc: 'Micro-pinpoint serene starry twinkle' }
+      { id: 'matrix', name: 'Glyph Matrix', icon: 'binary', desc: 'Stationary cyber ASCII symbol grid with breathing glow' },
+      { id: 'stars', name: 'Starfield', icon: 'sparkles', desc: 'Pinpoint glittering stars gently twinkling in deep space' }
     ]
   },
   {
@@ -24,48 +23,48 @@ const THEMES_CONFIG = [
     name: 'Light Minimal',
     shortName: 'Light',
     icon: 'sun',
-    description: 'Warm slate off-white clean canvas',
+    description: 'Crisp, high-contrast clean light theme with subtle ASCII glyph grid',
     badge: 'Clean',
-    previewBg: '#F9F9F8',
-    previewBorder: '#E5E5E5',
-    previewText: '#18181B',
-    previewAccent: '#18181B',
+    previewBg: '#FFFFFF',
+    previewBorder: '#E2E8F0',
+    previewText: '#0F172A',
+    previewAccent: '#2563EB',
     ambientEffectName: 'Glyph Matrix',
-    ambientEffectDesc: 'Subtle slate ASCII symbols with gentle breathing glow & dimming',
+    ambientEffectDesc: 'Subtle slate ASCII matrix with gentle breathing glow',
     ambientStyles: [
-      { id: 'matrix', name: 'Glyph Matrix', icon: 'binary', desc: 'Subtle slate ambient symbols with soft glowing pulses' }
+      { id: 'matrix', name: 'Subtle Glyph Matrix', icon: 'binary', desc: 'Subtle slate ASCII symbol grid with gentle glow & dimming' }
     ]
   },
   {
     id: 'pink',
     name: 'Pink Wireframe',
     shortName: 'Pink',
-    icon: 'sparkles',
-    description: 'Warm cream canvas, bubblegum pop & falling sakura',
+    icon: 'flower-2',
+    description: 'Japanese sakura vibe with washi cream canvas & tactile wireframe cards',
     badge: 'Sakura',
     previewBg: '#FAF6F0',
-    previewBorder: '#000000',
-    previewText: '#111111',
+    previewBorder: '#231C18',
+    previewText: '#231C18',
     previewAccent: '#FF5DA2',
-    ambientEffectName: 'Falling Sakura',
-    ambientEffectDesc: 'Slow drifting Japanese cherry blossom leaves',
+    ambientEffectName: 'Sakura Breeze',
+    ambientEffectDesc: 'Multi-depth Japanese cherry blossom petals drifting in spring breeze',
     ambientStyles: [
-      { id: 'sakura', name: 'Falling Sakura', icon: 'flower-2', desc: 'Multi-depth Japanese sakura petals' }
+      { id: 'sakura', name: 'Sakura Petals', icon: 'flower-2', desc: 'Japanese cherry blossom petals drifting organically' }
     ]
   },
   {
     id: 'crt',
     name: 'CRT Terminal',
     shortName: 'CRT',
-    icon: 'terminal',
-    description: 'Retro 80s phosphor green CRT monitor with scanlines',
+    icon: 'tv',
+    description: 'Retro 80s phosphor green terminal with scanlines & cathode raster glow',
     badge: 'Retro',
-    previewBg: '#060A06',
+    previewBg: '#050A05',
     previewBorder: '#33FF66',
     previewText: '#33FF66',
     previewAccent: '#33FF66',
     ambientEffectName: 'Cathode Raster',
-    ambientEffectDesc: 'Cathode ray beam scan sweep & analog phosphor static',
+    ambientEffectDesc: 'Horizontal scanline sweep beam & phosphor static shimmer',
     ambientStyles: [
       { id: 'raster', name: 'Cathode Raster', icon: 'tv', desc: 'Horizontal scanline sweep & phosphor shimmer' }
     ]
@@ -98,10 +97,10 @@ const THEMES_CONFIG = [
     previewBorder: '#315EFF',
     previewText: '#FFFFFF',
     previewAccent: '#315EFF',
-    ambientEffectName: 'Indigo Aurora',
-    ambientEffectDesc: 'Floating luminous royal indigo aurora mesh orbs',
+    ambientEffectName: 'Neural Vortex',
+    ambientEffectDesc: 'Interactive electric blue neural vortex with caustic starburst & fluid plasma',
     ambientStyles: [
-      { id: 'aurora', name: 'Indigo Aurora', icon: 'sparkle', desc: 'Luminous #315EFF floating ambient aurora mesh' }
+      { id: 'vortex', name: 'Neural Vortex', icon: 'sparkle', desc: 'Interactive #315EFF electric plasma vortex & caustic rays' }
     ]
   }
 ];
