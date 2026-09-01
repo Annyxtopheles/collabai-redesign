@@ -67,60 +67,86 @@ class AmbientBackgroundManager {
     this.canvas.height = this.height;
   }
 
-  // --- SAAS THEME: Floating Indigo Aurora Mesh Orbs & Ambient Glow ---
+  // --- SAAS THEME: Reflective Fractal Glass Facets & Prismatic Ambient Refraction ---
   createSaaS() {
-    this.saasOrbs = [
-      {
-        x: this.width * 0.25,
-        y: this.height * 0.35,
-        baseX: this.width * 0.25,
-        baseY: this.height * 0.35,
-        radius: Math.min(this.width, this.height) * 0.32,
-        color: '49, 94, 255', // #315EFF SaaS Royal Indigo
-        alpha: 0.075,
-        speedX: 0.0004,
-        speedY: 0.0003,
-        phase: 0
-      },
-      {
-        x: this.width * 0.78,
-        y: this.height * 0.65,
-        baseX: this.width * 0.78,
-        baseY: this.height * 0.65,
-        radius: Math.min(this.width, this.height) * 0.28,
-        color: '99, 102, 241', // #6366F1 Indigo Violet
-        alpha: 0.06,
-        speedX: -0.00035,
-        speedY: 0.00045,
-        phase: Math.PI * 0.5
-      },
-      {
-        x: this.width * 0.55,
-        y: this.height * 0.20,
-        baseX: this.width * 0.55,
-        baseY: this.height * 0.20,
-        radius: Math.min(this.width, this.height) * 0.24,
-        color: '56, 189, 248', // #38BDF8 Sky Cyan
-        alpha: 0.045,
-        speedX: 0.0003,
-        speedY: -0.00035,
-        phase: Math.PI
+    this.saasFacets = [];
+    this.saasNodes = [];
+
+    const cols = Math.max(7, Math.ceil(this.width / 160));
+    const rows = Math.max(5, Math.ceil(this.height / 160));
+    const cellW = this.width / (cols - 1);
+    const cellH = this.height / (rows - 1);
+
+    // 1. Generate Jittered Grid Nodes
+    const grid = [];
+    for (let r = 0; r < rows; r++) {
+      grid[r] = [];
+      for (let c = 0; c < cols; c++) {
+        // Keep outer boundaries pinned, jitter inner nodes
+        const isEdge = (r === 0 || r === rows - 1 || c === 0 || c === cols - 1);
+        const jitterX = isEdge ? 0 : (Math.random() - 0.5) * cellW * 0.75;
+        const jitterY = isEdge ? 0 : (Math.random() - 0.5) * cellH * 0.75;
+        const node = {
+          x: c * cellW + jitterX,
+          y: r * cellH + jitterY,
+          baseX: c * cellW + jitterX,
+          baseY: r * cellH + jitterY,
+          phase: Math.random() * Math.PI * 2,
+          speed: Math.random() * 0.0008 + 0.0004
+        };
+        grid[r][c] = node;
+        this.saasNodes.push(node);
       }
+    }
+
+    // 2. Generate Triangular Fractal Glass Facets
+    const colors = [
+      '49, 94, 255',   // #315EFF Royal Indigo
+      '99, 102, 241',  // #6366F1 Indigo Violet
+      '56, 189, 248',  // #38BDF8 Sky Cyan
+      '79, 70, 229',   // #4F46E5 Deep Cobalt
+      '14, 165, 233'   // #0EA5E9 Vivid Ocean
     ];
 
-    this.saasSpecks = [];
-    const numSpecks = Math.max(18, Math.min(Math.floor((this.width * this.height) / 35000), 40));
-    for (let i = 0; i < numSpecks; i++) {
-      this.saasSpecks.push({
-        x: Math.random() * this.width,
-        y: Math.random() * this.height,
-        size: Math.random() * 0.8 + 0.6,
-        baseAlpha: Math.random() * 0.18 + 0.08,
-        speedY: -(Math.random() * 0.04 + 0.015),
-        pulseSpeed: Math.random() * 0.002 + 0.001,
-        pulseOffset: Math.random() * Math.PI * 2
-      });
+    for (let r = 0; r < rows - 1; r++) {
+      for (let c = 0; c < cols - 1; c++) {
+        const p1 = grid[r][c];
+        const p2 = grid[r][c + 1];
+        const p3 = grid[r + 1][c];
+        const p4 = grid[r + 1][c + 1];
+
+        // Triangle 1: (p1, p2, p3)
+        const angle1 = (Math.random() - 0.5) * 1.6;
+        this.saasFacets.push({
+          nodes: [p1, p2, p3],
+          color: colors[Math.floor(Math.random() * colors.length)],
+          nx: Math.sin(angle1),
+          ny: Math.cos(angle1),
+          baseAlpha: Math.random() * 0.035 + 0.015,
+          shimmerSpeed: Math.random() * 0.0012 + 0.0006,
+          shimmerOffset: Math.random() * Math.PI * 2
+        });
+
+        // Triangle 2: (p2, p4, p3)
+        const angle2 = (Math.random() - 0.5) * 1.6;
+        this.saasFacets.push({
+          nodes: [p2, p4, p3],
+          color: colors[Math.floor(Math.random() * colors.length)],
+          nx: Math.sin(angle2),
+          ny: Math.cos(angle2),
+          baseAlpha: Math.random() * 0.035 + 0.015,
+          shimmerSpeed: Math.random() * 0.0012 + 0.0006,
+          shimmerOffset: Math.random() * Math.PI * 2
+        });
+      }
     }
+
+    // 3. Floating Prismatic Light Caustics
+    this.saasCaustics = [
+      { x: this.width * 0.3, y: this.height * 0.4, r: 240, color: '49, 94, 255', vx: 0.0003, vy: 0.0002 },
+      { x: this.width * 0.7, y: this.height * 0.6, r: 280, color: '99, 102, 241', vx: -0.00025, vy: 0.00035 },
+      { x: this.width * 0.5, y: this.height * 0.2, r: 200, color: '56, 189, 248', vx: 0.0002, vy: -0.0003 }
+    ];
   }
 
   // --- SYNTHWAVE THEME: 3D Perspective Horizon Grid & Floating Stardust ---
@@ -459,48 +485,89 @@ class AmbientBackgroundManager {
       this.ctx.clearRect(0, 0, this.width, this.height);
 
       if (this.currentMode === 'saas_aurora') {
-        // Render Modern SaaS Floating Indigo Aurora Mesh Orbs & Ambient Light
-        this.mouseX += (this.targetMouseX - this.mouseX) * 0.02;
-        this.mouseY += (this.targetMouseY - this.mouseY) * 0.02;
-        const offsetX = (this.mouseX - this.width / 2) * 0.08;
-        const offsetY = (this.mouseY - this.height / 2) * 0.08;
+        // Render Reflective Fractal Glass Facets & Prismatic Caustics
+        this.mouseX += (this.targetMouseX - this.mouseX) * 0.03;
+        this.mouseY += (this.targetMouseY - this.mouseY) * 0.03;
 
-        // 1. Soft Ambient Luminous Mesh Orbs
-        if (this.saasOrbs) {
-          for (let i = 0; i < this.saasOrbs.length; i++) {
-            const orb = this.saasOrbs[i];
-            orb.phase += 0.003;
-            const driftX = Math.sin(time * orb.speedX + orb.phase) * (this.width * 0.08);
-            const driftY = Math.cos(time * orb.speedY + orb.phase) * (this.height * 0.08);
-            const x = orb.baseX + driftX + offsetX;
-            const y = orb.baseY + driftY + offsetY;
+        // 1. Gently animate node vertices with subtle organic breathing
+        if (this.saasNodes) {
+          for (let i = 0; i < this.saasNodes.length; i++) {
+            const nd = this.saasNodes[i];
+            if (nd.baseX > 0 && nd.baseX < this.width && nd.baseY > 0 && nd.baseY < this.height) {
+              nd.x = nd.baseX + Math.sin(time * nd.speed + nd.phase) * 6;
+              nd.y = nd.baseY + Math.cos(time * nd.speed + nd.phase) * 6;
+            }
+          }
+        }
 
-            const orbGrad = this.ctx.createRadialGradient(x, y, 0, x, y, orb.radius);
-            orbGrad.addColorStop(0, `rgba(${orb.color}, ${orb.alpha})`);
-            orbGrad.addColorStop(0.5, `rgba(${orb.color}, ${(orb.alpha * 0.4).toFixed(4)})`);
-            orbGrad.addColorStop(1, `rgba(${orb.color}, 0)`);
-
-            this.ctx.fillStyle = orbGrad;
+        // 2. Ambient Floating Light Caustics
+        if (this.saasCaustics) {
+          for (let i = 0; i < this.saasCaustics.length; i++) {
+            const c = this.saasCaustics[i];
+            const cx = c.x + Math.sin(time * c.vx) * (this.width * 0.12);
+            const cy = c.y + Math.cos(time * c.vy) * (this.height * 0.12);
+            const grad = this.ctx.createRadialGradient(cx, cy, 0, cx, cy, c.r);
+            grad.addColorStop(0, `rgba(${c.color}, 0.06)`);
+            grad.addColorStop(0.5, `rgba(${c.color}, 0.02)`);
+            grad.addColorStop(1, `rgba(${c.color}, 0)`);
+            this.ctx.fillStyle = grad;
             this.ctx.beginPath();
-            this.ctx.arc(x, y, orb.radius, 0, Math.PI * 2);
+            this.ctx.arc(cx, cy, c.r, 0, Math.PI * 2);
             this.ctx.fill();
           }
         }
 
-        // 2. Floating Indigo Light Specks
-        if (this.saasSpecks) {
-          for (let i = 0; i < this.saasSpecks.length; i++) {
-            const sp = this.saasSpecks[i];
-            sp.y += sp.speedY;
-            if (sp.y < 0) sp.y = this.height;
+        // 3. Render Reflective Fractal Glass Facets
+        if (this.saasFacets) {
+          const lightAngle = time * 0.0003;
+          const globalLx = Math.cos(lightAngle);
+          const globalLy = Math.sin(lightAngle);
 
-            const pulse = Math.sin(time * sp.pulseSpeed + sp.pulseOffset);
-            const alpha = Math.max(0.04, Math.min(0.28, sp.baseAlpha + pulse * 0.08));
+          for (let i = 0; i < this.saasFacets.length; i++) {
+            const facet = this.saasFacets[i];
+            const [p1, p2, p3] = facet.nodes;
 
-            this.ctx.fillStyle = `rgba(49, 94, 255, ${alpha.toFixed(3)})`;
+            // Facet centroid
+            const fcx = (p1.x + p2.x + p3.x) / 3;
+            const fcy = (p1.y + p2.y + p3.y) / 3;
+
+            // Virtual mouse spotlight vector
+            const mouseDx = (this.mouseX - fcx) / this.width;
+            const mouseDy = (this.mouseY - fcy) / this.height;
+            const mouseDistSq = mouseDx * mouseDx + mouseDy * mouseDy;
+            const mouseReflect = Math.max(0, 1 - Math.sqrt(mouseDistSq) * 2.2);
+
+            // Shimmering ambient light dot product
+            const sweepReflect = Math.max(0, (facet.nx * globalLx + facet.ny * globalLy));
+            const shimmer = Math.sin(time * facet.shimmerSpeed + facet.shimmerOffset) * 0.015;
+
+            // Total specular refraction intensity
+            const spec = (sweepReflect * 0.08) + (mouseReflect * 0.15) + shimmer;
+            const fillAlpha = Math.max(0.012, Math.min(0.18, facet.baseAlpha + spec));
+
+            // Draw Triangular Facet
             this.ctx.beginPath();
-            this.ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2);
+            this.ctx.moveTo(p1.x, p1.y);
+            this.ctx.lineTo(p2.x, p2.y);
+            this.ctx.lineTo(p3.x, p3.y);
+            this.ctx.closePath();
+
+            // Prismatic Glass Face Fill
+            this.ctx.fillStyle = `rgba(${facet.color}, ${fillAlpha.toFixed(3)})`;
             this.ctx.fill();
+
+            // Specular Glass Seam Outline
+            const seamAlpha = Math.max(0.03, Math.min(0.24, 0.05 + spec * 0.9));
+            this.ctx.strokeStyle = `rgba(255, 255, 255, ${seamAlpha.toFixed(3)})`;
+            this.ctx.lineWidth = 0.65;
+            this.ctx.stroke();
+
+            // Accent Glowing Seam on High Light
+            if (spec > 0.06) {
+              this.ctx.strokeStyle = `rgba(49, 94, 255, ${(spec * 0.6).toFixed(3)})`;
+              this.ctx.lineWidth = 1.2;
+              this.ctx.stroke();
+            }
           }
         }
       } else if (this.currentMode === 'synthwave_grid') {

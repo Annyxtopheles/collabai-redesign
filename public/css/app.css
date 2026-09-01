@@ -386,26 +386,37 @@ html.pink .bg-app-surface:hover {
   transform: translate(-1px, -1px);
 }
 
-/* Clean, Smooth Typing Areas for Pink Theme (No Wireframe Shadows) */
-html.pink input[type='text'],
+/* Standalone Form Inputs & Search Bars in Pink Theme */
+html.pink input[type='text']:not(#dashboard-composer-input),
 html.pink input[type='password'],
 html.pink input[type='search'],
-html.pink textarea,
-html.pink select,
-html.pink .prompt-input-wrapper {
-  border: 1.5px solid #E8DDCF !important;
+html.pink select {
+  border: 1px solid #E8DDCF !important;
   box-shadow: none !important;
   background-color: #FFFFFF !important;
   color: #231C18 !important;
   border-radius: 12px;
+  padding: 8px 14px !important;
   transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
-html.pink input:focus,
-html.pink textarea:focus,
-html.pink select:focus,
-html.pink .prompt-input-wrapper:focus-within {
+html.pink input:focus:not(#dashboard-composer-input),
+html.pink select:focus {
   border-color: #FF5DA2 !important;
   box-shadow: 0 0 0 3px rgba(255, 93, 162, 0.20) !important;
+  outline: none !important;
+}
+
+/* Embedded Message Typing Areas (Chat & Dashboard Composer) - Zero inner borders, clean & spacious */
+html.pink #dashboard-composer-input,
+html.pink #chat-message-input,
+html.pink .prompt-input-wrapper textarea,
+html.pink .prompt-input-wrapper input,
+html.pink textarea.flex-1,
+html.pink input.flex-1 {
+  border: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+  padding: 6px 10px !important;
   outline: none !important;
 }
 
@@ -503,7 +514,7 @@ html.pink ::-webkit-scrollbar-thumb:hover {
   background: #FF7FA9;
 }
 
-/* --- Pink Theme Custom Cursor with Soft Rounded Curves & Pastel Border --- */
+/* /* --- Pink Theme Custom Cursor with Clean Soft Curves --- */
 html.pink,
 html.pink body,
 html.pink #app-root,
@@ -516,10 +527,10 @@ html.pink h3,
 html.pink aside,
 html.pink nav,
 html.pink header {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M5.5 3.5C4.7 2.8 3.5 3.4 3.5 4.5V17.8C3.5 18.9 4.8 19.5 5.6 18.7L9.2 15.2C9.6 14.8 10.1 14.7 10.6 14.8L15.4 16.2C16.5 16.5 17.3 15.4 16.7 14.5L5.5 3.5Z' fill='%23FF7FA9' stroke='%23261E24' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M6.2 6.8V14.2L8.8 11.7C9.3 11.2 10.1 11 10.8 11.2L13.2 11.9L6.2 6.8Z' fill='%23FFAFD0' opacity='0.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 3 2, auto;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M4 3.5L4 18.5L8.5 14L12.5 19.5L14.8 18L10.5 12.8L16.5 12.8L4 3.5Z' fill='%23FF7FA9' stroke='%23231C18' stroke-width='1.8' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") 4 3, auto;
 }
 
-/* Interactive Clickable Elements: Soft Rounded Marshmallow Hand Cursor */
+/* Interactive Clickable Elements: Pink Theme Hand Cursor */
 html.pink button,
 html.pink a,
 html.pink [onclick],
@@ -529,7 +540,7 @@ html.pink input[type='submit'],
 html.pink select,
 html.pink [role='button'],
 html.pink label {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26' fill='none'%3E%3Cpath d='M9.5 4C8.7 4 8 4.7 8 5.5V12.8L6.8 11.6C6.1 10.9 5 10.9 4.3 11.6C3.6 12.3 3.6 13.4 4.3 14.1L8.8 18.6C10.1 19.9 11.8 20.5 13.6 20.5H16.8C18.8 20.5 20.5 18.8 20.5 16.8V13.5C20.5 12.7 19.8 12 19 12C18.7 12 18.5 12.1 18.3 12.2C18 11.5 17.3 11 16.5 11C16.3 11 16.1 11 15.9 11.1C15.6 10.4 14.8 10 14 10C13.7 10 13.5 10.1 13.3 10.2V5.5C13.3 4.7 12.6 4 11.8 4C11.5 4 11.2 4.1 11 4.3C10.7 4.1 10.4 4 10.1 4H9.5Z' fill='%23FF7FA9' stroke='%23261E24' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M9.5 6.5V11.5' stroke='%23FFAFD0' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E") 9 3, pointer !important;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M9 3C8.2 3 7.5 3.7 7.5 4.5V12.5L6.2 11.2C5.5 10.5 4.4 10.5 3.7 11.2C3 11.9 3 13 3.7 13.7L8.5 18.5C9.8 19.8 11.6 20.5 13.5 20.5H16.5C18.4 20.5 20 18.9 20 17V13C20 12.2 19.3 11.5 18.5 11.5C18.2 11.5 17.9 11.6 17.7 11.8C17.4 11 16.6 10.5 15.7 10.5C15.4 10.5 15.1 10.6 14.8 10.7C14.5 10 13.7 9.5 12.8 9.5C12.5 9.5 12.2 9.6 12 9.7V4.5C12 3.7 11.3 3 10.5 3H9Z' fill='%23FF7FA9' stroke='%23231C18' stroke-width='1.6' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") 8 3, pointer !important;
 }
 
 /* Text Selection and Input Cursors in Pink Theme */
@@ -564,7 +575,7 @@ html.crt::after {
   display: block;
   position: fixed;
   top: 0; left: 0; bottom: 0; right: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.26) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.015), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.015));
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.26) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.015), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.015));
   z-index: 9999;
   background-size: 100% 3px, 6px 100%;
   pointer-events: none;
@@ -623,7 +634,7 @@ html.crt .btn-primary:active {
   background-color: #122812 !important;
 }
 
-/* --- CRT Theme Custom Cursor with Retro Phosphor Green Fill & Soft Outlines --- */
+/* --- CRT Theme Custom Cursor: Retro Phosphor Green --- */
 html.crt,
 html.crt body,
 html.crt #app-root,
@@ -636,7 +647,7 @@ html.crt h3,
 html.crt aside,
 html.crt nav,
 html.crt header {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M5.5 3.5C4.7 2.8 3.5 3.4 3.5 4.5V17.8C3.5 18.9 4.8 19.5 5.6 18.7L9.2 15.2C9.6 14.8 10.1 14.7 10.6 14.8L15.4 16.2C16.5 16.5 17.3 15.4 16.7 14.5L5.5 3.5Z' fill='%2333FF66' stroke='%23050A05' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M6.2 6.8V14.2L8.8 11.7C9.3 11.2 10.1 11 10.8 11.2L13.2 11.9L6.2 6.8Z' fill='%2385FF9E' opacity='0.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 3 2, auto;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M4 3.5L4 18.5L8.5 14L12.5 19.5L14.8 18L10.5 12.8L16.5 12.8L4 3.5Z' fill='%2333FF66' stroke='%23050A05' stroke-width='1.8' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") 4 3, auto;
 }
 
 /* Interactive Clickable Elements: CRT Pointer Cursor */
@@ -649,7 +660,7 @@ html.crt input[type='submit'],
 html.crt select,
 html.crt [role='button'],
 html.crt label {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26' fill='none'%3E%3Cpath d='M9.5 4C8.7 4 8 4.7 8 5.5V12.8L6.8 11.6C6.1 10.9 5 10.9 4.3 11.6C3.6 12.3 3.6 13.4 4.3 14.1L8.8 18.6C10.1 19.9 11.8 20.5 13.6 20.5H16.8C18.8 20.5 20.5 18.8 20.5 16.8V13.5C20.5 12.7 19.8 12 19 12C18.7 12 18.5 12.1 18.3 12.2C18 11.5 17.3 11 16.5 11C16.3 11 16.1 11 15.9 11.1C15.6 10.4 14.8 10 14 10C13.7 10 13.5 10.1 13.3 10.2V5.5C13.3 4.7 12.6 4 11.8 4C11.5 4 11.2 4.1 11 4.3C10.7 4.1 10.4 4 10.1 4H9.5Z' fill='%2333FF66' stroke='%23050A05' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M9.5 6.5V11.5' stroke='%2385FF9E' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E") 9 3, pointer !important;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M9 3C8.2 3 7.5 3.7 7.5 4.5V12.5L6.2 11.2C5.5 10.5 4.4 10.5 3.7 11.2C3 11.9 3 13 3.7 13.7L8.5 18.5C9.8 19.8 11.6 20.5 13.5 20.5H16.5C18.4 20.5 20 18.9 20 17V13C20 12.2 19.3 11.5 18.5 11.5C18.2 11.5 17.9 11.6 17.7 11.8C17.4 11 16.6 10.5 15.7 10.5C15.4 10.5 15.1 10.6 14.8 10.7C14.5 10 13.7 9.5 12.8 9.5C12.5 9.5 12.2 9.6 12 9.7V4.5C12 3.7 11.3 3 10.5 3H9Z' fill='%2333FF66' stroke='%23050A05' stroke-width='1.6' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") 8 3, pointer !important;
 }
 
 /* Text Selection and Input Cursors in CRT Theme */
@@ -725,7 +736,7 @@ html.synthwave h3,
 html.synthwave aside,
 html.synthwave nav,
 html.synthwave header {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M5.5 3.5C4.7 2.8 3.5 3.4 3.5 4.5V17.8C3.5 18.9 4.8 19.5 5.6 18.7L9.2 15.2C9.6 14.8 10.1 14.7 10.6 14.8L15.4 16.2C16.5 16.5 17.3 15.4 16.7 14.5L5.5 3.5Z' fill='%23FF2A85' stroke='%23080511' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M6.2 6.8V14.2L8.8 11.7C9.3 11.2 10.1 11 10.8 11.2L13.2 11.9L6.2 6.8Z' fill='%2300F0FF' opacity='0.85' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 3 2, auto;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M4 3.5L4 18.5L8.5 14L12.5 19.5L14.8 18L10.5 12.8L16.5 12.8L4 3.5Z' fill='%23FF2A85' stroke='%23080511' stroke-width='1.8' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M5.5 6L5.5 14L8 11.5L11 11.5L5.5 6Z' fill='%2300F0FF' opacity='0.8'/%3E%3C/svg%3E") 4 3, auto;
 }
 
 /* Interactive Clickable Elements: Synthwave Pointer Cursor */
@@ -738,7 +749,7 @@ html.synthwave input[type='submit'],
 html.synthwave select,
 html.synthwave [role='button'],
 html.synthwave label {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26' fill='none'%3E%3Cpath d='M9.5 4C8.7 4 8 4.7 8 5.5V12.8L6.8 11.6C6.1 10.9 5 10.9 4.3 11.6C3.6 12.3 3.6 13.4 4.3 14.1L8.8 18.6C10.1 19.9 11.8 20.5 13.6 20.5H16.8C18.8 20.5 20.5 18.8 20.5 16.8V13.5C20.5 12.7 19.8 12 19 12C18.7 12 18.5 12.1 18.3 12.2C18 11.5 17.3 11 16.5 11C16.3 11 16.1 11 15.9 11.1C15.6 10.4 14.8 10 14 10C13.7 10 13.5 10.1 13.3 10.2V5.5C13.3 4.7 12.6 4 11.8 4C11.5 4 11.2 4.1 11 4.3C10.7 4.1 10.4 4 10.1 4H9.5Z' fill='%23FF2A85' stroke='%23080511' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M9.5 6.5V11.5' stroke='%2300F0FF' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E") 9 3, pointer !important;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M9 3C8.2 3 7.5 3.7 7.5 4.5V12.5L6.2 11.2C5.5 10.5 4.4 10.5 3.7 11.2C3 11.9 3 13 3.7 13.7L8.5 18.5C9.8 19.8 11.6 20.5 13.5 20.5H16.5C18.4 20.5 20 18.9 20 17V13C20 12.2 19.3 11.5 18.5 11.5C18.2 11.5 17.9 11.6 17.7 11.8C17.4 11 16.6 10.5 15.7 10.5C15.4 10.5 15.1 10.6 14.8 10.7C14.5 10 13.7 9.5 12.8 9.5C12.5 9.5 12.2 9.6 12 9.7V4.5C12 3.7 11.3 3 10.5 3H9Z' fill='%23FF2A85' stroke='%23080511' stroke-width='1.6' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M9 5V11' stroke='%2300F0FF' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E") 8 3, pointer !important;
 }
 
 /* Text Selection and Input Cursors in Synthwave Theme */
@@ -760,33 +771,41 @@ html.synthwave ::selection {
 
 /* SaaS Frosted Glass Surfaces */
 html.saas .bg-app-surface {
-  background-color: rgba(18, 24, 41, 0.72) !important;
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: linear-gradient(135deg, rgba(18, 24, 43, 0.75) 0%, rgba(13, 17, 32, 0.85) 100%) !important;
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.15), 0 8px 32px 0 rgba(0, 0, 0, 0.35) !important;
 }
 
 html.saas .bg-app-elevated {
-  background-color: rgba(24, 32, 53, 0.65) !important;
+  background: linear-gradient(135deg, rgba(24, 33, 58, 0.70) 0%, rgba(16, 22, 40, 0.80) 100%) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.20), 0 12px 40px 0 rgba(0, 0, 0, 0.45) !important;
+}
+
+html.saas .bg-app-input {
+  background: rgba(10, 15, 29, 0.65) !important;
   backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.10) !important;
 }
 
 /* SaaS Glassmorphic Primary Buttons with Glow & Inner Highlight Bevel */
 html.saas .btn-primary {
-  background: linear-gradient(135deg, rgba(49, 94, 255, 0.95) 0%, rgba(37, 75, 219, 0.98) 100%) !important;
+  background: linear-gradient(135deg, rgba(49, 94, 255, 0.92) 0%, rgba(30, 68, 219, 0.98) 100%) !important;
   color: #FFFFFF !important;
-  border: 1px solid rgba(255, 255, 255, 0.22) !important;
-  box-shadow: 0 0 20px rgba(49, 94, 255, 0.38), inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.45), 0 0 24px rgba(49, 94, 255, 0.45), 0 4px 12px rgba(0, 0, 0, 0.3) !important;
   font-weight: 600 !important;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(12px);
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 html.saas .btn-primary:hover {
-  background: linear-gradient(135deg, #4470FF 0%, #315EFF 100%) !important;
-  box-shadow: 0 0 26px rgba(49, 94, 255, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.45) !important;
+  background: linear-gradient(135deg, #4873FF 0%, #315EFF 100%) !important;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.60), 0 0 30px rgba(49, 94, 255, 0.65), 0 6px 16px rgba(0, 0, 0, 0.4) !important;
   transform: translateY(-1px);
 }
 
@@ -797,18 +816,20 @@ html.saas .btn-primary:active {
 /* SaaS Secondary Glass Buttons */
 html.saas button.border,
 html.saas .wireframe-btn {
-  background: rgba(255, 255, 255, 0.04) !important;
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.10) !important;
   color: #F8FAFC !important;
   transition: all 0.15s ease !important;
 }
 
 html.saas button.border:hover,
 html.saas .wireframe-btn:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(49, 94, 255, 0.4) !important;
-  box-shadow: 0 0 12px rgba(49, 94, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.10) !important;
+  border-color: rgba(49, 94, 255, 0.5) !important;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.20), 0 0 16px rgba(49, 94, 255, 0.25) !important;
 }
 
 /* SaaS Modern Logo Filter - Electric Indigo Glow */
@@ -829,7 +850,7 @@ html.saas h3,
 html.saas aside,
 html.saas nav,
 html.saas header {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M5.5 3.5C4.7 2.8 3.5 3.4 3.5 4.5V17.8C3.5 18.9 4.8 19.5 5.6 18.7L9.2 15.2C9.6 14.8 10.1 14.7 10.6 14.8L15.4 16.2C16.5 16.5 17.3 15.4 16.7 14.5L5.5 3.5Z' fill='%23315EFF' stroke='%23050811' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M6.2 6.8V14.2L8.8 11.7C9.3 11.2 10.1 11 10.8 11.2L13.2 11.9L6.2 6.8Z' fill='%2385A2FF' opacity='0.85' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 3 2, auto;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M4 3.5L4 18.5L8.5 14L12.5 19.5L14.8 18L10.5 12.8L16.5 12.8L4 3.5Z' fill='%23315EFF' stroke='%23FFFFFF' stroke-width='1.6' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") 4 3, auto;
 }
 
 /* Interactive Clickable Elements: SaaS Pointer Cursor */
@@ -842,7 +863,7 @@ html.saas input[type='submit'],
 html.saas select,
 html.saas [role='button'],
 html.saas label {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26' fill='none'%3E%3Cpath d='M9.5 4C8.7 4 8 4.7 8 5.5V12.8L6.8 11.6C6.1 10.9 5 10.9 4.3 11.6C3.6 12.3 3.6 13.4 4.3 14.1L8.8 18.6C10.1 19.9 11.8 20.5 13.6 20.5H16.8C18.8 20.5 20.5 18.8 20.5 16.8V13.5C20.5 12.7 19.8 12 19 12C18.7 12 18.5 12.1 18.3 12.2C18 11.5 17.3 11 16.5 11C16.3 11 16.1 11 15.9 11.1C15.6 10.4 14.8 10 14 10C13.7 10 13.5 10.1 13.3 10.2V5.5C13.3 4.7 12.6 4 11.8 4C11.5 4 11.2 4.1 11 4.3C10.7 4.1 10.4 4 10.1 4H9.5Z' fill='%23315EFF' stroke='%23050811' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M9.5 6.5V11.5' stroke='%2385A2FF' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E") 9 3, pointer !important;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M9 3C8.2 3 7.5 3.7 7.5 4.5V12.5L6.2 11.2C5.5 10.5 4.4 10.5 3.7 11.2C3 11.9 3 13 3.7 13.7L8.5 18.5C9.8 19.8 11.6 20.5 13.5 20.5H16.5C18.4 20.5 20 18.9 20 17V13C20 12.2 19.3 11.5 18.5 11.5C18.2 11.5 17.9 11.6 17.7 11.8C17.4 11 16.6 10.5 15.7 10.5C15.4 10.5 15.1 10.6 14.8 10.7C14.5 10 13.7 9.5 12.8 9.5C12.5 9.5 12.2 9.6 12 9.7V4.5C12 3.7 11.3 3 10.5 3H9Z' fill='%23315EFF' stroke='%23FFFFFF' stroke-width='1.5' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") 8 3, pointer !important;
 }
 
 /* Text Selection and Input Cursors in SaaS Theme */
