@@ -612,6 +612,15 @@ class AmbientBackgroundManager {
       instanceCount: 4200
     };
 
+    // Dedicated Fullscreen Quad Vertex Shader for WebGL 1/2 Quad Renderers
+    const quadVsSource = `
+      attribute vec2 position;
+      void main() {
+        gl_Position = vec4(position, 0.0, 1.0);
+      }
+    `;
+    const quadVs = createShader(gl.VERTEX_SHADER, quadVsSource);
+
     // Compile Dark Mode Celestial Aurora SideRays Shader Program
     const auroraFsSource = `
       precision highp float;
@@ -663,9 +672,9 @@ class AmbientBackgroundManager {
     `;
 
     const auroraFs = createShader(gl.FRAGMENT_SHADER, auroraFsSource);
-    if (auroraFs) {
+    if (auroraFs && quadVs) {
       const auroraProgram = gl.createProgram();
-      gl.attachShader(auroraProgram, vs);
+      gl.attachShader(auroraProgram, quadVs);
       gl.attachShader(auroraProgram, auroraFs);
       gl.linkProgram(auroraProgram);
       if (gl.getProgramParameter(auroraProgram, gl.LINK_STATUS)) {
@@ -675,6 +684,8 @@ class AmbientBackgroundManager {
           res: gl.getUniformLocation(auroraProgram, 'u_resolution'),
           time: gl.getUniformLocation(auroraProgram, 'u_time')
         };
+      } else {
+        console.error('Aurora Program link error:', gl.getProgramInfoLog(auroraProgram));
       }
     }
 
@@ -787,9 +798,9 @@ class AmbientBackgroundManager {
     `;
 
     const snowFs = createShader(gl.FRAGMENT_SHADER, snowFsSource);
-    if (snowFs) {
+    if (snowFs && quadVs) {
       const snowProgram = gl.createProgram();
-      gl.attachShader(snowProgram, vs);
+      gl.attachShader(snowProgram, quadVs);
       gl.attachShader(snowProgram, snowFs);
       gl.linkProgram(snowProgram);
       if (gl.getProgramParameter(snowProgram, gl.LINK_STATUS)) {
@@ -799,6 +810,8 @@ class AmbientBackgroundManager {
           res: gl.getUniformLocation(snowProgram, 'u_resolution'),
           time: gl.getUniformLocation(snowProgram, 'u_time')
         };
+      } else {
+        console.error('Snow Program link error:', gl.getProgramInfoLog(snowProgram));
       }
     }
 
@@ -1007,9 +1020,9 @@ class AmbientBackgroundManager {
     `;
 
     const crtFs = createShader(gl.FRAGMENT_SHADER, crtFsSource);
-    if (crtFs) {
+    if (crtFs && quadVs) {
       const crtProgram = gl.createProgram();
-      gl.attachShader(crtProgram, vs);
+      gl.attachShader(crtProgram, quadVs);
       gl.attachShader(crtProgram, crtFs);
       gl.linkProgram(crtProgram);
       if (gl.getProgramParameter(crtProgram, gl.LINK_STATUS)) {
@@ -1037,6 +1050,8 @@ class AmbientBackgroundManager {
           uBrightness: gl.getUniformLocation(crtProgram, 'uBrightness'),
           uLightMode: gl.getUniformLocation(crtProgram, 'uLightMode')
         };
+      } else {
+        console.error('CRT Program link error:', gl.getProgramInfoLog(crtProgram));
       }
     }
 
@@ -1526,6 +1541,7 @@ class AmbientBackgroundManager {
         } else if (this.instancedExt) {
           this.instancedExt.drawArraysInstancedANGLE(gl.TRIANGLES, 0, 6, s.instanceCount);
         }
+        if (gl.bindVertexArray) gl.bindVertexArray(null);
 
         this.animationFrameId = requestAnimationFrame(render);
         return;
@@ -1536,6 +1552,11 @@ class AmbientBackgroundManager {
         const gl = this.gl;
         const s = this.auroraShader;
         gl.viewport(0, 0, this.width, this.height);
+        if (gl.bindVertexArray) gl.bindVertexArray(null);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         gl.useProgram(s.program);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
@@ -1555,6 +1576,11 @@ class AmbientBackgroundManager {
         const gl = this.gl;
         const s = this.snowShader;
         gl.viewport(0, 0, this.width, this.height);
+        if (gl.bindVertexArray) gl.bindVertexArray(null);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         gl.useProgram(s.program);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
@@ -1577,6 +1603,11 @@ class AmbientBackgroundManager {
         const gl = this.gl;
         const s = this.crtShader;
         gl.viewport(0, 0, this.width, this.height);
+        if (gl.bindVertexArray) gl.bindVertexArray(null);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.useProgram(s.program);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
