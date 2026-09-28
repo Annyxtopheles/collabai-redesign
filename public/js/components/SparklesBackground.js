@@ -56,10 +56,28 @@ class AmbientBackgroundManager {
       else if (this.currentMode === 'pink_sakura') this.createPetals();
     });
 
-    window.addEventListener('mousemove', (e) => {
-      this.targetMouseX = e.clientX;
-      this.targetMouseY = e.clientY;
+    const updatePointer = (clientX, clientY) => {
+      if (typeof clientX === 'number') this.targetMouseX = clientX;
+      if (typeof clientY === 'number') this.targetMouseY = clientY;
+    };
+
+    window.addEventListener('pointermove', (e) => {
+      updatePointer(e.clientX, e.clientY);
     }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+      if (e.touches && e.touches[0]) {
+        updatePointer(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        this.stop();
+      } else if (this.currentMode) {
+        this.start();
+      }
+    });
 
     this.checkThemeState();
   }
@@ -1073,14 +1091,19 @@ class AmbientBackgroundManager {
   resize() {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
+    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+
     if (this.canvas) {
-      this.canvas.width = this.width;
-      this.canvas.height = this.height;
+      this.canvas.width = Math.floor(this.width * this.dpr);
+      this.canvas.height = Math.floor(this.height * this.dpr);
+      if (this.ctx) {
+        this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+      }
     }
     if (this.webglCanvas) {
-      this.webglCanvas.width = this.width;
-      this.webglCanvas.height = this.height;
-      if (this.gl) this.gl.viewport(0, 0, this.width, this.height);
+      this.webglCanvas.width = Math.floor(this.width * this.dpr);
+      this.webglCanvas.height = Math.floor(this.height * this.dpr);
+      if (this.gl) this.gl.viewport(0, 0, this.webglCanvas.width, this.webglCanvas.height);
     }
   }
 
@@ -1501,7 +1524,7 @@ class AmbientBackgroundManager {
 
         const gl = this.gl;
         const s = this.saasShader;
-        gl.viewport(0, 0, this.width, this.height);
+        gl.viewport(0, 0, this.webglCanvas.width, this.webglCanvas.height);
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.enable(gl.BLEND);
@@ -1551,7 +1574,7 @@ class AmbientBackgroundManager {
         // --- GPU WebGL Celestial Aurora SideRays ---
         const gl = this.gl;
         const s = this.auroraShader;
-        gl.viewport(0, 0, this.width, this.height);
+        gl.viewport(0, 0, this.webglCanvas.width, this.webglCanvas.height);
         if (gl.bindVertexArray) gl.bindVertexArray(null);
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
@@ -1563,7 +1586,7 @@ class AmbientBackgroundManager {
         gl.enableVertexAttribArray(s.pos);
         gl.vertexAttribPointer(s.pos, 2, gl.FLOAT, false, 0, 0);
 
-        gl.uniform2f(s.res, this.width, this.height);
+        gl.uniform2f(s.res, this.webglCanvas.width, this.webglCanvas.height);
         gl.uniform1f(s.time, time * 0.001);
 
         gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -1575,7 +1598,7 @@ class AmbientBackgroundManager {
         // --- GPU WebGL Pixel Snow 3D Voxel Flakes ---
         const gl = this.gl;
         const s = this.snowShader;
-        gl.viewport(0, 0, this.width, this.height);
+        gl.viewport(0, 0, this.webglCanvas.width, this.webglCanvas.height);
         if (gl.bindVertexArray) gl.bindVertexArray(null);
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
@@ -1587,7 +1610,7 @@ class AmbientBackgroundManager {
         gl.enableVertexAttribArray(s.pos);
         gl.vertexAttribPointer(s.pos, 2, gl.FLOAT, false, 0, 0);
 
-        gl.uniform2f(s.res, this.width, this.height);
+        gl.uniform2f(s.res, this.webglCanvas.width, this.webglCanvas.height);
         gl.uniform1f(s.time, time * 0.001);
 
         gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -1602,7 +1625,7 @@ class AmbientBackgroundManager {
 
         const gl = this.gl;
         const s = this.crtShader;
-        gl.viewport(0, 0, this.width, this.height);
+        gl.viewport(0, 0, this.webglCanvas.width, this.webglCanvas.height);
         if (gl.bindVertexArray) gl.bindVertexArray(null);
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
@@ -1615,7 +1638,7 @@ class AmbientBackgroundManager {
         gl.vertexAttribPointer(s.pos, 2, gl.FLOAT, false, 0, 0);
 
         gl.uniform1f(s.iTime, time * 0.001);
-        gl.uniform3f(s.iResolution, this.width, this.height, this.width / this.height);
+        gl.uniform3f(s.iResolution, this.webglCanvas.width, this.webglCanvas.height, this.width / this.height);
         gl.uniform1f(s.uScale, 1.0);
         gl.uniform2f(s.uGridMul, 2.0, 1.0);
         gl.uniform1f(s.uDigitSize, 1.5);

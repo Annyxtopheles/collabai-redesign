@@ -318,10 +318,57 @@ document.addEventListener('click', (e) => {
 });
 
 window.addEventListener('keydown', (e) => {
-  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+  // Cmd/Ctrl + K: Focus Search
+  if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
     e.preventDefault();
     const searchInput = document.getElementById('sidebar-search-input') || document.getElementById('dashboard-composer-input') || document.getElementById('chat-textarea-input');
     if (searchInput) searchInput.focus();
+    return;
+  }
+
+  // Cmd/Ctrl + N: New Chat
+  if ((e.metaKey || e.ctrlKey) && (e.key === 'n' || e.key === 'N') && !e.shiftKey && !e.altKey) {
+    e.preventDefault();
+    if (typeof startNewChat === 'function') {
+      startNewChat();
+    } else {
+      appStore.navigate('/');
+    }
+    return;
+  }
+
+  // Cmd/Ctrl + /: Jump Focus to Prompt Composer
+  if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+    e.preventDefault();
+    const composer = document.getElementById('chat-textarea-input') || document.getElementById('dashboard-composer-input');
+    if (composer) {
+      composer.focus();
+      composer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return;
+  }
+
+  // Escape: Dismiss open modals and floating dropdown menus
+  if (e.key === 'Escape') {
+    // 1. Close Plus Menu dropdowns
+    const chatPlusMenu = document.getElementById('chat-plus-menu');
+    if (chatPlusMenu && !chatPlusMenu.classList.contains('hidden')) {
+      chatPlusMenu.classList.add('hidden');
+    }
+    const dashPlusMenu = document.getElementById('dashboard-plus-menu');
+    if (dashPlusMenu && !dashPlusMenu.classList.contains('hidden')) {
+      dashPlusMenu.classList.add('hidden');
+    }
+    // 2. Close Model Selector dropdown
+    const modelDropdown = document.getElementById('model-selector-dropdown');
+    if (modelDropdown && !modelDropdown.classList.contains('hidden')) {
+      modelDropdown.classList.add('hidden');
+    }
+    // 3. Close open modal if active
+    const modalContainer = document.getElementById('modal-container');
+    if (modalContainer && modalContainer.children.length > 0) {
+      modalContainer.innerHTML = '';
+    }
   }
 });
 

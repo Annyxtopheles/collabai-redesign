@@ -1055,17 +1055,25 @@ html.saas .border-glow-card > .edge-light {
   pointer-events: none;
 }
 
-/* Hide glow on inactive hover */
-html.dark .border-glow-card:not(:hover):not(.sweep-active)::before,
-html.dark .border-glow-card:not(:hover):not(.sweep-active) > .edge-light,
-html.crt .border-glow-card:not(:hover):not(.sweep-active)::before,
-html.crt .border-glow-card:not(:hover):not(.sweep-active) > .edge-light,
-html.synthwave .border-glow-card:not(:hover):not(.sweep-active)::before,
-html.synthwave .border-glow-card:not(:hover):not(.sweep-active) > .edge-light,
-html.saas .border-glow-card:not(:hover):not(.sweep-active)::before,
-html.saas .border-glow-card:not(:hover):not(.sweep-active) > .edge-light {
+/* Hide glow on inactive hover (unless typing or active) */
+html.dark .border-glow-card:not(:hover):not(:focus-within):not(.sweep-active)::before,
+html.dark .border-glow-card:not(:hover):not(:focus-within):not(.sweep-active) > .edge-light,
+html.crt .border-glow-card:not(:hover):not(:focus-within):not(.sweep-active)::before,
+html.crt .border-glow-card:not(:hover):not(:focus-within):not(.sweep-active) > .edge-light,
+html.synthwave .border-glow-card:not(:hover):not(:focus-within):not(.sweep-active)::before,
+html.synthwave .border-glow-card:not(:hover):not(:focus-within):not(.sweep-active) > .edge-light,
+html.saas .border-glow-card:not(:hover):not(:focus-within):not(.sweep-active)::before,
+html.saas .border-glow-card:not(:hover):not(:focus-within):not(.sweep-active) > .edge-light {
   opacity: 0;
   transition: opacity 0.75s ease-in-out;
+}
+
+/* Steady illumination when typing in the composer */
+.border-glow-card:focus-within::before {
+  opacity: 0.85 !important;
+}
+.border-glow-card:focus-within > .edge-light {
+  opacity: 0.95 !important;
 }
 
 /* Colored mesh-gradient border (Edge Only) */

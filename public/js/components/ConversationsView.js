@@ -263,8 +263,7 @@ function renderChatMessageBubble(msg) {
   }
 
   // AI Assistant message: Clean, Selectable, Compact Headings
-  const cleanContent = (msg.content || '').replace(/\n---+\n/g, '\n\n');
-  const parsedMarkdown = marked.parse(cleanContent);
+  const parsedMarkdown = formatAssistantMarkdown(msg.content);
   const hasSources = msg.sources && msg.sources.length > 0;
   const hasSuggestions = msg.suggestions && msg.suggestions.length > 0;
 
@@ -419,13 +418,16 @@ function triggerConversationStreaming(convId, userPrompt) {
       renderScheduled = true;
       requestAnimationFrame(() => {
         renderScheduled = false;
-        const cleanText = accumulatedContent.replace(/\n---+\n/g, '\n\n');
         liveBubble.innerHTML = `
           <div class="prose-open">
-            ${marked.parse(cleanText)}
+            ${formatAssistantMarkdown(accumulatedContent)}
           </div>
         `;
-        container.scrollTop = container.scrollHeight;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        const isNearBottom = (container.scrollHeight - container.scrollTop - container.clientHeight) < 140;
+        if (isNearBottom) {
+          container.scrollTop = container.scrollHeight;
+        }
       });
     }
 
@@ -492,4 +494,57 @@ function triggerConversationStreaming(convId, userPrompt) {
 function escapeHtml(string) {
   const entityMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
   return String(string).replace(/[&<>"']/g, s => entityMap[s]);
+}
+
+window.copyCodeBlock = function(btn) {
+  const container = btn.closest('.code-block-card');
+  if (!container) return;
+  const codeElem = container.querySelector('code');
+  if (!codeElem) return;
+  const text = codeElem.innerText || codeElem.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const label = btn.querySelector('.copy-label');
+    const icon = btn.querySelector('i');
+    if (label) label.textContent = 'Copied!';
+    if (icon) {
+      icon.setAttribute('data-lucide', 'check');
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+    if (typeof showToast === 'function') showToast('Code copied to clipboard');
+    setTimeout(() => {
+      if (label) label.textContent = 'Copy';
+      if (icon) {
+        icon.setAttribute('data-lucide', 'copy');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      }
+    }, 2000);
+  }).catch(() => {
+    if (typeof showToast === 'function') showToast('Failed to copy code', 'error');
+  });
+};
+
+function formatAssistantMarkdown(content) {
+  const cleanContent = (content || '').replace(/\n---+\n/g, '\n\n');
+  if (typeof marked === 'undefined') return escapeHtml(cleanContent);
+
+  const html = marked.parse(cleanContent);
+  return html.replace(/<pre><code(?:\s+class="language-([^"]*)")?>([\s\S]*?)<\/code><\/pre>/gi, (match, lang, code) => {
+    const displayLang = (lang || 'code').trim().toUpperCase();
+    return `
+      <div class="code-block-card my-3.5 rounded-xl border border-app-borderSubtle bg-app-input overflow-hidden text-left shadow-sm">
+        <div class="flex items-center justify-between px-3.5 py-1.5 bg-app-surface border-b border-app-borderSubtle text-app-textMuted text-[11.5px] font-mono select-none">
+          <span class="font-medium tracking-wide text-app-textSecondary">${displayLang}</span>
+          <button 
+            type="button" 
+            onclick="copyCodeBlock(this)" 
+            class="flex items-center gap-1.5 text-app-textSecondary hover:text-app-textPrimary px-2 py-0.5 rounded hover:bg-app-hover transition-colors" 
+            title="Copy code">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span class="copy-label text-[11.5px]">Copy</span>
+          </button>
+        </div>
+        <pre class="p-3.5 overflow-x-auto text-[12.5px] font-mono leading-relaxed text-app-textPrimary"><code>${code}</code></pre>
+      </div>
+    `;
+  });
 }
